@@ -1,17 +1,7 @@
 ---
-
+import BaseLayout from '/src/layouts/BaseLayout.astro';
+const pageTitle = 'rowan.fyi';
 ---
-<!DOCTYPE html>
-<html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>">
-<title>rowan.fyi</title>
-<style></style>
-<h1>rowan.fyi</h1>
-<p>It's a home page.</p>
-<ul>
-	<li><a href="/">Home</a></li>
-	<li><a href="/projects">Projects</a></li>
-	<li><a href="/blog">Blog</a></li>
-</ul>
+<BaseLayout pageTitle={pageTitle}>
+	<p>It's a home page.</p>
+</BaseLayout>
