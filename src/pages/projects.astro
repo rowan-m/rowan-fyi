@@ -1,0 +1,9 @@
+---
+import BaseLayout from '/src/layouts/BaseLayout.astro';
+
+const pageTitle = 'Projects';
+const projects = Object.values(import.meta.glob('./projects/*.md', { eager: true }));
+---
+<BaseLayout pageTitle={pageTitle}>
+	{projects.map((project: any) => <li><a href={project.url}>{project.frontmatter.title}</a></li>)}
+</BaseLayout>
