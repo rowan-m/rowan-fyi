@@ -1,0 +1,109 @@
+body {
+  font-family: "Noto Emoji", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-optical-sizing: auto;
+  background-color: hsl(206, 65%, 5%);
+  color: #9facbd;
+  margin: 0;
+  padding: 0;
+}
+
+header,
+footer {
+  background-color: hsl(206, 65%, 15%);
+  font-family: "Share Tech", "Noto Emoji", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-optical-sizing: auto;
+  text-transform: lowercase;
+  font-size: 1.5rem;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  border-block-end: #6c7888 solid 1px;
+  padding-block: .5rem;
+}
+
+footer {
+  border-block-start: #6c7888 solid 1px;
+  padding-block: 1rem;
+}
+
+header,
+main,
+footer {
+  padding-inline: max(1rem, calc((100vw - 800px)/2));
+}
+
+header .logo {
+  fill: #9facbd;
+  line-height: 0;
+}
+
+header .logo svg {
+  width: 10rem;
+  display: inline;
+}
+
+header nav {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+header a,
+footer a,
+header a:visited,
+footer a:visited {
+  color: hsl(214, 19%, 68%);
+  text-decoration: none;
+}
+
+header a:active,
+footer a:active,
+header a:hover,
+footer a:hover {
+  color: hsl(214, 19%, 88%);
+  fill: hsl(214, 19%, 88%);
+  text-decoration: underline #623246;
+}
+
+main {
+  padding-block: 1rem;
+}
+
+h1 {
+  color: #9facbd;
+  margin-top: .2rem;
+  margin-bottom: .2rem;
+  font-family: "Share Tech", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  /* text-transform: uppercase; */
+}
+
+main a,
+main a:visited {
+  color: #9facbd;
+}
+
+main a:active,
+main a:hover {
+  color: #9facbd;
+}
+
+footer .socials {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-end;
+  gap: 1rem;
+}

@@ -1,16 +1,35 @@
 ---
+import Logo from "@public/img/logo.svg";
 const { pageTitle } = Astro.props;
 ---
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>">
-<link rel="stylesheet" href="/css/water.css">
+<link rel="icon" href="/img/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Emoji&family=Share+Tech&display=swap">
+<link rel="stylesheet" href="/css/base.css">
 <title>{pageTitle}</title>
 <header>
-    <h1>{pageTitle}</h1>
+  <nav>
+    <a href="/" class="logo"><Logo /></a>
+    <a href="/posts/">Posts</a>
+    <a href="/projects/">Projects</a>
+  </nav>
 </header>
 <main>
-    <slot></slot>
+  <h1>{pageTitle}</h1>
+  <slot />
 </main>
+<footer>
+  <span class="socials">
+    <a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky">🦋</a>
+    <a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon">🦣</a>
+    <a href="https://glitch.com/@rowan-m" title="rowan-m on Glitch">🐟</a>
+    <a href="https://github.com/rowan-m/" title="rowan-m on GitHub">🐙</a>
+    <a href="https://www.threads.net/@rowan_m" title="@rowan_m on Threads">🧵</a>
+    <a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn">👔</a>
+  </span>
+</footer>
