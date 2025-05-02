@@ -4,6 +4,7 @@ const { frontmatter } = Astro.props;
 ---
 
 <BaseLayout pageTitle={frontmatter.title}>
+  <a href={frontmatter.location} target="_blank"><strong>↱</strong>Open in new tab</a>
   <iframe src={frontmatter.location} title={frontmatter.title}> </iframe>
   <slot />
 </BaseLayout>
