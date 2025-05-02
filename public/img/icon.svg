@@ -1,17 +1,18 @@
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0, 0, 40, 40">
-  <path d="
+  <rect width="40" height="40" fill="hsl(206, 65%, 15%)"/>
+  <path fill="hsl(214, 19%, 68%)" d="
   M  05 05
   h  30
-  v  05
-  h -25
-  v  25
-  h -05
+  v  07
+  h -23
+  v  23
+  h -07
   z
 
-  M  30 30
-  h  05
-  v  05
-  h -05
+  M  28 28
+  h  07
+  v  07
+  h -07
   z
   " />
 </svg>
