@@ -1,0 +1,25 @@
+{
+  "short_name": "rowan.fyi",
+  "name": "rowan.fyi",
+  "description": "Personal site for Rowan Merewood featuring projects and semi-regular posts.",
+  "icons": [
+    {
+      "src": "/img/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0d2a3f",
+  "background_color": "#040e15"
+}
