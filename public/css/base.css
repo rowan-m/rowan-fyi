@@ -1,6 +1,6 @@
 :root {
   color-scheme: light dark;
-  --main-bg: light-dark(hsl(214, 19%, 80%), hsl(206, 65%, 5%));
+  --main-bg: light-dark(hsl(214, 40%, 90%), hsl(206, 65%, 5%));
   --main-fg: light-dark(hsl(206, 65%, 5%), hsl(214, 19%, 68%));
   --sec-bg: light-dark(hsl(206, 65%, 15%), hsl(206, 65%, 15%));
   --sec-fg: light-dark(hsl(214, 19%, 68%), hsl(214, 19%, 68%));
@@ -11,7 +11,7 @@
 }
 
 body {
-  font-family: "Noto Emoji", sans-serif;
+  font-family: sans-serif;
   font-weight: 400;
   font-style: normal;
   font-optical-sizing: auto;
@@ -94,16 +94,56 @@ main {
   padding-block: 1rem;
 }
 
-h1 {
-  color: var(--main-fg);
-  margin-top: .2rem;
-  margin-bottom: .2rem;
+.under-construction {
+  background-color: hsl(39, 77%, 73%);
+  color: hsl(39, 77%, 10%);
+  border: 3px dashed hsl(39, 100%, 53%);
+  padding-inline: 1rem;
+  text-align: center;
   font-family: "Share Tech", sans-serif;
   font-weight: 400;
   font-style: normal;
-  /* text-transform: uppercase; */
+  font-weight: 500;
 }
 
+.under-construction a, .under-construction a:active, .under-construction a:hover, .under-construction a:visited {
+  color: hsl(39, 77%, 10%);
+}
+
+.under-construction span {
+  animation: rotate 2.5s linear infinite;
+  display: inline-block;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  70% {
+    transform: rotate(0deg) scale(1);
+  }
+  85% {
+    transform: rotate(180deg) scale(4);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+h1, h2 {
+  color: var(--main-fg);
+  font-family: "Share Tech", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+h1 {
+  margin-block: .2rem;
+}
+
+h2 {
+  margin-block: 0;
+}
 main a,
 main a:visited {
   color: var(--main-fg);
@@ -119,4 +159,39 @@ footer .socials {
   flex-flow: row nowrap;
   justify-content: flex-end;
   gap: 1rem;
+}
+
+.projects {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 1rem;
+  justify-content: flex-start;
+}
+
+.projects .card {
+  width: 100%;
+  max-width: 20rem;
+}
+
+.card img {
+  width: 100%;
+  max-height: 13rem;
+  object-fit: cover;
+}
+
+iframe {
+  border: 1px solid var(--sec-accent);
+  padding: 0.25rem;
+  margin-inline: 0;
+  margin-block: 0.25rem;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+img {
+  object-fit: contain;
+  max-width: 100%;
+  height: auto;
 }

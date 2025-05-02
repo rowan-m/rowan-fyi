@@ -1,12 +1,9 @@
 ---
-import BaseLayout from 'src/layouts/BaseLayout.astro';
+import BaseLayout from "src/layouts/BaseLayout.astro";
 const { frontmatter } = Astro.props;
 ---
+
 <BaseLayout pageTitle={frontmatter.title}>
-    <iframe 
-    src={frontmatter.location} 
-    title={frontmatter.title} 
-    height="500px" 
-    width="100%"></iframe>
+  <iframe src={frontmatter.location} title={frontmatter.title}> </iframe>
   <slot />
 </BaseLayout>

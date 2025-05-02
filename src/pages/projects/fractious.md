@@ -1,7 +1,9 @@
 ---
 layout: /src/layouts/MarkdownProjectLayout.astro
-title: 'Fractious'
-location: 'https://fractious.glitch.me/' 
+title: Fractious
+location: https://fractious.glitch.me/
+preview: ./images/fractious.png
+teaser: A WebGL-based viewer for the Mandelbrot set.
 ---
 A WebGL-based viewer for the Mandelbrot set. This is cobbled together from a variety of sources
 
