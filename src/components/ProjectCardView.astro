@@ -12,7 +12,7 @@ const { project } = Astro.props;
 
   <a href={"/projects/" + project.id}>
     <Image
-      src={project.data.preview}
+      src={project.data.image}
       alt="Preview"
       width="400"
     />
@@ -20,6 +20,6 @@ const { project } = Astro.props;
   <a href={"/projects/" + project.id}>
     <h2>{project.data.title}</h2>
   </a>
-  <p>{project.data.teaser}</p>
+  <p>{project.data.description}</p>
 </div>
 
