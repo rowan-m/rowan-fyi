@@ -3,9 +3,7 @@ layout: src/layouts/MarkdownPostLayout.astro
 title: 'Building Rotavo part 2: Form and function'
 pubDate: 2019-07-19
 description: How to build a touch-sensitive rotating knob web component.
-image:
-  url: './images/35mw7wcsbhby9g6nih32.png'
-  alt: 'Building Rotavo'
+image: ./images/0xs99uvmp539mke9v2pm.png
 tags: ["rotavo"]
 ---
 _This is the second in a series of posts detailing how I built the_ [🥑 _Rotavo PWA_](https://bit.ly/rotavo-pwa)_. Give it a whirl and see what you can draw!_

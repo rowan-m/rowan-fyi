@@ -1,11 +1,18 @@
 ---
+import PostCardView from "@components/PostCardView.astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
-const allPosts = Object.values(import.meta.glob('./posts/*/*.md', { eager: true }));
+import { getCollection } from "astro:content";
+
+const posts = await getCollection("posts");
 
 ---
 
 <BaseLayout title="Posts" description="Posts by Rowan Merewood">
 <section class="posts">
-  {allPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+{
+  posts.map((post) => (
+    <PostCardView post={post} />
+  ))
+}
 </section>
 </BaseLayout>

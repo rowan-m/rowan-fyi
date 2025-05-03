@@ -3,9 +3,7 @@ layout: src/layouts/MarkdownPostLayout.astro
 title: 'Building Rotavo part 1: You spin me right r⟳und'
 pubDate: 2019-07-08
 description: How to build a touch-sensitive rotating knob web component.
-image:
-  url: './images/0xs99uvmp539mke9v2pm.png'
-  alt: 'Building Rotavo'
+image: ./images/0xs99uvmp539mke9v2pm.png
 tags: ["rotavo"]
 ---
 
