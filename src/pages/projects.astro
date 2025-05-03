@@ -3,12 +3,11 @@ import ProjectCardView from "@components/ProjectCardView.astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
-const pageTitle = "Projects";
 const projects = await getCollection("projects");
 
 ---
 
-<BaseLayout pageTitle={pageTitle}>
+<BaseLayout title="Projects" description="Projects by Rowan Merewood">
 <section class="projects">
 {
   projects.map((project) => (

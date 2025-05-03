@@ -1,6 +1,10 @@
 ---
 import Logo from "@public/img/logo.svg";
-const { pageTitle } = Astro.props;
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
@@ -14,7 +18,8 @@ const { pageTitle } = Astro.props;
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials" />
 <link rel="me" href="https://mastodon.social/@rowan_m">
 <meta name="fediverse:creator" content="@rowan_m@mastodon.social">
-<title>{pageTitle}</title>
+<title>{title}</title>
+<meta name="description" content={description}>
 <header>
   <nav>
     <a href="/" class="logo"><Logo /></a>
@@ -26,7 +31,7 @@ const { pageTitle } = Astro.props;
   <section class="under-construction"><span>🚧</span> Under construction <span>🚧</span> <br>
     I'm actively building this site, that's why it looks... like this. <a href="/">Ping me on something social</a> if you find it!
   </section>
-  <h1>{pageTitle}</h1>
+  <h1>{title}</h1>
   <slot />
 </main>
 <footer>
