@@ -140,7 +140,7 @@ main {
   }
 }
 
-h1, h2 {
+h1, h2, h3 {
   color: var(--main-fg);
   font-family: "Share Tech", sans-serif;
   font-weight: 400;
@@ -154,6 +154,7 @@ h1 {
 h2 {
   margin-block: 0;
 }
+
 main a,
 main a:visited {
   color: var(--main-fg);
@@ -176,14 +177,14 @@ footer .socials svg {
   height: 1.5rem;
 }
 
-.projects, .posts {
+.posts>div {
   display: flex;
   flex-flow: row wrap;
   gap: 1rem;
   justify-content: flex-start;
 }
 
-.projects .card, .posts .card {
+.posts .card {
   width: 100%;
   max-width: 20rem;
 }
