@@ -1,5 +1,12 @@
 ---
 import Logo from "@public/img/logo.svg";
+import Bluesky from "@public/img/socials/bluesky-fill.svg";
+import GitHub from "@public/img/socials/github-fill.svg";
+import Linkedin from "@public/img/socials/linkedin-box-fill.svg";
+import Mastodon from "@public/img/socials/mastodon-fill.svg";
+import Threads from "@public/img/socials/threads-line.svg";
+import Glitch from "@public/img/socials/vip-diamond-fill.svg";
+
 interface Props {
   title: string;
   description: string;
@@ -10,9 +17,6 @@ const { title, description } = Astro.props;
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Emoji&family=Share+Tech&display=swap">
 <link rel="stylesheet" href="/css/base.css">
 <link rel="icon" href="/img/icon.svg">
 <link rel="manifest" href="manifest.json" crossorigin="use-credentials" />
@@ -28,19 +32,19 @@ const { title, description } = Astro.props;
   </nav>
 </header>
 <main>
-  <section class="under-construction"><span>🚧</span> Under construction <span>🚧</span> <br>
+  <div class="under-construction"><span>🚧</span> Under construction <span>🚧</span> <br>
     I'm actively building this site, that's why it looks... like this. <a href="/">Ping me on something social</a> if you find it!
-  </section>
+  </div>
   <h1>{title}</h1>
   <slot />
 </main>
 <footer>
   <span class="socials">
-    <a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky">🦋</a>
-    <a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon">🦣</a>
-    <a href="https://glitch.com/@rowan-m" title="rowan-m on Glitch">🐟</a>
-    <a href="https://github.com/rowan-m/" title="rowan-m on GitHub">🐙</a>
-    <a href="https://www.threads.net/@rowan_m" title="@rowan_m on Threads">🧵</a>
-    <a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn">👔</a>
+    <a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /></a>
+    <a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon"><Mastodon /></a>
+    <a href="https://glitch.com/@rowan-m" title="rowan-m on Glitch"><Glitch /></a>
+    <a href="https://github.com/rowan-m/" title="rowan-m on GitHub"><GitHub /></a>
+    <a href="https://www.threads.net/@rowan_m" title="@rowan_m on Threads"><Threads /></a>
+    <a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"><Linkedin /></a>
   </span>
 </footer>
