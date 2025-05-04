@@ -176,14 +176,14 @@ footer .socials svg {
   height: 1.5rem;
 }
 
-.projects {
+.projects, .posts {
   display: flex;
   flex-flow: row wrap;
   gap: 1rem;
   justify-content: flex-start;
 }
 
-.projects .card {
+.projects .card, .posts .card {
   width: 100%;
   max-width: 20rem;
 }
