@@ -4,6 +4,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
 const posts = await getCollection("posts");
+posts.sort((a, b) => Date.parse(b.data.pubDate) - Date.parse(a.data.pubDate));
 
 ---
 

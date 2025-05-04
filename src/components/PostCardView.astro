@@ -20,6 +20,7 @@ const { post } = Astro.props;
   <a href={"/posts/" + post.id}>
     <h2>{post.data.title}</h2>
   </a>
+  <p>{post.data.pubDate.getFullYear() + '/' + String(post.data.pubDate.getMonth() + 1).padStart(2, '0') + '/' + String(post.data.pubDate.getDate()).padStart(2, '0')}</p>
   <p>{post.data.description}</p>
 </div>
 
