@@ -1,5 +1,10 @@
 ---
+import PostCardView from '@components/PostCardView.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('posts');
+posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 <BaseLayout title='rowan.fyi' description="Rowan Merewood's site featuring a variery of web development projects and posts.">
 	<style>
@@ -17,4 +22,14 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 		<li>🧵 <a href="https://www.threads.net/@rowan_m">@rowan_m</a> on Threads</li>
 		<li>👔 <a href="https://www.linkedin.com/in/rowanmerewood/">rowanmerewood</a> on LinkedIn</li>
 	</ul>
+	<section class="posts">
+		<h2>Posts</h2>
+		<div>
+		{
+			posts.map((post) => (
+				<PostCardView post={post} />
+			))
+		}
+		</div>
+	</section>
 </BaseLayout>
