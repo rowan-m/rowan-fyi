@@ -62,7 +62,7 @@ footer {
 header,
 main,
 footer {
-  padding-inline: max(1rem, calc((100vw - 800px)/2));
+  padding-inline: max(1rem, calc((100vw - 50rem)/2));
 }
 
 header .logo {
@@ -102,42 +102,6 @@ footer a:hover {
 
 main {
   padding-block: 1rem;
-}
-
-.under-construction {
-  background-color: hsl(39, 77%, 73%);
-  color: hsl(39, 77%, 10%);
-  border: 3px dashed hsl(39, 100%, 53%);
-  padding-inline: 1rem;
-  text-align: center;
-  font-family: "Share Tech", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  font-weight: 500;
-}
-
-.under-construction a, .under-construction a:active, .under-construction a:hover, .under-construction a:visited {
-  color: hsl(39, 77%, 10%);
-}
-
-.under-construction span {
-  animation: rotate 2.5s linear infinite;
-  display: inline-block;
-}
-
-@keyframes rotate {
-  0% {
-    transform: rotate(0deg) scale(1);
-  }
-  70% {
-    transform: rotate(0deg) scale(1);
-  }
-  85% {
-    transform: rotate(180deg) scale(4);
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-  }
 }
 
 h1, h2, h3 {
@@ -181,18 +145,21 @@ footer .socials svg {
   display: flex;
   flex-flow: row wrap;
   gap: 1rem;
-  justify-content: flex-start;
 }
 
-.posts .card {
+.card {
   width: 100%;
-  max-width: 20rem;
+}
+
+@media (min-width: 50rem) {
+  .card {
+    max-width: 24rem;
+  }
 }
 
 .card img {
   width: 100%;
-  max-height: 13rem;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 iframe {
