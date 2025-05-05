@@ -4,7 +4,7 @@ title: Fractious
 location: https://fractious.glitch.me/
 image: ./images/fractious.png
 description: A WebGL-based viewer for the Mandelbrot set.
-pubDate: 2023-07-08
+pubDate: 2021-02-26
 ---
 A WebGL-based viewer for the Mandelbrot set. This is cobbled together from a variety of sources
 
