@@ -3,7 +3,7 @@ layout: src/layouts/MarkdownPostLayout.astro
 title: Create a printable zine
 pubDate: 2020-04-20
 description: How to build a printable zine with the power of CSS grid and print stylesheets.
-image: ./images/v5ifu3hfawfoaw3bnz5j.jpg
+image: images/v5ifu3hfawfoaw3bnz5j.jpg
 tags: ["zine-machine"]
 ---
 

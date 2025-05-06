@@ -2,7 +2,7 @@
 layout: /src/layouts/MarkdownPostLayout.astro
 title: Persistence of memory
 location: https://persistence.glitch.me/
-image: ./images/persistence.png
+image: images/persistence.png
 description: Dali's La persistencia de la memoria
 pubDate: 2020-05-01
 ---

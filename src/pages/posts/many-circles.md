@@ -2,7 +2,7 @@
 layout: /src/layouts/MarkdownPostLayout.astro
 title: Many circles
 location: https://illusion-gonna.glitch.me/
-image: ./images/many-circles.png
+image: images/many-circles.png
 description: Optical illusion where the shapes might be moving in a straight line or rotating either way.
 pubDate: 2022-07-24
 ---

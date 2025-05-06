@@ -2,7 +2,7 @@
 layout: /src/layouts/MarkdownPostLayout.astro
 title: Fractious
 location: https://fractious.glitch.me/
-image: ./images/fractious.png
+image: images/fractious.png
 description: A WebGL-based viewer for the Mandelbrot set.
 pubDate: 2021-02-26
 ---

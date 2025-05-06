@@ -2,7 +2,7 @@
 layout: /src/layouts/MarkdownPostLayout.astro
 title: Modern noise
 location: https://modern-noise.web.app/
-image: ./images/modern-noise.png
+image: images/modern-noise.png
 description: A noise machine for today's modern world.
 pubDate: 2025-04-01
 ---

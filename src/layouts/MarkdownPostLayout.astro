@@ -1,22 +1,22 @@
 ---
 import { Debug } from 'astro:components';
-import BareLayout from "src/layouts/BareLayout.astro";
-import Header from "@components/Header.astro";
-import Footer from "@components/Footer.astro";
+import BareLayout from 'src/layouts/BareLayout.astro';
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
 
 const { frontmatter } = Astro.props;
 const articleData = {
-  "@context": "https://schema.org",
-  "@type": "Article",
+  '@context': 'https://schema.org',
+  '@type': 'Article',
   headline: frontmatter.title,
-  image: frontmatter.image,
+  image: new URL(frontmatter.image, Astro.site),
   datePublished: frontmatter.pubDate,
   dateModified: frontmatter.pubDate,
   author: [
     {
-      "@type": "Person",
-      name: "Rowan Merewood",
-      url: "https://rowan.fyi",
+      '@type': 'Person',
+      name: 'Rowan Merewood',
+      url: Astro.site,
     }
   ],
 };
@@ -26,17 +26,17 @@ const pubDate = tmpDate.getFullYear() + '/' + String(tmpDate.getMonth() + 1).pad
 
 <BareLayout title={frontmatter.title + ' | rowan.fyi'} description={frontmatter.description}>
   <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)} />
-  <meta property="og:url" content={Astro.url}>
+  <meta property="og:url" content={ new URL(Astro.url.pathname, Astro.site) }>
   <meta property="og:type" content="website">
   <meta property="og:title" content={frontmatter.title}>
   <meta property="og:description" content={frontmatter.description}>
-  <meta property="og:image" content={frontmatter.image}>
+  <meta property="og:image" content={ new URL(frontmatter.image, Astro.site) }>
   <meta name="twitter:card" content="summary_large_image">
   <meta property="twitter:domain" content="rowan.fyi">
-  <meta property="twitter:url" content={Astro.url}>
+  <meta property="twitter:url" content={ new URL(Astro.url.pathname, Astro.site) }>
   <meta name="twitter:title" content={frontmatter.title}>
   <meta name="twitter:description" content={frontmatter.description}>
-  <meta name="twitter:image" content={frontmatter.image}>
+  <meta name="twitter:image" content={ new URL(frontmatter.image, Astro.site) }>
   <Header />
   <main>
     <h1>{frontmatter.title}</h1>
