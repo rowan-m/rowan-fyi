@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Conway's Game of Life
 location: https://viral-content.glitch.me/
 image: ./images/game-of-life.png

@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Peg Solo
 location: https://peg-solo.glitch.me/
 image: ./images/peg-solo.png

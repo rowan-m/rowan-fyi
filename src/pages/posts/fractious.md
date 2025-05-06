@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Fractious
 location: https://fractious.glitch.me/
 image: ./images/fractious.png

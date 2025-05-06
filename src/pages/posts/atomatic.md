@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Atomatic
 location: https://atomatic.glitch.me/
 image: ./images/atomatic.png

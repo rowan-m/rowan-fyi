@@ -1,14 +1,43 @@
 ---
+import { Debug } from 'astro:components';
 import BareLayout from "src/layouts/BareLayout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
+
 const { frontmatter } = Astro.props;
+const articleData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: frontmatter.title,
+  image: frontmatter.image,
+  datePublished: frontmatter.pubDate,
+  dateModified: frontmatter.pubDate,
+  author: [
+    {
+      "@type": "Person",
+      name: "Rowan Merewood",
+      url: "https://rowan.fyi",
+    }
+  ],
+};
+const tmpDate = new Date(frontmatter.pubDate);
+const pubDate = tmpDate.getFullYear() + '/' + String(tmpDate.getMonth() + 1).padStart(2, '0') + '/' + String(tmpDate.getDate()).padStart(2, '0')
 ---
 
-<BareLayout title={frontmatter.title} description={frontmatter.description}>
+<BareLayout title={frontmatter.title + ' | rowan.fyi'} description={frontmatter.description}>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)} />
   <Header />
   <main>
     <h1>{frontmatter.title}</h1>
+    <div class="pubdate">Published: {pubDate}</div>
+    { frontmatter.location &&
+      <p>
+        <a href={frontmatter.location} target="_blank">
+        <strong>↱</strong>Open in new tab
+        </a>
+        <iframe src={frontmatter.location} title={frontmatter.title}> </iframe>
+      </p>
+    }
     <slot />
   </main>
   <Footer />

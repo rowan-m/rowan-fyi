@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Müller-Lyer illusion
 location: https://spectacular-optical.glitch.me/
 image: ./images/muller-lyer-illusion.png

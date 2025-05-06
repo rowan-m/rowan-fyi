@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Zine Machine
 location: https://zine-machine.glitch.me/
 image: ./images/zine-machine.png

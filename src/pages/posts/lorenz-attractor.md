@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Lorenz Attractor
 location: https://lorenz-flow.glitch.me/
 image: ./images/lorenz-attractor.png

@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Strange(r) Attraction
 location: https://strangely.glitch.me/
 image: ./images/stranger-attraction.png

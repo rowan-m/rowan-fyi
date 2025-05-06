@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Rolling Circles
 location: https://rolling-circle.glitch.me/
 image: ./images/rolling-circles.png

@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Rotavo
 location: https://rotavo-pwa.firebaseapp.com/
 image: ./images/rotavo.png

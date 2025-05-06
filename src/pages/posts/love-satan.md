@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Love you, Satan
 location: https://i-love-you-satan.glitch.me/
 image: ./images/love-satan.png

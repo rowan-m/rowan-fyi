@@ -1,5 +1,5 @@
 ---
-layout: /src/layouts/MarkdownProjectLayout.astro
+layout: /src/layouts/MarkdownPostLayout.astro
 title: Click 4 Cats
 location: https://overly-particular.glitch.me/
 image: ./images/click-4-cats.png

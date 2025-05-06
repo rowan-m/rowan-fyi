@@ -1,7 +1,9 @@
 ---
-import PostCardView from '@components/PostCardView.astro';
-import HomeLayout from '@layouts/HomeLayout.astro';
-import { getCollection } from 'astro:content';
+import BareLayout from "src/layouts/BareLayout.astro";
+import Logo from "@public/img/logo.svg";
+import Footer from "@components/Footer.astro";
+import PostCardView from "@components/PostCardView.astro";
+import { getCollection } from "astro:content";
 import Bluesky from "@public/img/socials/bluesky-fill.svg";
 import GitHub from "@public/img/socials/github-fill.svg";
 import Linkedin from "@public/img/socials/linkedin-box-fill.svg";
@@ -9,13 +11,35 @@ import Mastodon from "@public/img/socials/mastodon-fill.svg";
 import Threads from "@public/img/socials/threads-line.svg";
 import Glitch from "@public/img/socials/vip-diamond-fill.svg";
 
-const posts = await getCollection('posts');
+const profileData = {
+	"@context": "https://schema.org",
+	"@type": "ProfilePage",
+	"dateCreated": "2025-05-06",
+	"mainEntity": {
+		"@type": "Person",
+		"name": "Rowan Merewood",
+		"description": "Developer, Developer Relations, and manager - sometimes all at once. Works on Privacy Sandbox at Google.",
+		"image": "/img/rowan-merewood.jpg",
+		"sameAs": [
+		  "https://bsky.app/profile/rowan.fyi",
+			"https://mastodon.social/@rowan_m",
+			"https://glitch.com/@rowan-m",
+			"https://github.com/rowan-m/",               
+			"https://www.threads.net/@rowan_m",
+			"https://www.linkedin.com/in/rowanmerewood/",
+		]
+	}
+}
+
+const posts = await getCollection("posts");
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
-<HomeLayout title='rowan.fyi' description="Rowan Merewood's site featuring a variery of web development projects and posts.">
+
+<BareLayout title="rowan.fyi" description="Rowan Merewood's site featuring a variery of web development projects and posts." >
+	<script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
 	<style>
 		ul.socials {
-			list-style-type: none;	
+			list-style-type: none;
 			padding-left: 0;
 			display: flex;
 			flex-flow: row wrap;
@@ -23,23 +47,27 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 			row-gap: 0.1rem;
 		}
 	</style>
-	<p>For your information, you can find me here:</p>
-	<ul class="socials">
-    <li><a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a></li>
-    <li><a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon"><Mastodon /> @rowan_m@mastodon.social</a></li>
-    <li><a href="https://glitch.com/@rowan-m" title="rowan-m on Glitch"><Glitch /> rowan-m</a></li>
-    <li><a href="https://github.com/rowan-m/" title="rowan-m on GitHub"><GitHub /> rowan-m</a></li>
-    <li><a href="https://www.threads.net/@rowan_m" title="@rowan_m on Threads"><Threads /> rowan_m</a></li>
-    <li><a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a></li>
-  </ul>
-	<section class="posts">
-		<h2>Posts</h2>
-		<div>
-		{
-			posts.map((post) => (
-				<PostCardView post={post} />
-			))
-		}
-		</div>
-	</section>
-</BaseLayout>
+	<header>
+		<nav>
+			<h1 class="logo"><a href="/" title="rowan.fyi"><Logo /></a></h1>
+		</nav>
+	</header>
+	<main>
+		<p>For your information, you can find me here:</p>
+		<ul class="socials">
+			<li><a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a></li>
+			<li><a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon"><Mastodon /> @rowan_m@mastodon.social</a></li>
+			<li><a href="https://glitch.com/@rowan-m" title="rowan-m on Glitch"><Glitch /> rowan-m</a></li>
+			<li><a href="https://github.com/rowan-m/" title="rowan-m on GitHub"><GitHub /> rowan-m</a></li>
+			<li><a href="https://www.threads.net/@rowan_m" title="@rowan_m on Threads"><Threads /> rowan_m</a></li>
+			<li><a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a></li>
+		</ul>
+		<section class="posts">
+			<h2>Posts</h2>
+			<div>
+				{posts.map((post) => <PostCardView post={post} />)}
+			</div>
+		</section>
+	</main>
+	<Footer />
+</BareLayout>
