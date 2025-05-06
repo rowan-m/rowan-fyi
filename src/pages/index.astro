@@ -1,8 +1,7 @@
 ---
 import PostCardView from '@components/PostCardView.astro';
-import BaseLayout from '@layouts/BaseLayout.astro';
+import HomeLayout from '@layouts/HomeLayout.astro';
 import { getCollection } from 'astro:content';
-import Logo from "@public/img/logo.svg";
 import Bluesky from "@public/img/socials/bluesky-fill.svg";
 import GitHub from "@public/img/socials/github-fill.svg";
 import Linkedin from "@public/img/socials/linkedin-box-fill.svg";
@@ -13,7 +12,7 @@ import Glitch from "@public/img/socials/vip-diamond-fill.svg";
 const posts = await getCollection('posts');
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
-<BaseLayout title='rowan.fyi' description="Rowan Merewood's site featuring a variery of web development projects and posts.">
+<HomeLayout title='rowan.fyi' description="Rowan Merewood's site featuring a variery of web development projects and posts.">
 	<style>
 		ul.socials {
 			list-style-type: none;	

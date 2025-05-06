@@ -30,6 +30,30 @@ body {
   padding: 0;
 }
 
+h1, h2, h3 {
+  color: var(--main-fg);
+  font-family: "Share Tech", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+h1 {
+  margin-block: 0.5rem;
+}
+
+h2 {
+  margin-block: 0.5rem;
+}
+
+h3 {
+  margin-block: 0.5rem;
+}
+
+p {
+  margin: 0;
+  margin-block: 0.5rem;
+}
+
 header,
 footer {
   background-color: var(--sec-bg);
@@ -68,6 +92,7 @@ footer {
 header .logo {
   fill: var(--sec-fg);
   line-height: 0;
+  margin: 0;
 }
 
 header .logo svg {
@@ -102,30 +127,6 @@ footer a:hover {
 
 main {
   padding-block: 1rem;
-}
-
-h1, h2, h3 {
-  color: var(--main-fg);
-  font-family: "Share Tech", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-h1 {
-  margin-block: 0.5rem;
-}
-
-h2 {
-  margin-block: 0.5rem;
-}
-
-h3 {
-  margin-block: 0.5rem;
-}
-
-p {
-  margin: 0;
-  margin-block: 0.5rem;
 }
 
 main a,

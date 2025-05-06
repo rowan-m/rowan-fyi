@@ -1,6 +1,6 @@
 ---
 import BareLayout from "src/layouts/BareLayout.astro";
-import Header from "@components/Header.astro";
+import Logo from "@public/img/logo.svg";
 import Footer from "@components/Footer.astro";
 
 interface Props {
@@ -11,10 +11,13 @@ const { title, description } = Astro.props;
 ---
 
 <BareLayout title={title} description={description}>
-  <Header />
-  <main>
-    <h1>{title}</h1>
-    <slot />
-  </main>
-  <Footer />
+  <header>
+    <nav>
+      <h1 class="logo"><a href="/" title="rowan.fyi"><Logo /></a></h1>
+    </nav>
+  </header>
 </BareLayout>
+<main>
+  <slot />
+</main>
+<Footer />
