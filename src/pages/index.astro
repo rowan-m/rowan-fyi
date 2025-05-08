@@ -1,15 +1,15 @@
 ---
 import BareLayout from 'src/layouts/BareLayout.astro';
-import Logo from '@public/img/logo.svg';
-import Footer from '@components/Footer.astro';
-import PostCardView from '@components/PostCardView.astro';
+import Logo from '/public/img/logo.svg';
+import Footer from '@/components/Footer.astro';
+import PostCardView from '@/components/PostCardView.astro';
 import { getCollection } from 'astro:content';
-import Bluesky from '@public/img/socials/bluesky-fill.svg';
-import GitHub from '@public/img/socials/github-fill.svg';
-import Linkedin from '@public/img/socials/linkedin-box-fill.svg';
-import Mastodon from '@public/img/socials/mastodon-fill.svg';
-import Threads from '@public/img/socials/threads-line.svg';
-import Glitch from '@public/img/socials/vip-diamond-fill.svg';
+import Bluesky from '/public/img/socials/bluesky-fill.svg';
+import GitHub from '/public/img/socials/github-fill.svg';
+import Linkedin from '/public/img/socials/linkedin-box-fill.svg';
+import Mastodon from '/public/img/socials/mastodon-fill.svg';
+import Threads from '/public/img/socials/threads-line.svg';
+import Glitch from '/public/img/socials/vip-diamond-fill.svg';
 
 const profileData = {
 	'@context': 'https://schema.org',
