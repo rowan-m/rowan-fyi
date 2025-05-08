@@ -2,7 +2,7 @@
 title: Create a printable zine
 pubDate: 2020-04-20
 description: How to build a printable zine with the power of CSS grid and print stylesheets.
-image: images/v5ifu3hfawfoaw3bnz5j.jpg
+image: v5ifu3hfawfoaw3bnz5j.jpg
 tags: ["zine-machine"]
 ---
 
@@ -59,13 +59,13 @@ You can style that for the screen however you want, the important bit is that we
 
 Nothing too exciting, but just so we can break up the text a little let's see what that looks like with a little text thrown in there:
 
-![A simple linear screen layout of 8 pages](./images/9vnmo772opdosh10ebwx.png)
+![A simple linear screen layout of 8 pages](9vnmo772opdosh10ebwx.png)
 
 ## 🖨️ Print CSS
 
 Now the fun part, we can then use the matching `@media print` query to enclose our print styles… but what are we going to put in there? First, let's see what we're trying to make. Here's the layout of the pages we need:
 
-![Landscape print layout of pages 1 to 8](images/y9luw53v0luit0tcvwdx.png)
+![Landscape print layout of pages 1 to 8](y9luw53v0luit0tcvwdx.png)
 
 As you can see, this doesn't flow in any kind of top-to-bottom order that would match the order of the content in our HTML. We don't want to add any weird markup to make this possible, so we're going to use CSS grid to essentially pick up and reposition each individual page where we need it.
 
@@ -117,7 +117,7 @@ We need to map those grid areas up to our individual page elements though, so le
 
 Now we're getting somewhere! Let's take a look at the print preview for the page and see what we get!
 
-![A basic grid layout for 8 pages](images/vig53kcl4g1aux5z7el9.png)
+![A basic grid layout for 8 pages](vig53kcl4g1aux5z7el9.png)
 
 That's progress, but we need to flip a few of those pages upside down. That's easy enough with a CSS [`transform`](https://developer.mozilla.org/en-US/docs/Web/CSS/transform):
 

@@ -2,7 +2,7 @@
 title: 'Building Rotavo part 2: Form and function'
 pubDate: 2019-07-19
 description: How to build a touch-sensitive rotating knob web component.
-image: images/0xs99uvmp539mke9v2pm.png
+image: 0xs99uvmp539mke9v2pm.png
 tags: ["rotavo"]
 ---
 _This is the second in a series of posts detailing how I built the_ [🥑 _Rotavo PWA_](https://bit.ly/rotavo-pwa)_. Give it a whirl and see what you can draw!_
@@ -253,7 +253,7 @@ You can see the parallel to how the angle is set: `_angle` is the remainder (or 
 
 To track when there's a change in rotation we are going to divide our element into four quadrants. A move between either of the top quadrants is going to count as a change in rotation.
 
-![A round element with quadrants overlaid. A circular path indicates a touch going from the top-left to the top-right quadrant resulting in an increment to the rotation.](./images/35mw7wcsbhby9g6nih32.png)
+![A round element with quadrants overlaid. A circular path indicates a touch going from the top-left to the top-right quadrant resulting in an increment to the rotation.](35mw7wcsbhby9g6nih32.png)
 
 Moving in or out of the lower quadrants is going to just be movement within the same rotation. This change means we need to track the previous angle so we have something to compare against when we calculate the new one.
 

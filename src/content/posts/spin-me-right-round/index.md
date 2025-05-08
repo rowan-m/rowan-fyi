@@ -2,7 +2,7 @@
 title: 'Building Rotavo part 1: You spin me right r⟳und'
 pubDate: 2019-07-08
 description: How to build a touch-sensitive rotating knob web component.
-image: images/0xs99uvmp539mke9v2pm.png
+image: 0xs99uvmp539mke9v2pm.png
 tags: ["rotavo"]
 ---
 
@@ -32,7 +32,7 @@ We're going to use `input type="range"` as the basis of the API we want our comp
 <input type="range" name="volume" min="0" max="100" value="42" />
 ```
 
-![The default slider view in Chrome](./images/9pngvopkw7hjeliptpdt.png)
+![The default slider view in Chrome](9pngvopkw7hjeliptpdt.png)
 
 A solid foundation, but is it the best solution? If like me, you enjoy the light reading that is the proceedings of the [Symposium on Human Interface 2009, Held as Part of HCI International 2009](https://books.google.co.uk/books?id=I47_sQnnf_IC&pg=PA773&lpg=PA773&dq="Pilots+find+it+harder+to+read+tape+displays+than+analog+dials"&source=bl&ots=7KsvlTp7ZJ&sig=ACfU3U3_Ho64oA7hoCkKl1jNUq_QSJcODw&hl=en&sa=X&ved=2ahUKEwi-k_i6n5PjAhXNasAKHfjiBd0Q6AEwAHoECAAQAQ#v=onepage&q="Pilots%20find%20it%20harder%20to%20read%20tape%20displays%20than%20analog%20dials"&f=false), then nestling in part 2 around page 773, you'll find this valuable nugget:
 
@@ -40,7 +40,7 @@ A solid foundation, but is it the best solution? If like me, you enjoy the light
 
 We're going to need a little pilot lingo to make sense of the UX knowledge that's being dropped here.
 
-![Diagram showing a linear "tape" display compared to a round "dial".](./images/58coq9g7vyip5cgt328h.png)
+![Diagram showing a linear "tape" display compared to a round "dial".](58coq9g7vyip5cgt328h.png)
 
 A "tape" display shows information in a linear fashion, named because it was literally a tape that spools up and down behind the glass. This might be used to show something like altitude or air speed. An alternative is the dial indicator that displays that same linear information in a rounded layout, often used on a car dashboard for speed and fuel level. The hypothesis here is that a human can quicker interpret a rough value from the dial as opposed to the tape because the entire range is visible.
 
@@ -110,7 +110,7 @@ input-knob {
 }
 ```
 
-![A light-green square with a dark-green dashed border on a light-yellow background](./images/oflojqapbalhth5i2v7d.png)
+![A light-green square with a dark-green dashed border on a light-yellow background](oflojqapbalhth5i2v7d.png)
 
 Et voilà, a visible square!
 
@@ -214,7 +214,7 @@ attributeChangedCallback(attrName, oldVal, newVal) {
 
 With that, we've now got a component that rotates based on the `value` attribute. We can verify that by opening up the browser console to try setting those values and watching the square rotate.
 
-![Screenshot of Chrome with Developer tools open](./images/07jcf5s47vsdznp9xo68.png)
+![Screenshot of Chrome with Developer tools open](07jcf5s47vsdznp9xo68.png)
 
 Ok, ok - you're underwhelmed, I should give you something interactive. Let's bring it full circle and add a slider to control the rotation. It's as simple as:
 
@@ -378,7 +378,7 @@ const TWO_PI = 2 * Math.PI;
 
 Next, we need to initialise some values when the user first touches the element. The easy ones to get are the coordinates of the pointer event, the centre of the element, and the starting angle.
 
-![A square element with a point indicated at the centre and one in the upper right of the square](./images/2110ud35kriggj0ie5kd.png)
+![A square element with a point indicated at the centre and one in the upper right of the square](2110ud35kriggj0ie5kd.png)
 
 ```javascript
 // _onPointerdown(e)
@@ -393,7 +393,7 @@ this._initialAngle = this._angle;
 
 Next we need the starting angle of the touch away from a zero rotation. We can visualise this as drawing a right-angle triangle with one corner at the centre of the object and the hypotenuse going out to the user's pointer. We can get this angle from the 2 argument arctangent function, AKA [`Math.atan2()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2). By taking the pointer event coordinates and subtracting the centre coordinates for the element, we are basically normalising them as if the centre of the element was 0, 0.
 
-![A square element with a point indicated at the centre and one in the upper right of the square with a right angle triangle drawn through those points](./images/b70nzebozzzallam1mru.png)
+![A square element with a point indicated at the centre and one in the upper right of the square with a right angle triangle drawn through those points](b70nzebozzzallam1mru.png)
 
 ```javascript
 // _onPointerdown(e)
@@ -405,11 +405,11 @@ this._initialTouchAngle = Math.atan2(
 
 Now when the user moves the pointer, we want to track that movement so we can rotate the element accordingly.
 
-![The same square showing the point in the upper right moving down and further to the right](./images/zndqa2xonoxq1m37zzm3.png)
+![The same square showing the point in the upper right moving down and further to the right](zndqa2xonoxq1m37zzm3.png)
 
 And how to we work out what's happening here? The answer is, of course, even more triangles. First, we can do exactly the same `atan2()` calculation we did before but with the new pointer location. If we subtract the starting angle from the current angle, that gives us the amount we've rotated in that touch. For the final angle of the element we take it's current rotation, i.e. the `value` and then add the amount we've rotated.
 
-![The same square but rotated by the change in angle](./images/8nw32osdu2f3y2tj0s34.png)
+![The same square but rotated by the change in angle](8nw32osdu2f3y2tj0s34.png)
 
 In the code, it looks like this:
 
@@ -559,7 +559,7 @@ Whoo! That wasn't too bad - now our code has a better separation of concerns and
 
 We're not quite done here though. Even though the element is functioning, we should take a peek at how well the element is performing. For this, you will want to open up the [previous Glitch demo](https://building-rotavo-02.glitch.me) in a new window so you can fire up Chrome's DevTools. We want to enable "Paint flashing" - you can find it under the 3 dot menu → More tools → Rendering → Paint flashing, or if you don't enjoy three levels of menus then bring up the command palette with `Ctrl / Cmd + Shift + P` and type "paint flashing". When you try rotating the element you will see a constant green rectangle drawn over it.
 
-![Paint flashing rectangle displaying when the element moves](./images/g9l606dermuf6ohmqbkw.png)
+![Paint flashing rectangle displaying when the element moves](g9l606dermuf6ohmqbkw.png)
 
 This is bad. It means the browser is having to paint on every single interaction and that's not always a cheap operation. If you are on a laptop or high-end phone, you probably won't notice anything but this will hit your framerate on low-end or busy devices. Luckily, the fix is super simple to add. We want to provide an indication to the browser that we intend to change the element in some way. Conveniently, the `will-change` property allows us to do exactly that. We specify this on the styling for our internal `#container`.
 
