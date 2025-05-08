@@ -11,16 +11,12 @@ const { post } = Astro.props;
 <div class="card">
 
   <a href={"/posts/" + post.id}>
-    <Image
-      src={post.data.image}
-      alt="Preview"
-      width="800"
-    />
+    <Image src={post.data.image} alt="Preview" width="800" />
   </a>
   <a href={"/posts/" + post.id}>
     <h3>{post.data.title}</h3>
   </a>
-  <span class="pubdate">Published: {post.data.pubDate.getFullYear() + '/' + String(post.data.pubDate.getMonth() + 1).padStart(2, '0') + '/' + String(post.data.pubDate.getDate()).padStart(2, '0')}</span>
+  <span class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</span>
   <p>{post.data.description}</p>
 </div>
 

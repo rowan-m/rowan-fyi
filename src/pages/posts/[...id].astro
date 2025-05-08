@@ -56,9 +56,7 @@ const articleData = {
     <div class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</div>
     { post.data.location &&
       <p>
-        <a href={post.data.location} target="_blank">
-        <strong>↱</strong>Open in new tab
-        </a>
+        <a href={post.data.location} target="_blank"><strong>↱</strong>Open in new tab</a>
         <iframe src={post.data.location} title={post.data.title}> </iframe>
       </p>
     }
