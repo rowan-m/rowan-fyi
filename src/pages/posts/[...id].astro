@@ -1,0 +1,68 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import BareLayout from 'src/layouts/BareLayout.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+
+interface Props {
+  post: CollectionEntry<"posts">;
+}
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const articleData = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.data.title,
+  image: new URL(post?.data?.image?.src, Astro.site),
+  datePublished: post.data.pubDate,
+  dateModified: post.data.pubDate,
+  author: [
+    {
+      '@type': 'Person',
+      name: 'Rowan Merewood',
+      url: Astro.site,
+    }
+  ],
+};
+---
+
+<BareLayout title={post.data.title} description={post.data.description}>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)} />
+  <meta property="og:url" content={ new URL(Astro.url.pathname, Astro.site) }>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content={post.data.title}>
+  <meta property="og:description" content={post.data.description}>
+  <meta name="image" property="og:image" content={ new URL(post?.data?.image?.src, Astro.site) }>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="rowan.fyi">
+  <meta property="twitter:url" content={ new URL(Astro.url.pathname, Astro.site) }>
+  <meta name="twitter:title" content={post.data.title}>
+  <meta name="twitter:description" content={post.data.description}>
+  <meta name="twitter:image" content={ new URL(post?.data?.image?.src, Astro.site) }>
+  
+  <Header />
+  <main>
+    <h1>{post.data.title}</h1>
+    <div class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</div>
+    { post.data.location &&
+      <p>
+        <a href={post.data.location} target="_blank">
+        <strong>↱</strong>Open in new tab
+        </a>
+        <iframe src={post.data.location} title={post.data.title}> </iframe>
+      </p>
+    }
+    <Content />
+    </main>
+    <Footer />
+</BareLayout>
