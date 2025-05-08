@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Anamorphosis
 location: https://anamorphosis.glitch.me/
 image: images/anamorphosis.png

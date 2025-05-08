@@ -1,5 +1,4 @@
 ---
-layout: src/layouts/MarkdownPostLayout.astro
 title: 'Building Rotavo part 2: Form and function'
 pubDate: 2019-07-19
 description: How to build a touch-sensitive rotating knob web component.

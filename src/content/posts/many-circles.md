@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Many circles
 location: https://illusion-gonna.glitch.me/
 image: images/many-circles.png

@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Barnsley ferns
 location: https://barnsley-ferns.glitch.me/
 image: images/barnsley-ferns.png

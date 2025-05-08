@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Bouncy DVD logo
 location: https://bouncy-dvd-logo.glitch.me/
 image: images/bouncy-dvd-logo.png

@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Shadowy depths
 location: https://shadowy-depths.glitch.me/
 image: images/shadowy-depths.png

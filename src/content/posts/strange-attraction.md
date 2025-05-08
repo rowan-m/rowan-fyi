@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Strange Attraction
 location: https://strange-attraction.glitch.me/
 image: images/strange-attraction.png

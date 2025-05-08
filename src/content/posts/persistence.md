@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Persistence of memory
 location: https://persistence.glitch.me/
 image: images/persistence.png

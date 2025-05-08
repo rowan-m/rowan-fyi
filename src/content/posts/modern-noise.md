@@ -1,5 +1,4 @@
 ---
-layout: /src/layouts/MarkdownPostLayout.astro
 title: Modern noise
 location: https://modern-noise.web.app/
 image: images/modern-noise.png
