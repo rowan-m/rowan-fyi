@@ -8,16 +8,21 @@ const { title, description } = Astro.props;
 
 <!doctype html>
 <html lang="en">
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/css/base.css" />
-  <link rel="icon" href="/img/icon.svg" />
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
-  <link rel="me" href="https://mastodon.social/@rowan_m" />
-  <meta name="fediverse:creator" content="@rowan_m@mastodon.social" />
-  <link rel="sitemap" href="/sitemap-index.xml" />
-  <link rel="alternate" type="application/rss+xml" title="rowan.fyi" href={new URL("rss.xml", Astro.site)} />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="icon" href="/img/icon.svg">
+  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+  <link rel="me" href="https://bsky.app/profile/rowan.fyi">
+  <link rel="me" href="https://mastodon.social/@rowan_m">
+  <link rel="me" href="https://glitch.com/@rowan-m">
+  <link rel="me" href="https://github.com/rowan-m/">
+  <link rel="me" href="https://www.threads.com/@rowan_m">
+  <link rel="me" href="https://www.linkedin.com/in/rowanmerewood/">
+  <meta name="fediverse:creator" content="@rowan_m@mastodon.social">
+  <link rel="sitemap" href="/sitemap-index.xml">
+  <link rel="alternate" type="application/rss+xml" title="rowan.fyi" href={new URL("rss.xml", Astro.site)}>
   <title>{title}</title>
-  <meta name="description" content={description} />
+  <meta name="description" content={description}>
   <slot />
 </html>
