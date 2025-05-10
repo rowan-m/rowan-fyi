@@ -35,7 +35,7 @@ const articleData = {
 };
 ---
 
-<BareLayout title={post.data.title} description={post.data.description}>
+<BareLayout title={post.data.title + " | rowan.fyi"} description={post.data.description}>
   <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)} />
   <meta property="og:url" content={ new URL(Astro.url.pathname, Astro.site) }>
   <meta property="og:type" content="website">
