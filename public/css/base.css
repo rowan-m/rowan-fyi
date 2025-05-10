@@ -56,7 +56,26 @@ h3 {
 
 p {
   margin: 0;
-  margin-block: 0.5rem;
+  margin-block: 0.75rem;
+}
+
+ul {
+  list-style-type: square;
+  list-style-position: outside;
+  color: var(--main-fg);
+}
+
+li {
+  padding-inline-start: 0.5rem;
+}
+
+li::marker {
+  color: var(--main-accent);
+  content: "🢖";
+}
+
+.astro-code {
+  padding: 1rem;
 }
 
 header,
@@ -91,7 +110,7 @@ footer {
 header,
 main,
 footer {
-  padding-inline: max(1rem, calc((100vw - 50rem)/2));
+  padding-inline: max(2rem, calc((100vw - 50rem)/2));
 }
 
 header .logo {
@@ -158,6 +177,14 @@ main ul.socials svg {
   width: 1rem;
   height: 1rem;
   vertical-align: text-bottom;
+}
+
+main ul.socials li {
+  list-style-type: none;
+}
+
+main ul.socials li::marker {
+  content: none;
 }
 
 footer .socials {
