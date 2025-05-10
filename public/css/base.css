@@ -166,11 +166,7 @@ main a:hover {
 
 main ul.socials {
   list-style-type: none;
-  padding-left: 0;
-  display: flex;
-  flex-flow: row wrap;
-  column-gap: 0.5rem;
-  row-gap: 0.1rem;
+  padding-inline-start: 0;
 }
 
 main ul.socials svg {
@@ -181,6 +177,7 @@ main ul.socials svg {
 
 main ul.socials li {
   list-style-type: none;
+  padding-inline-start: 0;
 }
 
 main ul.socials li::marker {
