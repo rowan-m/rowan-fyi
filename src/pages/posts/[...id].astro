@@ -2,7 +2,6 @@
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import BareLayout from 'src/layouts/BareLayout.astro';
 import Header from '@/components/Header.astro';
-import Footer from '@/components/Footer.astro';
 
 interface Props {
   post: CollectionEntry<"posts">;
@@ -62,5 +61,4 @@ const articleData = {
     }
     <Content />
     </main>
-    <Footer />
 </BareLayout>

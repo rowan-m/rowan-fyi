@@ -1,9 +1,10 @@
 ---
 import BareLayout from 'src/layouts/BareLayout.astro';
-import Logo from '/public/img/logo.svg';
-import Footer from '@/components/Footer.astro';
+import Header from '@/components/Header.astro';
 import PostCardView from '@/components/PostCardView.astro';
+
 import { getCollection } from 'astro:content';
+
 import Bluesky from '/public/img/socials/bluesky-fill.svg';
 import GitHub from '/public/img/socials/github-fill.svg';
 import Linkedin from '/public/img/socials/linkedin-box-fill.svg';
@@ -37,11 +38,7 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 <BareLayout title="rowan.fyi" description="Rowan Merewood's site featuring a variery of web development projects and posts." >
 	<script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
-	<header>
-		<nav>
-			<h1 class="logo"><a href="/" title="rowan.fyi"><Logo /></a></h1>
-		</nav>
-	</header>
+	<Header useH1={true} />
 	<main>
 		<p>For your information, you can find me here:</p>
 		<ul class="socials">
@@ -59,5 +56,4 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 			</div>
 		</section>
 	</main>
-	<Footer />
 </BareLayout>

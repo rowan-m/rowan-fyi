@@ -1,8 +1,12 @@
 ---
 import Logo from '/public/img/logo.svg';
+interface Props {
+  useH1?: boolean
+}
+const { useH1 } = Astro.props;
 ---
 <header>
   <nav>
-    <a href="/" class="logo" title="rowan.fyi"><Logo /></a>
+    { useH1 ? <h1><a href="/" class="logo" title="rowan.fyi"><Logo /></a></h1> : <a href="/" class="logo" title="rowan.fyi"><Logo /></a> }
   </nav>
 </header>
