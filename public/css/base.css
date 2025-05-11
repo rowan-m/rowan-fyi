@@ -74,26 +74,27 @@ li::marker {
 
 header,
 footer {
-  background-color: var(--sec-bg);
   color: var(--sec-fg);
+  fill: var(--sec-fg);
+  background: linear-gradient(130deg,hsl(206, 65%, 15%),hsl(206, 50%, 25%));
+  filter: url("/img/grain.svg#grain");
+  /* Filter extends over the bottom of the element for some reason, so this is a hack to clip it */
+  clip-path: inset(0 0 1px 0);
   font-family: "Share Tech", sans-serif;
   font-weight: 400;
   font-style: normal;
   font-optical-sizing: auto;
   text-transform: lowercase;
   font-size: 1.5rem;
+  margin: 0;
 }
 
 header {
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-  align-items: center;
-  border-block-end: var(--sec-border) solid 1px;
-  padding-block: .5rem;
+  border-block-end: var(--sec-border) solid 2px;
+  padding-block: 0.5rem;
 }
 
 footer {
@@ -107,23 +108,16 @@ footer {
   padding-inline: max(2rem, calc((100vw - 50rem)/2));
 }
 
-header .logo {
-  fill: var(--sec-fg);
+header .logo, header a {
   line-height: 0;
   margin: 0;
+  padding: 0;
+  display: block;
 }
 
 header .logo svg {
   width: 10rem;
-  display: inline;
-}
-
-header nav {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.5rem;
+  display: inline-block;
 }
 
 header a,
