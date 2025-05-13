@@ -1,0 +1,24 @@
+---
+// No frontmatter needed for this simple component
+import ShareIcon from '/public/img/share.svg';
+---
+
+<button id="shareButton">
+    <ShareIcon /><span>Share</span>
+</button>
+
+<script>
+  document.getElementById("shareButton").addEventListener("click", async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: document.title,
+          url: window.location.href,
+        });
+        console.log("Successfully shared");
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    }
+  });
+</script>

@@ -3,6 +3,7 @@ import { type CollectionEntry, getCollection, render } from "astro:content";
 import BareLayout from 'src/layouts/BareLayout.astro';
 import Header from '@/components/Header.astro';
 
+import ShareButton from '@/components/ShareButton.astro';
 interface Props {
   post: CollectionEntry<"posts">;
 }
@@ -52,7 +53,10 @@ const articleData = {
   <Header />
   <main>
     <h1>{post.data.title}</h1>
-    <div class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</div>
+    <div class="post-meta">
+      <div class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</div>
+      <ShareButton />
+    </div>
     { post.data.location &&
       <p>
         <a href={post.data.location} target="_blank"><strong>↱</strong>Open in new tab</a>
