@@ -26,8 +26,7 @@
 }
 
 body {
-  font-family: Bahnschrift, 'DIN Alternate', 'Franklin Gothic Medium', 'Nimbus Sans Narrow', sans-serif-condensed, sans-serif;
-  font-weight: normal;
+  font-family: sans-serif;
   background-color: var(--main-bg);
   color: var(--main-fg);
   margin: 0;
