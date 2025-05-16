@@ -128,16 +128,18 @@ footer {
   padding-inline: max(2rem, calc((100vw - 50rem)/2));
 }
 
+nav {
+  display: flex;
+}
+
 header .logo, header a {
   line-height: 0;
   margin: 0;
   padding: 0;
-  display: block;
 }
 
 header .logo svg {
   width: 10rem;
-  display: inline-block;
 }
 
 header a,
