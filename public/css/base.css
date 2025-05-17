@@ -71,8 +71,8 @@ li::marker {
 
 button {
   padding: .25rem;
-  background-color: var(--sec-bg);
-  color: var(--sec-fg);
+  background-color: transparent;
+  color: var(--main-fg);
   border: 1px solid var(--main-accent);
   display: flex;
   flex-flow: row nowrap;
@@ -81,6 +81,12 @@ button {
   gap: 0.5rem;
   cursor: pointer;
   border-radius: .1rem;
+}
+
+button:hover, button:active {
+  background-color: var(--main-highlight);
+  color: var(--main-bg);
+  border: 1px solid var(--main-bg);
 }
 
 button>svg {
