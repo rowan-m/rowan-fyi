@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import BareLayout from 'src/layouts/BareLayout.astro';
 import Header from '@/components/Header.astro';
+import NewTabIcon from '/public/img/new-tab.svg';
 
 import ShareButton from '@/components/ShareButton.astro';
 interface Props {
@@ -55,13 +56,11 @@ const articleData = {
     <h1>{post.data.title}</h1>
     <div class="post-meta">
       <div class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</div>
+      <a href={post.data.location} target="_blank" class="button"><NewTabIcon /> Open demo</a>
       <ShareButton />
     </div>
     { post.data.location &&
-      <p>
-        <a href={post.data.location} target="_blank"><strong>↱</strong>Open in new tab</a>
-        <iframe src={post.data.location} title={post.data.title}> </iframe>
-      </p>
+      <iframe src={post.data.location} title={post.data.title}> </iframe>
     }
     <Content />
     </main>

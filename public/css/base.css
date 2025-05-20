@@ -69,7 +69,7 @@ li::marker {
   color: var(--main-accent);
 }
 
-button {
+.button {
   padding: .25rem;
   background-color: transparent;
   color: var(--main-fg);
@@ -81,15 +81,17 @@ button {
   gap: 0.5rem;
   cursor: pointer;
   border-radius: .1rem;
+  text-decoration: none;;
 }
 
-button:hover, button:active {
+.button:hover, .button:active {
   background-color: var(--main-highlight);
   color: var(--main-bg);
   border: 1px solid var(--main-bg);
+  text-decoration: none;
 }
 
-button>svg {
+.button>svg {
   width: 1rem;
   height: 1rem;
 }
@@ -244,9 +246,11 @@ footer .socials svg {
 .post-meta {
   display: flex;
   flex-flow: row nowrap;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   margin-block: 0.5rem;
+  gap: 1rem;
+  font-size: 0.8rem;
 }
 
 .pubdate {
