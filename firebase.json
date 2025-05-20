@@ -6,6 +6,8 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "cleanUrls": true,
+    "trailingSlash": true,
     "frameworksBackend": {
       "region": "europe-west1"
     }
