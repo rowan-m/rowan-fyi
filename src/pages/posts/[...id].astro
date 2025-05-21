@@ -56,7 +56,9 @@ const articleData = {
     <h1>{post.data.title}</h1>
     <div class="post-meta">
       <div class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</div>
-      <a href={post.data.location} target="_blank" class="button"><NewTabIcon /> Open demo</a>
+      { post.data.location &&
+        <a href={post.data.location} target="_blank" class="button"><NewTabIcon /> Open demo</a>
+      }
       <ShareButton />
     </div>
     { post.data.location &&
