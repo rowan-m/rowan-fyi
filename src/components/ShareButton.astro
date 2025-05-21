@@ -1,24 +1,27 @@
 ---
-// No frontmatter needed for this simple component
-import ShareIcon from '/public/img/share.svg';
+// Note: Astro bundles this <script> and it is only included once per page.
+// Multiple buttons will not get multiple listeners.
+// https://docs.astro.build/en/guides/client-side-scripts/#handle-onclick-and-other-events
+import ShareIcon from "/public/img/share.svg";
 ---
 
-<button class="button" id="shareButton">
-    <ShareIcon /><span>Share</span>
+<button class="button share-button">
+  <ShareIcon /><span>Share</span>
 </button>
 
 <script>
-  document.getElementById("shareButton").addEventListener("click", async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: document.title,
-          url: window.location.href,
-        });
-        console.log("Successfully shared");
-      } catch (error) {
-        console.error("Error sharing:", error);
+  document.querySelectorAll(".share-button").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: document.title,
+            url: window.location.href,
+          });
+        } catch (error) {
+          console.error("Error sharing:", error);
+        }
       }
-    }
+    });
   });
 </script>
