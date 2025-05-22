@@ -14,11 +14,11 @@ The whole aesthetic is a shameless homage to the gorgeous <a href="https://teena
 
 ![Realistic skeumorphic CSS calculator](thomas-mcinnis-calculator.png)
 
-Thomas created this [realistic skeumorphic CSS calculator](https://thomasmcinnis.com/posts/teenage-engineering-calculator/). I nabbed this as a base with the clean use of borders and box-shadows to get the button appearance.
+Thomas McInnis created this [realistic skeumorphic CSS calculator](https://thomasmcinnis.com/posts/teenage-engineering-calculator/). I nabbed this as a base with the clean use of borders and box-shadows to get the button appearance.
 
 ![EP-133 K.O.II buttons](nicolas-jesenberger-buttons.png)
 
-Nicolas made this set of [EP-133 K.O.II buttons](https://codepen.io/nicolasjesenberger/pen/gOqzJed) where I like the actual use of a `<button>` element along with some subtle animations when the button is pressed. Bonus points here for using the actual Teenage Engineering font too!
+Nicolas Jesenberger crafted this set of [EP-133 K.O.II buttons](https://codepen.io/nicolasjesenberger/pen/gOqzJed) where I like the actual use of a `<button>` element along with some subtle animations when the button is pressed. Bonus points here for using the actual Teenage Engineering font too!
 
 I've combined elements from both for the noise machine. I also wasn't looking for subtle animations, so I've cranked those up to get a chunky, clunky button you can almost feel when you press the screen.
 
