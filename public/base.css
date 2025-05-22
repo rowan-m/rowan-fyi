@@ -9,60 +9,57 @@
   --sec-border: light-dark(hsl(214, 11%, 48%), hsl(214, 11%, 48%));
   --sec-highlight: light-dark(hsl(214, 19%, 88%), hsl(214, 19%, 88%));
   --sec-accent: light-dark(hsl(335, 32%, 29%), hsl(335, 32%, 29%));
-
 }
 
 @font-face {
-  font-family: 'Share Tech';
+  font-family: "Share Tech";
+  src: url(/sharetech.woff2)format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/sharetech.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 
 @view-transition {
   navigation: auto;
 }
 
-body {
-  font-family: sans-serif;
-  background-color: var(--main-bg);
-  color: var(--main-fg);
+body,p {
   margin: 0;
+}
+
+body {
+  background-color: var(--main-bg);
+  font-family: sans-serif;
   padding: 0;
 }
 
-h1, h2, h3 {
+body,h1,h2,h3,ul {
   color: var(--main-fg);
-  font-family: "Share Tech", sans-serif;
-  font-weight: 400;
+}
+
+h1,h2,h3 {
+  font-family: "Share Tech",sans-serif;
   font-style: normal;
-}
-
-h1 {
+  font-weight: 400;
   font-size: 2rem;
-  margin-block: 0.5rem;
+  margin-block: .5rem;
 }
 
-h2 {
+h2,h3 {
   font-size: 1.6rem;
-  margin-block: 0.5rem;
 }
 
 h3 {
   font-size: 1.4rem;
-  margin-block: 0.5rem;
 }
 
 p {
-  margin: 0;
-  margin-block: 0.75rem;
+  margin-block: .75rem;
 }
 
 ul {
   list-style-type: square;
-  color: var(--main-fg);
 }
 
 li::marker {
@@ -70,7 +67,6 @@ li::marker {
 }
 
 .button {
-  padding: .25rem;
   background-color: transparent;
   color: var(--main-fg);
   border: 1px solid var(--main-accent);
@@ -78,20 +74,21 @@ li::marker {
   flex-flow: row nowrap;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
+  gap: .5rem;
+  padding: .25rem;
   border-radius: .1rem;
-  text-decoration: none;;
+  text-decoration: none;
+  cursor: pointer;
 }
 
-.button:hover, .button:active {
+.button:active,.button:hover {
   background-color: var(--main-highlight);
   color: var(--main-bg);
   border: 1px solid var(--main-bg);
   text-decoration: none;
 }
 
-.button>svg {
+.button>svg,main ul.socials svg {
   width: 1rem;
   height: 1rem;
 }
@@ -100,15 +97,14 @@ li::marker {
   padding: 1rem;
 }
 
-header,
-footer {
+footer,header {
+  background: linear-gradient(130deg,#0d2a3f,#204460);
   color: var(--sec-fg);
   fill: var(--sec-fg);
-  background: linear-gradient(130deg,hsl(206, 65%, 15%),hsl(206, 50%, 25%));
-  filter: url("/img/grain.svg#grain");
-  /* Filter extends over the bottom of the element for some reason, so this is a hack to clip it */
-  clip-path: inset(0 0 1px 0);
   margin: 0;
+  filter: url(/img/grain.svg#grain);
+  /* Weird issue where filter overlaps edge of element, so we clip it */
+  clip-path: inset(0 0 1px 0);
 }
 
 header {
@@ -116,25 +112,26 @@ header {
   top: 0;
   z-index: 10;
   border-block-end: var(--sec-border) solid 2px;
-  padding-block: 0.5rem;
+  padding-block: .5rem;
 }
 
 footer {
   border-block-start: var(--sec-border) solid 1px;
-  padding-block: 1rem;
 }
 
-header,
-main,
-footer {
-  padding-inline: max(2rem, calc((100vw - 50rem)/2));
+footer,header,main {
+  padding-inline: max(2rem,calc((100vw - 50rem)/2));
+}
+
+footer,main {
+  padding-block: 1rem;
 }
 
 nav {
   display: flex;
 }
 
-header .logo, header a {
+header .logo,header a {
   line-height: 0;
   margin: 0;
   padding: 0;
@@ -144,52 +141,33 @@ header .logo svg {
   width: 10rem;
 }
 
-header a,
-footer a,
-header a:visited,
-footer a:visited {
+footer a,footer a:visited,header a,header a:visited {
   color: var(--sec-fg);
   text-decoration: none;
 }
 
-header a:active,
-footer a:active,
-header a:hover,
-footer a:hover {
+footer a:active,footer a:hover,header a:active,header a:hover {
   color: var(--sec-highlight);
   fill: var(--sec-highlight);
   text-decoration: underline var(--sec-accent);
 }
 
-main {
-  padding-block: 1rem;
-}
-
-main a,
-main a:visited {
+main a,main a:visited {
   color: var(--main-fg);
 }
 
-main a:active,
-main a:hover {
+main a:active,main a:hover {
   color: var(--main-highlight);
   text-decoration: underline var(--main-accent);
 }
 
-main ul.socials {
+main ul.socials,main ul.socials li {
   list-style-type: none;
   padding-inline-start: 0;
 }
 
 main ul.socials svg {
-  width: 1rem;
-  height: 1rem;
   vertical-align: text-bottom;
-}
-
-main ul.socials li {
-  list-style-type: none;
-  padding-inline-start: 0;
 }
 
 main ul.socials li::marker {
@@ -217,17 +195,17 @@ footer .socials svg {
 .card {
   width: 100%;
   border: 1px solid var(--sec-border);
-  padding: 0.5rem;
+  padding: .5rem;
   box-sizing: border-box;
 }
 
-.card:hover {
+.card:hover,iframe {
   border: 1px solid var(--main-accent);
 }
 
-@media (min-width: 51rem) {
+@media (min-width:51rem) {
   .card {
-    max-width: 23rem;
+      max-width: 23rem;
   }
 }
 
@@ -242,24 +220,22 @@ footer .socials svg {
   flex-flow: row nowrap;
   justify-content: flex-start;
   align-items: center;
-  margin-block: 0.5rem;
   gap: 1rem;
-  font-size: 0.8rem;
+  margin-block: .5rem;
 }
 
-.pubdate {
+.post-meta,.pubdate {
   font-size: .8rem;
 }
 
 iframe {
-  border: 1px solid var(--main-accent);
-  padding: 0.25rem;
-  margin-inline: 0;
-  margin-block: 0.25rem;
-  aspect-ratio: 16 / 10;
   width: 100%;
   height: 100%;
+  aspect-ratio: 16/10;
   box-sizing: border-box;
+  padding: .25rem;
+  margin-inline: 0;
+  margin-block: .25rem;
 }
 
 img {
