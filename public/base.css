@@ -108,12 +108,6 @@ footer {
   filter: url("/img/grain.svg#grain");
   /* Filter extends over the bottom of the element for some reason, so this is a hack to clip it */
   clip-path: inset(0 0 1px 0);
-  font-family: "Share Tech", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  font-optical-sizing: auto;
-  text-transform: lowercase;
-  font-size: 1.5rem;
   margin: 0;
 }
 
