@@ -1,0 +1,12 @@
+<!-- See public/partial/head.html for standard snippet-->
+{{>partial/head}}
+<!-- See the /header route in server.js -->
+<h1>Privacy Sandbox origin trial demo</h1>
+<h2>Sending the <code>Origin-Trial</code> HTTP header</h2>
+<p><a href="./">↰ All demos</a></p>
+<p><a href="https://glitch.com/edit/#!/ps-origin-trial?path=public%2Fheader.html">Code for this demo</a></p>
+<p>The top-level page response includes the header:</p>
+<pre>Origin-Trial: {{token_1p}}</pre>
+<p>This is a first-party token for <code>https://ps-origin-trial.glitch.me</code>.</p>
+<!-- See public/partial/feature-detect.html for standard snippet-->
+{{>partial/feature-detect}}

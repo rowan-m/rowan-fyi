@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍪</text></svg>">
+<!-- <link rel="stylesheet" href="./water.css"> -->
+<title>Third-party cookies</title>
+<style>
+  iframe {
+    width: 90vw;
+    height: 5rem;
+    border: 1px solid silver;
+  }
+</style>
+
+<h1>🍪 Third-party cookies</h1>
+
+<p>This demo tries to set one. That's it. That's the demo. Nothing else.</p>
+  
+<p>👀 See the <a href="./detect.html">demo with some extra detection logic here</a>.</p>
+
+<iframe src="https://x-origin-src.glitch.me/set-3pc.html"></iframe>
+
+<p>Open DevTools in Chrome and look at the:</p>
+<ul>
+  <li>⚠️ Issues panel to see the warning about attempting to set and read third-party cookies</li>
+  <li>🛜 Network pane to see the request/response and the cookie information for them</li>
+  <li>⚙ Application pane to see cookies stored for this site</li>
+</ul>
+
+<p>💡 Learn more about <a href="https://developer.google.com/privacy-sandbox">third-party cookies and their alternatives.</a></p>
+
+<p>🧑‍💻 <a href="https://glitch.com/edit/#!/third-party-cookies?path=public%2Findex.html">See the code.</a></p>
+
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+</script>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
+<link rel="stylesheet" href="./water.css">
+<title>Chrome-facilitated testing demo</title>
+<style>
+  h1, h2 {
+    font-size: 1rem;
+  }
+  
+  h2>code {
+    font-size: .8rem;
+    padding-top: .1rem;
+  }
+  
+  h2 {
+    border-top: 1px solid var(--border);  
+  }
+  
+  pre {
+    background: #efefef;
+    background: var(--background);
+    color: #000;
+    color: var(--code);
+    padding: 2.5px 5px;
+    border-radius: 6px;
+    font-size: 1em;
+    width: 100%;
+    overflow: auto;
+    text-indent: 0;
+  }
+
+  summary {
+    font-size: 0.8rem;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    pre {
+    color: #ffbe85;
+    color: var(--code);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    pre {
+    background: #161f27;
+    background: var(--background);
+    }
+  }
+  
+  .status {
+    font-weight: bold;
+    padding-left: .2rem;
+    padding-right: .2rem;
+  }
+
+  .enabled {
+    color: darkgreen;
+    background: palegreen;
+  }
+
+  .disabled {
+    color: chocolate;
+    background: cornsilk;
+  }
+  
+  footer {
+    font-size: 0.8rem;
+  }
+  
+  footer > a {
+    color: var(--text-muted);
+  }
+</style>
+<h1>🧪 Chrome-facilitated testing demo</h1>
+  
+<p><strong>💡 Learn more about <a href="https://developer.chrome.com/docs/privacy-sandbox/chrome-testing/">Chrome-facilitated testing</a>.</strong></p>
+<p>This demo is intended for Chrome 120+ using <code>chrome://flags/#tpc-phase-out-facilitated-testing</code>. The site is awaiting enrollment, so enable <code>chrome://flags/#privacy-sandbox-enrollment-overrides</code> and add <code>https://chrome-facilitated-testing.glitch.me</code>.</p>
+
+<h2>🍪 <code>receive-cookie-deprecation</code> cookie</h2>
+
+<p><code>receive-cookie-deprecation</code> value:
+  {{^receiveCookieDeprecationCookieValue}}<span class="status disabled receive-cookie-deprecation-cookie-value"><em>[NOT SET]</em></span>{{/receiveCookieDeprecationCookieValue}}
+  {{#receiveCookieDeprecationCookieValue}}<span class="receive-cookie-deprecation-cookie-value"><code>{{receiveCookieDeprecationCookieValue}}</code></span>{{/receiveCookieDeprecationCookieValue}}
+</p>
+
+<form method="get">
+  <button type="submit" formaction="/set-cookie">Set cookie</button>
+  <button type="submit" formaction="/expire-cookie">Expire cookie</button>
+</form>
+
+<details><summary>Cookie headers used</summary>
+  <p>The cookie is set with:<br>
+    <pre>Set-Cookie: receive-cookie-deprecation=1; Secure; HttpOnly; Path=/; SameSite=None; Partitioned;</pre>
+  </p>
+
+  <p>The cookie is expired with:<br>
+    <pre>Set-Cookie: receive-cookie-deprecation=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; Path=/; SameSite=None; Partitioned;</pre>
+  </p>
+</details>
+  
+<h2>📩 <code>Sec-Cookie-Deprecation</code> HTTP request header</h2>
+
+<p><code>Sec-Cookie-Deprecation</code> value:
+  {{^secCookieDeprecationHeaderValue}}<span class="sec-cookie-deprecation-header-value status disabled"><em>[NOT SET]</em></span>{{/secCookieDeprecationHeaderValue}}
+  {{#secCookieDeprecationHeaderValue}}<span class="sec-cookie-deprecation-header-value"><code>{{secCookieDeprecationHeaderValue}}</code></span>{{/secCookieDeprecationHeaderValue}}
+</p>
+  
+<h2>🔧 <code>cookieDeprecationLabel</code> JavaScript API</h2>
+
+<p><code>navigator.cookieDeprecationLabel</code>: <em class="cookie-deprecation-label-status status">[TESTING…]</em></p>
+
+<p><code>navigator.cookieDeprecationLabel</code> value: &nbsp;"<code class="cookie-deprecation-label-value"></code>"</p>
+
+<details><summary>JavaScript code used</summary>
+  <p>The JavaScript API is detected and called with: <pre>
+  if ('cookieDeprecationLabel' in navigator) {
+    navigator.cookieDeprecationLabel.getValue().then((label) => {
+      console.log(label);
+    });
+  }
+  </pre></p>
+</details>
+
+<h2>👀 Third-party cookies</h2>
+<p>Third-party cookies look like they are: <em class="set-3pc status">[TESTING…]</em></p>
+
+<h2>⚒ Privacy Sandbox Relevance &amp; Measurement APIs</h2>
+
+<p>Feature detection for APIs on this site:</p>
+<ul>
+  <li>Topics: <em class="status topics-status">[TESTING…]</em></li>
+  <li>Protected Audience: <em class="status pa-status">[TESTING…]</em></li>
+  <li>Attribution Reporting: <em class="status ara-status">[TESTING…]</em></li>
+  <li>Fenced Frames: <em class="status ff-status">[TESTING…]</em></li>
+  <li>Shared Storage: <em class="status shst-status">[TESTING…]</em></li>
+</ul>
+
+<p><strong>⚠ Note:</strong> Make sure you've enabled the APIs via <code>chrome://flags/#privacy-sandbox-enrollment-overrides</code> or <code>chrome://flags/#privacy-sandbox-ads-apis</code>.</p>
+
+<footer>
+<a href="https://glitch.com/edit/#!/chrome-facilitated-testing">💻 Code</a> | <a href="https://www.threads.net/@rowan_m">🧵 @rowan_m</a> | <a href="https://mastodon.social/@rowan_m">🦣 @rowan_m@mastodon.social</a> | <a href="https://bsky.app/profile/rowan-m.bsky.social">🟦 @rowan-m.bsky.social</a> | <a href="https://twitter.com/rowan_m">🦤 @rowan_m</a>
+</footer>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  // Check for JavaScript API
+  document.querySelector('.cookie-deprecation-label-status').textContent = ('cookieDeprecationLabel' in navigator) ?  '[DETECTED]' : '[NOT DETECTED]';
+  document.querySelector('.cookie-deprecation-label-status').classList.add(('cookieDeprecationLabel' in navigator) ?  'enabled' : 'disabled');
+  
+  // Get JavaScript API value
+  if ('cookieDeprecationLabel' in navigator) {
+    navigator.cookieDeprecationLabel.getValue().then((label) => {
+      document.querySelector('.cookie-deprecation-label-value').textContent = label;
+    });
+  }
+  
+  // Try setting a cross-site cookie
+  fetch('https://x-origin-src.glitch.me/set-3pc.json', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    fetch('https://x-origin-src.glitch.me/get-3pc.json', {
+      method: 'GET',
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(json => {
+      document.querySelector('.set-3pc').textContent = ('3pc' in json) ?  '[ENABLED]' : '[BLOCKED]';
+      document.querySelector('.set-3pc').classList.add(('3pc' in json) ?  'enabled' : 'disabled');
+    }).catch(err => {
+      console.log(err);
+      document.querySelector('.set-3pc').textContent = ('3pc' in json) ?  '[ENABLED]' : '[BLOCKED]';
+      document.querySelector('.set-3pc').classList.add(('3pc' in json) ?  'enabled' : 'disabled');
+    });
+  });
+  
+  // Topics feature detection
+  document.querySelector('.topics-status').textContent = ('browsingTopics' in document) ? '[DETECTED]' : '[DISABLED]';
+  document.querySelector('.topics-status').classList.add(('browsingTopics' in document) ? 'enabled' : 'disabled');
+  
+  // FLEDGE feature detection
+  document.querySelector('.pa-status').textContent = ('runAdAuction' in navigator) ? '[DETECTED]' : '[DISABLED]';
+  document.querySelector('.pa-status').classList.add(('runAdAuction' in navigator) ? 'enabled' : 'disabled');
+  
+  // Attribution Reporting feature detection
+  document.querySelector('.ara-status').textContent = (document.featurePolicy.allowsFeature('attribution-reporting')) ? '[DETECTED]' : '[DISABLED]';
+  document.querySelector('.ara-status').classList.add((document.featurePolicy.allowsFeature('attribution-reporting')) ? 'enabled' : 'disabled');
+  
+  // Fenced Frames feature detection
+  document.querySelector('.ff-status').textContent = ('HTMLFencedFrameElement' in window) ? '[DETECTED]' : '[DISABLED]';
+  document.querySelector('.ff-status').classList.add(('HTMLFencedFrameElement' in window) ? 'enabled' : 'disabled');
+  
+  // Shared Storage feature detection
+  document.querySelector('.shst-status').textContent = ('sharedStorage' in window) ? '[DETECTED]' : '[DISABLED]';
+  document.querySelector('.shst-status').classList.add(('sharedStorage' in window) ? 'enabled' : 'disabled');
+</script>

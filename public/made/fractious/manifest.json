@@ -1,0 +1,104 @@
+{
+  "dir": "ltr",
+  "lang": "en",
+  "name": "Fractious",
+  "short_name": "Fractious",
+  "scope": "/",
+  "display": "standalone",
+  "start_url": "https://fractious.glitch.me/",
+  "id": "/",
+  "background_color": "#3e5c89",
+  "theme_color": "#3e5c89",
+  "description": "Explore infinite fractals in the Mandelbrot set. Discover beautiful downloadable images and share locations with friends—all with simple, fun controls.",
+  "categories": ["education", "entertainment"],
+  "orientation": "any",
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-72x72.png?v=1681645276922",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-96x96.png?v=1681645276922",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-128x128.png?v=1681645276922",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-144x144.png?v=1681645276922",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-152x152.png?v=1681645276922",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-192x192.png?v=1681645276922",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-384x384.png?v=1681645276922",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/icon-512x512.png?v=1681645276922",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/Screenshot_20230416-131203.jpg?v=1681647330617",
+      "sizes": "1080x2400",
+      "type": "image/jpg",
+      "platform": "narrow",
+      "label": "☝ Drag and zoom on any touchscreen device for quick, intuitive navigation."
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/Screenshot%202023-04-16%2013.03.29.jpg?v=1681646871694",
+      "sizes": "2256x1446",
+      "type": "image/jpg",
+      "platform": "wide",
+      "label": "✨ The iconic Mandelbrot fractal ready for you to dive in."
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/Screenshot%202023-04-16%2013.06.06.jpg?v=1681646876070",
+      "sizes": "2256x1446",
+      "type": "image/jpg",
+      "platform": "wide",
+      "label": "🔎 Adjust deep zoom and iterations to discover amazing microscopic details."
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/Screenshot_20230416-131338.jpg?v=1681647329815",
+      "sizes": "1080x2400",
+      "type": "image/jpg",
+      "platform": "narrow",
+      "label": "🌈 Adjust the colour and palette for even more image variation."
+    },
+    {
+      "src": "https://cdn.glitch.global/a4472519-9458-49b7-809d-5a003de34a56/Screenshot_20230416-133508.jpg?v=1681648633960",
+      "sizes": "1080x2400",
+      "type": "image/jpg",
+      "platform": "narrow",
+      "label": "🔥 Discover images that no-one else has seen before—there are infinite combinations!"
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Müller-Lyer ↕↕ optical illusion</title>
+
+  <meta
+    name="Description"
+    content="Inspired by tweets from @Chris_Said and @gsarcone here's an SVG version of the Müller-Lyer illusion. None of the coloured lines are moving, they all remain the same length!"
+  />
+  <meta name="theme-color" content="slategray" />
+  <link
+    rel="shortcut icon"
+    href="https://cdn.glitch.com/b0cc1aa3-9859-45a5-8acc-32a35eb4c19a%2Feyecon.png?v=1578267107327"
+  />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@rowan_m" />
+  <meta name="twitter:title" content="Müller-Lyer ↕↕ optical illusion" />
+  <meta
+    name="twitter:description"
+    content="Inspired by tweets from @Chris_Said and @gsarcone here's an SVG version of the Müller-Lyer illusion. None of the coloured lines are moving, they all remain the same length!"
+  />
+
+  <meta property="og:url" content="https://spectacular-optical.glitch.me/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Müller-Lyer ↕↕ optical illusion" />
+  <meta
+    property="og:description"
+    content="Inspired by tweets from @Chris_Said and @gsarcone here's an SVG version of the Müller-Lyer illusion. None of the coloured lines are moving, they all remain the same length!"
+  />
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    p {
+      max-width: 80vw;
+    }
+    .columns {
+      contain: layout style;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: center;
+      align-items: center;
+    }
+    svg {
+      will-change: transform;
+      contain: layout style paint;
+      display: block;
+      width: 3vw;
+      padding: 0;
+      margin: 0;
+    }
+    path {
+      stroke-width: 4.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+  <p>
+    Inspired by tweets from
+    <a href="https://twitter.com/Chris_Said/status/1213217943414136833"
+      >🐦 @Chris_Said</a
+    >
+    and <a href="https://twitter.com/gsarcone">🐦 @gsarcone</a> here's an SVG
+    version of the
+    <a href="https://www.giannisarcone.com/Muller_lyer_illusion.html"
+      >Müller-Lyer ↕↕ illusion</a
+    >. <b>None of the coloured lines are changing length</b>, they all remain
+    the same size! Give me a shout at
+    <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a> with any comments,
+    feel free to remix and modify with that little fish button over there 🎏↗️
+    <br /><a href="./rainbow.html">[Rainbow 🌈 version]</a>
+  </p>
+  <div class="columns"></div>
+  <template id="column">
+    <svg
+      viewBox="-2 -2 24 464"
+      preserveAspectRatio="none"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M 10  30 v 80
+           M 10 190 v 80
+           M 10 350 v 80"
+        fill="none"
+        stroke="deeppink"
+      />
+      <path
+        d="M 10 110 v 80
+           M 10 270 v 80"
+        fill="none"
+        stroke="royalblue"
+      />
+      <path
+        d="M 0  60 l 10 -30 l 10  30
+           M 0  80 l 10  30 l 10 -30
+           M 0 220 l 10 -30 l 10  30
+           M 0 240 l 10  30 l 10 -30
+           M 0 380 l 10 -30 l 10  30
+           M 0 400 l 10  30 l 10 -30"
+        fill="none"
+        stroke="slategray"
+      >
+        <animate
+          attributeName="d"
+          dur="3s"
+          repeatCount="indefinite"
+          values="M 0  60 l 10 -30 l 10  30
+                  M 0  80 l 10  30 l 10 -30
+                  M 0 220 l 10 -30 l 10  30
+                  M 0 240 l 10  30 l 10 -30
+                  M 0 380 l 10 -30 l 10  30
+                  M 0 400 l 10  30 l 10 -30;
+
+                  M 0   0 l 10  30 l 10 -30
+                  M 0 140 l 10 -30 l 10  30
+                  M 0 160 l 10  30 l 10 -30
+                  M 0 300 l 10 -30 l 10  30
+                  M 0 320 l 10  30 l 10 -30
+                  M 0 460 l 10 -30 l 10  30;
+
+                  M 0  60 l 10 -30 l 10  30
+                  M 0  80 l 10  30 l 10 -30
+                  M 0 220 l 10 -30 l 10  30
+                  M 0 240 l 10  30 l 10 -30
+                  M 0 380 l 10 -30 l 10  30
+                  M 0 400 l 10  30 l 10 -30"
+          calcMode="spline"
+          keyTimes="0.0;
+                    0.5;
+                    1.0"
+          keySplines="0.3 0 0.7 1;
+                      0.3 0 0.7 1"
+        />
+      </path>
+    </svg>
+  </template>
+  <div
+    class="glitchButton"
+    style="position: absolute; top: 2px; right: 2px;"
+  ></div>
+  <script src="https://button.glitch.me/button.js"></script>
+
+  <script>
+    const columnTpl = document.querySelector("#column");
+    const columnsContainer = document.querySelector(".columns");
+    let delay = 0;
+
+    while (delay < 3) {
+      const column = document.importNode(columnTpl.content, true);
+      const animate = column.querySelector("animate");
+      animate.setAttribute("begin", delay + "s");
+      delay += 0.1;
+      columnsContainer.appendChild(column);
+    }
+  </script>
+</html>

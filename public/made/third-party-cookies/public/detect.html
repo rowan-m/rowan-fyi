@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍪</text></svg>">
+<link rel="stylesheet" href="./water.css">
+<title>Third-party cookies</title>
+<style>
+  .status {
+    font-weight: bold;
+    padding-left: .2rem;
+    padding-right: .2rem;
+  }
+
+  .enabled {
+    color: darkgreen;
+    background: palegreen;
+  }
+
+  .disabled {
+    color: chocolate;
+    background: cornsilk;
+  }
+</style>
+<h1>🍪 Third-party cookies</h1>
+  
+<p>This demo tries to set a third-party cookie and then detect if it was successful.</p>
+  
+<p>👀 See the <a href="./">demo with just an iframe and no JavaScript here</a>.</p>
+
+<p>The third-party site <code>x-origin-src.glitch.me</code> will try to set a cookie using:<br>
+<code>Set-Cookie: 3pc={timestamp}; Path=/; Secure; SameSite=None</code></p>
+
+<p>Third-party cookies look like they are: <em class="set-3pc status">[TESTING…]</em></p>
+
+<p>Open DevTools in Chrome and look at the:</p>
+<ul>
+  <li>⚠️ Issues panel to see the warning about attempting to set and read third-party cookies</li>
+  <li>🛜 Network pane to see the request/response and the cookie information for them</li>
+  <li>⚙ Application pane to see cookies stored for this site</li>
+</ul>
+
+<p>💡 Learn more about <a href="https://developer.google.com/privacy-sandbox/3pcd">third-party cookies and their alternatives.</a></p>
+  
+<p>🧑‍💻 <a href="https://glitch.com/edit/#!/third-party-cookies?path=public%2Fdetect.html">See the code.</a></p>
+
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  // Try setting a cross-site cookie
+  fetch('https://x-origin-src.glitch.me/set-3pc.json', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    fetch('https://x-origin-src.glitch.me/get-3pc.json', {
+      method: 'GET',
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(json => {
+      document.querySelector('.set-3pc').textContent = ('3pc' in json) ?  '[ENABLED]' : '[BLOCKED]';
+      document.querySelector('.set-3pc').classList.add(('3pc' in json) ?  'enabled' : 'disabled');
+    }).catch(err => {
+      console.log(err);
+      document.querySelector('.set-3pc').textContent = ('3pc' in json) ?  '[ENABLED]' : '[BLOCKED]';
+      document.querySelector('.set-3pc').classList.add(('3pc' in json) ?  'enabled' : 'disabled');
+    });
+  });
+</script>

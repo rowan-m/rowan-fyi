@@ -1,0 +1,17 @@
+{
+  "name": "my-glitch-app",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "input-knob": "^0.0.1"
+  },
+  "engines": {
+    "node": "10.2.x"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,20 @@
+.status {
+  font-weight: bold;
+  padding-left: .5rem;
+  padding-right: .5rem;
+}
+
+.enabled {
+  color: darkgreen;
+  background: palegreen;
+}
+
+.disabled {
+  color: darkred;
+  background: lightcoral;
+}
+
+pre {
+  max-width: 60ch;
+  overflow-x: auto;
+}

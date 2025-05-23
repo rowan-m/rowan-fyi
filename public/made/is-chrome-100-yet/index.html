@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="https://cdn.glitch.me/4d66fd5c-a1c3-49e6-9c9c-ec29f28163f6%2Fhundred.png?v=1635497578645">
+<title>Is Chrome 100 yet?</title>
+<style>
+  body {
+    font-family: sans-serif;
+    text-align: center;
+    margin-top: 5vh;
+  }
+  
+  h1 {
+    font-size: 40vw;
+    padding: 0;
+    margin: 0;
+    line-height: 90%;
+  }
+  
+  p, code {
+    padding: 0;
+    margin: 0;
+    font-size: 1.2rem;
+  }
+  
+  code {
+    font-weight: bold;
+    background: azure;
+    color: darkslategrey;
+  }
+  
+  .no {
+    background: lightyellow;
+    color: maroon;
+  }
+  
+  .yes {
+    background: honeydew;
+    color: darkgreen;
+  }
+  
+  footer {
+    padding-top: 5vh; 
+  }
+  
+  footer p, footer code {
+    font-size: 10px;
+    font-weight: 200;
+  }
+</style>
+<p>Your browser is sending a user-agent string of:</p>
+<code class="user-agent-string"></code>
+<p>So…</p>
+<h1 class="is-hundred"></h1>
+<p class="why"></p>
+<footer>
+  <p>Read <a href="https://developer.chrome.com/blog/force-major-version-to-100/">the article</a>, try the <code>chrome://flags/#force-major-version-to-100</code>, see the <a href="https://glitch.com/edit/#!/is-chrome-100-yet?path=index.html">code for this demo</a>, ask <a href="https://twitter.com/ChromiumDev"@ChromiumDev</a> questions!</p>
+</footer>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+
+  document.querySelector('.user-agent-string').textContent = navigator.userAgent;
+
+  const chromeUAs = /^Mozilla\/5\.0 \((.+[^\)]+)\) AppleWebKit\/[\d\.]+ \(KHTML, like Gecko\) C(hrome|riOS)\/(?<major>\d+)[\d\.]+[ Mobile]*[\/15E148]* Safari\/[\d\.]+$/;
+  const matched = chromeUAs.exec(navigator.userAgent);
+
+  if (matched) {
+    const major = parseInt(matched.groups.major, 10);
+    
+    if (major >= 100) {
+      document.querySelector('.is-hundred').textContent = 'Yes!';
+      document.querySelector('body').classList.add('yes');
+      document.querySelector('.why').textContent = `Because you're reporting as Chrome version ${major} and that's over 99. 🏆`;
+    } else {
+      document.querySelector('.is-hundred').textContent = 'No.';
+      document.querySelector('.why').textContent = `Because you're reporting as Chrome version ${major} and that's under 100. ⏳`;
+      document.querySelector('body').classList.add('no');
+    }
+  } else {
+    document.querySelector('.is-hundred').textContent = 'No.';
+    document.querySelector('.why').textContent = `Because this doesn't look like a Chrome user-agent. 🤔`;
+    document.querySelector('body').classList.add('no');
+  }
+</script>

@@ -1,0 +1,400 @@
+<!--
+ Copyright 2019 Google Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Building Rotavo</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="https://rotavo-pwa.firebaseapp.com/favicon.ico">
+<style>
+  body {
+    font-family: monospace;
+    background: #f2e880;
+    margin-top: 10vh;
+  }
+
+  main {
+    width: 20rem;
+    margin: auto;
+    display: grid;
+    grid-template-columns: auto 10rem auto;
+    grid-template-rows: auto 10rem auto;
+    grid-template-areas: 
+      ".  ⬆️ . "
+      "⬅️ 🎛️ ➡️"
+      ".  ⬇️ . ";
+  }
+  
+  .⬆️ {
+    grid-area: ⬆️;
+  }
+  
+  .➡️ {
+    grid-area: ➡️;
+  }
+  
+  .⬇️ {
+    grid-area: ⬇️;
+  }
+  
+  .⬅️ {
+    grid-area: ⬅️;
+  }
+    
+  main>div{
+    text-align: center;
+    vertical-align: middle;
+    margin: 0.8rem 0.1rem 0.8rem 0.1rem;
+    place-self: center;
+    color: #356211;
+    border: 4px solid #cadbbc;
+    padding: 4px;
+    transition: all 1s ease-out;
+  }
+  
+  main>div.🔦 {
+    border: 4px solid #356211;
+    background: #cadbbc;
+    box-shadow: 0 0 0.3rem 0.3rem rgba(202, 219, 188, 0.5);
+    transition: all 0.1s ease-out;
+  }
+  
+  input-knob {
+    grid-area: 🎛️;
+    border-radius: 100%;
+    box-shadow: 0 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
+  }
+  
+  input-knob::part(container) {
+    box-sizing: border-box;
+    background: #cadbbc;
+    border: 1rem double #356211;
+    border-bottom: 1rem solid #356211;
+    border-radius: 100%;
+    width: 10rem;
+    height: 10rem;
+  }
+
+  input-knob.fallback>span.fallback {
+    display: block;
+    box-sizing: border-box;
+    background: #cadbbc;
+    border: 1rem double #356211;
+    border-bottom: 1rem solid #356211;
+    border-radius: 100%;
+    width: 10rem;
+    height: 10rem;
+  }
+  
+  .mark {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    font: bold 200% monospace;
+    color: #356211;
+  }
+    
+  .monitor {
+    width: 20rem;
+    margin: 2rem auto 0 auto;
+    text-align: center;
+  }
+</style>
+
+  <main>
+    <div class="⬆️">⬆️ 0</div>
+    <div class="➡️">➡️ 2.5</div>
+    <div class="⬇️">⬇️ 5</div>
+    <div class="⬅️">⬅️ 7.5</div>
+    <input-knob value="3" scale="10"><div class="mark">▲</div></input-knob>
+  </main>
+
+<div class="monitor">Value: <span class="show-value"></span></div>
+
+<script src="https://unpkg.com/@webcomponents/webcomponentsjs"></script>
+<script>
+  const template = document.createElement('template');
+  template.innerHTML = `
+    <style>
+      :host {
+        display: inline-block;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        touch-action: none;
+        cursor: pointer;
+      }
+      #container {
+        display: block;
+        --angle: 0rad;
+        transform: rotate(var(--angle));
+        will-change: transform;
+      }
+    </style>
+    <div id="container" part="container"><slot></slot></div>`;
+  
+  window.ShadyCSS && ShadyCSS.prepareTemplate(template, 'input-knob');
+
+  const TWO_PI = 2 * Math.PI;
+
+  class InputKnob extends HTMLElement {
+    constructor() {
+      super();
+
+      window.ShadyCSS && ShadyCSS.styleElement(this);
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
+      this._container = this.shadowRoot.getElementById('container');
+      this._fallback = null;
+
+      this._drawState = this._drawState.bind(this);
+      this._onMousedown = this._onMousedown.bind(this);
+      this._onMousemove = this._onMousemove.bind(this);
+      this._onMouseup = this._onMouseup.bind(this);
+      this._onPointerdown = this._onPointerdown.bind(this);
+      this._onPointermove = this._onPointermove.bind(this);
+      this._onPointerup = this._onPointerup.bind(this);
+      this._onTouchend = this._onTouchend.bind(this);
+      this._onTouchmove = this._onTouchmove.bind(this);
+      this._onTouchstart = this._onTouchstart.bind(this);
+      this._rotationStart = this._rotationStart.bind(this);
+      this._rotationChange = this._rotationChange.bind(this);
+      this._rotationEnd = this._rotationEnd.bind(this);
+    }
+
+    static get observedAttributes() {
+      return ['value', 'scale'];
+    }
+
+    get value() {
+      return this.hasAttribute('value') ? this.getAttribute('value') : 0;
+    }
+
+    set value(value) {
+      this.setAttribute('value', parseFloat(value));
+    }
+
+    get scale() {
+      return this.hasAttribute('scale') ? this.getAttribute('scale') : 1;
+    }
+
+    set scale(scale) {
+      this.setAttribute('scale', parseFloat(scale));
+    }
+    
+    connectedCallback() {
+      if (!this._container.part) {
+        this._fallback = document.createElement('span');
+        this._fallback.style.setProperty('--angle', `${this._angle}rad`);
+        this._fallback.style.setProperty('transform', `rotate(var(--angle))`);
+        
+        while (this.childNodes.length > 0) {
+          this._fallback.appendChild(this.childNodes[0]);
+        }
+        
+        this._fallback.classList.add('fallback');
+        this.classList.add('fallback');
+        this.append(this._fallback);
+      }
+
+      this._drawState();
+
+      if ('PointerEvent' in window) {
+        this.addEventListener('pointerdown', this._onPointerdown);
+      } else {
+        this.addEventListener('touchstart', this._onTouchstart);
+        this.addEventListener('mousedown', this._onMousedown);
+      }
+    }
+
+    disconnectedCallback() {
+      if ('PointerEvent' in window) {
+        this.removeEventListener('pointerdown', this._onPointerdown);
+      } else {
+        this.removeEventListener('touchstart', this._onTouchstart);
+        this.removeEventListener('mousedown', this._onMousedown);
+      }
+    }
+
+    attributeChangedCallback(attrName, oldVal, newVal) {
+      this._angle = (TWO_PI / this.scale) * (this.value % this.scale);
+      this._drawState();
+    }
+
+    _drawState() {
+      let target = this._container;
+      
+      if (this._fallback !== null) {
+          target = this._fallback;
+      }
+      
+      target.style.setProperty('--angle', `${this._angle}rad`);
+    }
+
+    _rotationStart() {
+      window.oncontextmenu = () => { return false; };
+      this._centerX = this.offsetLeft - this.scrollLeft + this.clientLeft + this.offsetWidth / 2;
+      this._centerY = this.offsetTop - this.scrollTop + this.clientTop + this.offsetHeight / 2;
+      this._initialAngle = this._angle;
+      this._initialTouchAngle = Math.atan2(
+        this._touchY - this._centerY,
+        this._touchX - this._centerX
+      );
+      
+      const evt = new Event('knob-move-start', { bubbles: true });
+      this.dispatchEvent(evt);
+    }
+
+    _rotationChange() {
+      this._angle =
+        this._initialAngle
+        - this._initialTouchAngle
+        + Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
+      this._angle = (this._angle + TWO_PI) % TWO_PI;
+      this.value = this._angle / (TWO_PI / this.scale);
+      
+      const evt = new Event('knob-move-change', { bubbles: true });
+      this.dispatchEvent(evt);
+    }
+
+    _rotationEnd() {
+      window.oncontextmenu = null;
+      const evt = new Event('knob-move-end', { bubbles: true });
+      this.dispatchEvent(evt);
+    }
+
+    _onPointerdown(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+
+      this._rotationStart();
+
+      this.setPointerCapture(e.pointerId);
+      this.addEventListener('pointermove', this._onPointermove);
+      this.addEventListener('pointerup', this._onPointerup);
+      this.addEventListener('pointercancel', this._onPointerup);
+    }
+
+    _onPointermove(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationChange();
+    }
+
+    _onPointerup(e) {
+      e.preventDefault();
+      this._rotationEnd();
+      this.releasePointerCapture(e.pointerId);
+      this.removeEventListener('pointermove', this._onPointermove);
+      this.removeEventListener('pointerup', this._onPointerup);
+      this.removeEventListener('pointercancel', this._onPointerup);
+    }
+
+    _onMousedown(e) {
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationStart();
+      document.addEventListener('mousemove', this._onMousemove);
+      document.addEventListener('mouseup', this._onMouseup);
+    }
+
+    _onMousemove(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationChange();
+    }
+
+    _onMouseup(e) {
+      e.preventDefault();
+      document.removeEventListener('mousemove', this._onMousemove);
+      document.removeEventListener('mouseup', this._onMouseup);
+      this._rotationEnd();
+    }
+
+    _onTouchstart(e) {
+      e.preventDefault();
+      this._touchX = e.changedTouches[0].clientX;
+      this._touchY = e.changedTouches[0].clientY;
+      this._rotationStart();
+      this.addEventListener('touchmove', this._onTouchmove);
+      this.addEventListener('touchend', this._onTouchend);
+      this.addEventListener('touchcancel', this._onTouchend);
+    }
+
+    _onTouchmove(e) {
+      e.preventDefault();
+      this._touchX = e.targetTouches[0].clientX;
+      this._touchY = e.targetTouches[0].clientY;
+      this._rotationChange();
+    }
+
+    _onTouchend(e) {
+      e.preventDefault();
+      this.removeEventListener('touchmove', this._onTouchmove);
+      this.removeEventListener('touchend', this._onTouchend);
+      this.removeEventListener('touchcancel', this._onTouchend);
+      this._rotationEnd();
+    }
+  }
+
+  window.customElements.define('input-knob', InputKnob);
+  
+  const knob = document.querySelector('input-knob');
+  
+  const showValue = document.querySelector('.show-value');
+  showValue.textContent = Number.parseFloat(knob.value).toFixed(3);
+  
+  const up = document.querySelector('.⬆️');
+  const right = document.querySelector('.➡️');
+  const down = document.querySelector('.⬇️');
+  const left = document.querySelector('.⬅️');
+  
+  function logEvent(evt) {
+    showValue.textContent = Number.parseFloat(knob.value).toFixed(3);
+    
+    if (knob.value > 9.5 || knob.value < 0.5) {
+      highlight(up);
+    }
+    
+    if (knob.value > 2 && knob.value < 3) {
+      highlight(right);
+    }
+    
+    if (knob.value > 4.5 && knob.value < 5.5) {
+      highlight(down);
+    }
+    
+    if (knob.value > 7 && knob.value < 8.5) {
+      highlight(left);
+    }
+  }
+  
+  function highlight(element) {
+    element.classList.add('🔦');
+    setTimeout(() => { element.classList.remove('🔦'); }, 200);
+  }
+  
+  document.addEventListener('knob-move-start', logEvent);
+  document.addEventListener('knob-move-change', logEvent);
+  document.addEventListener('knob-move-end', logEvent);
+</script>

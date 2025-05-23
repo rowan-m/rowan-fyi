@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<title>TODO</title>
+<style></style>
+<h1>TODO</h1>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  const ls = window.localStorage;
+  const key = document.referrer;
+  const val = parseInt(ls.getItem(key), 10);
+  
+  if (val < 1 || isNaN(val)) {
+    ls.setItem(key, 1);
+  } else {
+    ls.setItem(key, val + 1);
+  }
+  
+  console.log(ls);
+</script>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<title>Sinister Math</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    padding: 0;
+    color: whitesmoke;
+    background: #222;
+    font-family: sans-serif;
+  }
+
+  header {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 98vw;
+    margin: auto;
+  }
+
+  h1 {
+    font-weight: 100;
+    font-size: 1rem;
+  }
+
+  a {
+    color: lightskyblue;
+  }
+
+  main {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  canvas {
+    width: 98vw;
+    height: 83vh;
+    background: #111;
+  }
+
+  button {
+    font-size: 1rem;
+    padding: .5rem;
+    margin: 1rem 1rem 0 1rem;
+  }
+</style>
+<header>
+  <h1>Sinister Math</h1>
+  <span>[<a href="https://twitter.com/rowan_m">👻 @rowan_m</a>] [<a href="https://glitch.com/edit/#!/sinister-math?path=index.html">💻 code</a>]</span>
+</header>
+<main>
+  <canvas></canvas>
+  <nav>
+    <button type="button" class="pp-butt" disabled>▶️</button>
+    <button type="button" class="cl-butt">🔁</button>
+  </nav>
+</main>
+<footer>
+</footer>
+<script>
+  'use strict';
+
+  class SinisterMath {
+    constructor(cvs, butts) {
+      this.PAUSED = 'paused';
+      this.PLAYING = 'playing';
+
+      this.pnts = [];
+      this.pntSensitivity = 10;
+      this.pntRadius = 5;
+
+      this.curPnt = { x: null, y: null };
+      this.prevPnt = { x: null, y: null };
+
+      this.cvs = cvs;
+      this.ctx = cvs.getContext('2d');
+
+      this.dcvs = document.createElement('canvas');
+      this.dctx = this.dcvs.getContext('2d');
+
+      this.butts = butts;
+      this.state = this.PAUSED;
+      this.rendering = false;
+
+      this.clear = this.clear.bind(this);
+      this.handleClear = this.handleClear.bind(this);
+      this.handleClick = this.handleClick.bind(this);
+      this.handlePlayPause = this.handlePlayPause.bind(this);
+      this.handleResize = this.handleResize.bind(this);
+      this.initCtx = this.initCtx.bind(this);
+      this.pause = this.pause.bind(this);
+      this.play = this.play.bind(this);
+      this.render = this.render.bind(this);
+      this.tick = this.tick.bind(this);
+      this.togglePnt = this.togglePnt.bind(this);
+      this.update = this.update.bind(this);
+
+      this.handleResize(null);
+    }
+
+    initCtx() {
+      this.ctx.strokeStyle = 'darkorange';
+      this.ctx.shadowColor = 'lightsalmon';
+      this.ctx.shadowBlur = 4;
+      this.ctx.lineWidth = 2;
+      this.dctx.strokeStyle = 'mediumpurple';
+      this.dctx.shadowColor = 'orchid';
+      this.dctx.shadowBlur = 4;
+      this.dctx.lineWidth = 1;
+    }
+
+    togglePnt(x, y) {
+      let adding = true;
+
+      this.pnts.forEach((p, i) => {
+        if (Math.abs(p.x - x) < this.pntSensitivity && Math.abs(p.y - y) < this.pntSensitivity) {
+          this.pnts.splice(i, 1);
+          adding = false;
+        }
+      });
+
+      if (adding) {
+        this.pnts.push({ x: x, y: y });
+      }
+
+      if (this.pnts.length >= 1) {
+        Object.assign(this.curPnt, this.pnts[Math.floor(Math.random() * this.pnts.length)]);
+      } else {
+        this.curPnt = null;
+      }
+
+      if (this.pnts.length >= 3) {
+        this.butts.pp.disabled = false;
+      }
+
+      this.render(performance.now());
+    }
+
+    handleResize(e) {
+      this.w = cvs.getBoundingClientRect().width;
+      this.h = cvs.getBoundingClientRect().height;
+      this.cvs.width = this.w;
+      this.cvs.height = this.h;
+      this.dcvs.width = this.w;
+      this.dcvs.height = this.h;
+
+      this.initCtx();
+    }
+
+    handleClick(e) {
+      if (this.state === this.PAUSED) {
+        this.togglePnt(e.pageX - this.cvs.offsetLeft, e.pageY - this.cvs.offsetTop);
+      }
+    }
+
+    handlePlayPause(e) {
+      if (this.state === this.PAUSED) {
+        this.play()
+      } else {
+        this.pause();
+      }
+    }
+
+    handleClear(e) {
+      this.clear();
+    }
+
+    pause() {
+      this.state = this.PAUSED;
+      this.butts.pp.textContent = '▶️';
+
+    }
+
+    play() {
+      if (this.pnts.length >= 3) {
+        this.state = this.PLAYING;
+        this.butts.pp.textContent = '⏸️';
+        window.requestAnimationFrame(this.tick);
+      }
+    }
+
+    clear() {
+      this.pause();
+      this.pnts = [];
+      this.dctx.clearRect(0, 0, this.w, this.h);
+      this.render(performance.now());
+    }
+
+    render(t) {
+      if (!this.rendering) {
+        this.rendering = true;
+
+        this.ctx.clearRect(0, 0, this.w, this.h);
+
+        if (this.state === this.PLAYING) {
+          this.dctx.beginPath();
+          this.dctx.ellipse(this.curPnt.x, this.curPnt.y, 1, 1, 0, 0, 2 * Math.PI);
+          this.dctx.stroke();
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(this.prevPnt.x, this.prevPnt.y);
+          this.ctx.lineTo(this.curPnt.x, this.curPnt.y);
+          this.ctx.stroke();
+        }
+
+        this.ctx.drawImage(this.dcvs, 0, 0);
+
+        this.pnts.forEach(p => {
+          this.ctx.beginPath();
+          this.ctx.ellipse(p.x, p.y, this.pntRadius, this.pntRadius, 0, 0, 2 * Math.PI);
+          this.ctx.stroke();
+        });
+
+        this.rendering = false;
+      }
+    }
+
+    tick(t) {
+      this.update(t);
+      this.render(t);
+
+      if (this.state === this.PLAYING) {
+        window.requestAnimationFrame(this.tick);
+      }
+    }
+
+    update(t) {
+      let targetPnt = this.pnts[Math.floor(Math.random() * this.pnts.length)];
+
+      while (targetPnt.x == this.curPnt.x && targetPnt.y == this.curPnt.y) {
+        targetPnt = this.pnts[Math.floor(Math.random() * this.pnts.length)];
+      }
+
+      const dx = targetPnt.x - this.curPnt.x;
+      const dy = targetPnt.y - this.curPnt.y;
+      const halfway = Math.sqrt(dx * dx + dy * dy) / (this.pnts.length - 1);
+      const a = Math.atan2(dx, dy);
+      this.prevPnt.x = this.curPnt.x;
+      this.prevPnt.y = this.curPnt.y;
+      this.curPnt.x += Math.sin(a) * halfway;
+      this.curPnt.y += Math.cos(a) * halfway;
+      return;
+    }
+  }
+
+  const cvs = document.querySelector('canvas');
+  const sinister = new SinisterMath(cvs, { pp: document.querySelector('.pp-butt'), cl: document.querySelector('.pp-butt') });
+  window.addEventListener('resize', sinister.handleResize);
+  cvs.addEventListener('click', sinister.handleClick);
+  document.querySelector('.pp-butt').addEventListener('click', sinister.handlePlayPause);
+  document.querySelector('.cl-butt').addEventListener('click', sinister.handleClear);
+</script>

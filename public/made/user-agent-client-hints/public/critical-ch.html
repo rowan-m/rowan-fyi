@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>User-Agent 👀 Client Hints</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    id="favicon"
+    rel="icon"
+    href="https://cdn.glitch.com/195b7e72-ff57-4304-8ade-ebbb1cf2022d%2Feyes_1f440.png?v=1593419184811"
+    type="image/x-icon"
+  />
+
+  <meta name="Description" content="User-Agent 👀 Client Hints" />
+
+  <style>
+    body {
+      font-family: sans-serif;
+      font-weight: 300;
+      margin: 0;
+      padding: 0;
+      color: hsl(300, 24%, 30%);
+    }
+
+    h1,
+    h2,
+    nav {
+      font-size: 1.1rem;
+      font-weight: 400;
+      padding: 0.5rem;
+      margin: 0;
+      background: hsl(300, 24%, 95%);
+    }
+
+    h2 {
+      border-top: 1px hsl(300, 24%, 55%) solid;
+    }
+
+    details {
+      font-style: italic;
+      font-size: 0.8rem;
+      font-weight: 200;
+    }
+
+    pre,
+    code {
+      font-family: monospace;
+      font-weight: 700;
+      color: #444;
+    }
+
+    pre {
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: keep-all;
+      padding: 0.8rem;
+      margin: 0;
+      background: oldlace;
+    }
+
+    label {
+      display: inline-block;
+      margin: 0.4rem;
+      padding: 0.4rem;
+      background: oldlace;
+    }
+
+    fieldset {
+      border: 2px hsl(300, 24%, 55%) ridge;
+    }
+
+    div {
+      display: inline-block;
+      margin: 0.3rem 0.15rem 0.3rem 0.15rem;
+      padding: 0.3rem 0.6rem 0.3rem 0.1rem;
+    }
+
+    button {
+      margin: 1rem;
+      padding: 0.5rem;
+      border: 1px hsl(300, 24%, 55%) solid;
+      border-radius: 2px;
+      background: linear-gradient(hsl(300, 24%, 95%), hsl(300, 24%, 90%));
+      color: hsl(300, 24%, 20%);
+    }
+
+    a {
+      color: hsl(300, 24%, 50%);
+      font-weight: 500;
+    }
+
+    footer {
+      padding-left: 1rem;
+    }
+  </style>
+  <header>
+    <h1>User-Agent 👀 Client Hints</h1>
+    <nav>
+      <a href="./">[via headers]</a>
+      <a href="./javascript.html">[via JavaScript]</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Critical-CH provided</h2>
+    <p>
+      This page uses the <code>Critical-CH</code> header to request the
+      <code>Sec-CH-UA-Full-Version</code> hint. It also requests a number of
+      subresources and images. The additional request should not trigger a
+      reload for these additional resources as well.
+    </p>
+    <img src="https://placekitten.com/408/287">
+    <img src="https://placekitten.com/100/100">
+    <img src="https://placekitten.com/1024/768">
+    <img src="https://placekitten.com/1200/100">
+    <img src="https://placekitten.com/64/64">
+    <img src="https://placekitten.com/800/800">
+    <img src="https://placekitten.com/1600/900">
+    <img src="https://placekitten.com/900/1600">
+  </main>
+  <footer>
+    <p>
+      *️⃣ Requires Chrome 93 or equivalent.<br />
+      🚩 Enable <code>chrome://flags/#enable-experimental-web-platform-features</code>
+      💻 <a href="https://glitch.com/edit/#!/user-agent-client-hints?path=public%2Fcritical-ch.html">See the code</a>.
+    </p>
+  </footer>
+</html>

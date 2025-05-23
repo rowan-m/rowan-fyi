@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="twitter:card" content="player" />
+<meta name="twitter:title" content="Click 4 Cats" />
+<meta name="twitter:site" content="@rowan_m" />
+<meta name="twitter:description" content="Flying felines" />
+<meta name="twitter:player" content="https://overly-particular.glitch.me/" />
+<meta name="twitter:player:width" content="480" />
+<meta name="twitter:player:height" content="480" />
+<meta name="twitter:image" content="https://cdn.glitch.global/4749aaa0-f16d-46bb-81d8-54a71cc3017c/click4cats.png?v=1651229664292" />
+<meta name="twitter:image:alt" content="Tap and get cats" />
+<link rel="icon" href="https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrin.png?v=1611368509852">
+<title>Click 4 cats</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  main {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(hsl(217, 40%, 10%), hsl(268, 40%, 40%));
+  }
+
+  .main-canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    touch-action: none;
+  }
+</style>
+<main>
+  <canvas class="main-canvas" draggable="false" width="512" height="512"></canvas>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script> -->
+<script>
+  'use strict';
+
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  class CatWorld {
+    constructor() {
+      this.cvs = document.querySelector('.main-canvas');
+      this.width = this.cvs.width;
+      this.height = this.cvs.height;
+
+      this.cats = [];
+
+      this.testPixi();
+      this.app = new PIXI.Application({
+        view: this.cvs,          // default: unset
+        width: this.cvs.width,   // default: 800
+        height: this.cvs.height, // default: 600
+        antialias: true,         // default: false
+        transparent: true,       // default: false
+        resolution: 1,           // default: 1
+      });
+
+      this.postLoad = this.postLoad.bind(this);
+      this.handleResize = this.handleResize.bind(this);
+      this.handlePointerdown = this.handlePointerdown.bind(this);
+      this.handlePointermove = this.handlePointermove.bind(this);
+      this.handlePointerup = this.handlePointerup.bind(this);
+      this.spawnCat = this.spawnCat.bind(this);
+      this.tick = this.tick.bind(this);
+
+      this.init();
+    }
+
+    init() {
+      this.handleResize(null);
+      window.addEventListener('resize', this.handleResize);
+
+      PIXI.Loader.shared
+        .add([
+          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrin.png?v=1611368509852',
+          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrincry.png?v=1611368509852',
+          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatscared.png?v=1611368509851',
+          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatghost.png?v=1611368509937',
+        ])
+        .load(this.postLoad);
+    }
+
+    postLoad() {
+      // this.filter = new PIXI.filters.AsciiFilter(this.catSize/32);
+      // this.app.stage.filters = [this.filter];
+      this.app.ticker.add(delta => this.tick(delta));
+      this.cvs.addEventListener('pointerdown', this.handlePointerdown);
+      this.cvs.addEventListener('click', this.spawnCat);
+    }
+
+    testPixi() {
+      let type = 'WebGL';
+      if (!PIXI.utils.isWebGLSupported()) {
+        type = 'canvas';
+      }
+
+      PIXI.utils.sayHello(type);
+    }
+
+    handleResize(e) {
+      this.width = this.cvs.getBoundingClientRect().width;
+      this.height = this.cvs.getBoundingClientRect().height;
+      this.cvs.width = this.width;
+      this.cvs.height = this.height;
+      this.app.renderer.resize(this.width, this.height);
+      this.catSize = (this.width * 0.2 + this.height * 0.3) * .1;
+    }
+
+    spawnCat(e) {
+      const cat = new Cat(
+        e.pageX - this.cvs.offsetLeft, e.pageY - this.cvs.offsetTop,
+        Math.random() * 100 - 50, Math.random() * -100 - 200,
+        Math.random() * 20 + 20, this.catSize
+      )
+      this.cats.push(cat);
+      this.app.stage.addChild(cat.sprite);
+    }
+
+    handlePointerdown(e) {
+      this.cvs.addEventListener('pointermove', this.handlePointermove);
+      this.cvs.addEventListener('pointerup', this.handlePointerup);
+      this.cvs.addEventListener('pointerleave', this.handlePointerup);
+    }
+
+    handlePointermove(e) {
+      this.spawnCat(e);
+    }
+
+    handlePointerup(e) {
+      this.cvs.removeEventListener('pointermove', this.handlePointermove);
+      this.cvs.removeEventListener('pointerup', this.handlePointerup);
+      this.cvs.removeEventListener('pointerleave', this.handlePointerup);
+    }
+
+    tick(t) {
+      this.cats.forEach((cat, i) => {
+        cat.update(t, this);
+
+        if (cat.life < 0) {
+          cat.destroy();
+          this.app.stage.removeChild(cat.sprite);
+          this.cats.splice(i, 1);
+        }
+      });
+    }
+  }
+
+  class Cat {
+    constructor(x, y, dx, dy, life, size) {
+      this.textureName = 'catgrin';
+      this.textureNames = {
+          catgrin: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrin.png?v=1611368509852',
+          catgrincry: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrincry.png?v=1611368509852',
+          catscared: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatscared.png?v=1611368509851',
+          catghost: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatghost.png?v=1611368509937',
+      };
+      this.sprite = new PIXI.Sprite(
+        PIXI.Loader.shared.resources[ this.textureNames[this.textureName] ].texture
+      );
+
+      this.x = x;
+      this.y = y;
+      this.dx = dx;
+      this.dy = dy;
+      this.life = life;
+
+      this.sprite.width = size;
+      this.sprite.height = size;
+      this.bounce = -0.7 - Math.random() * 0.2;
+      this.low = 0.8 + Math.random() * 0.1;
+    }
+
+    destroy() {
+      this.sprite.visible = false;
+    }
+
+    set x(x) {
+      this.sprite.x = x;
+    }
+
+    set y(y) {
+      this.sprite.y = y;
+    }
+
+    get x() {
+      return this.sprite.x;
+    }
+
+    get y() {
+      return this.sprite.y;
+    }
+
+    swapTexture(name) {
+      if (name !== this.textureName) {
+        this.textureName = name;
+        this.sprite.texture = PIXI.Loader.shared.resources[this.textureNames[this.textureName]].texture;
+      }
+    }
+
+    update(t, world) {
+      const dt = t / 10;
+      this.dy += 9.8;
+      this.dx += 0;
+
+      this.x += this.dx * dt;
+      this.y += this.dy * dt;
+
+      if (this.y > world.height * this.low) {
+        this.swapTexture('catscared');
+      } else if (this.dy > 0) {
+        this.swapTexture('catgrincry');
+      } else if (this.dy <= 0) {
+        this.swapTexture('catgrin');
+      }
+
+      this.sprite.width = world.catSize;
+      this.sprite.height = world.catSize;
+
+      if (this.x < 0) {
+        this.dx = this.bounce * this.dx;
+        this.x = 0;
+      } else if (this.x > world.width - world.catSize) {
+        this.dx = this.bounce * this.dx;
+        this.x = world.width - world.catSize;
+      }
+
+      if (this.y < 0) {
+        this.dy = this.bounce * this.dy;
+        this.y = 0;
+      }
+
+      if (this.y > world.height - world.catSize) {
+        this.dy = this.bounce * this.dy;
+        this.y = world.height - world.catSize;
+      }
+
+      this.life -= dt;
+    }
+  }
+
+  const catWorld = new CatWorld();
+</script>

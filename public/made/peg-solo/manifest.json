@@ -1,0 +1,22 @@
+{
+  "background_color": "#f0f8ff",
+  "description": "Play an online version of the classic game: Peg Solitaire AKA Solo Noble AKA Brainvita with bonus cat emoji.",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Peg Solitaire",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Peg Solo",
+  "start_url": "/",
+  "theme_color": "#4682b4",
+  "icons": [
+    {
+      "src": "https://cdn.glitch.global/310df37c-1974-4bda-b09c-03657a605652/cat-grin.png?v=1660084552083",
+      "sizes": "534x534",
+      "type": "image/png"
+    }
+  ],
+  "categories": [],
+  "screenshots": [],
+  "shortcuts": []
+}

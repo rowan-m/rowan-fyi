@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<title>User-Agent 👀 Client Hints</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link id="favicon" rel="icon" href="https://cdn.glitch.com/195b7e72-ff57-4304-8ade-ebbb1cf2022d%2Feyes_1f440.png?v=1593419184811" type="image/x-icon" />
+<meta name="Description" content="User-Agent 👀 Client Hints" />
+<style>
+  body {
+    font-family: sans-serif;
+    font-weight: 300;
+    margin: 0;
+    padding: 0;
+    color: hsl(300, 24%, 30%);
+  }
+
+
+  h1,
+  h2,
+  nav {
+    font-size: 1.1rem;
+    font-weight: 400;
+    padding: 0.5rem;
+    margin: 0;
+    background: hsl(300, 24%, 95%);
+  }
+
+  h2 {
+    border-top: 1px hsl(300, 24%, 55%) solid;
+  }
+
+  details {
+    font-style: italic;
+    font-size: .8rem;
+    font-weight: 200;
+  }
+
+  pre,
+  code {
+    font-family: monospace;
+    font-weight: 700;
+    color: #444;
+  }
+
+  pre {
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: keep-all;
+    padding: 0.8rem;
+    margin: 0;
+    background: oldlace;
+  }
+
+  label {
+    display: inline-block;
+    margin: 0.4rem;
+    padding: 0.4rem;
+    background: oldlace;
+  }
+
+  fieldset {
+    border: 2px hsl(300, 24%, 55%) ridge;
+  }
+
+  div {
+    display: inline-block;
+    margin: 0.3rem 0.15rem 0.3rem 0.15rem;
+    padding: 0.3rem 0.6rem 0.3rem 0.1rem;
+  }
+
+  button {
+    margin: 1rem;
+    padding: 0.5rem;
+    border: 1px hsl(300, 24%, 55%) solid;
+    border-radius: 2px;
+    background: linear-gradient(hsl(300, 24%, 95%), hsl(300, 24%, 90%));
+    color: hsl(300, 24%, 20%);
+  }
+
+  a {
+    color: hsl(300, 24%, 50%);
+    font-weight: 500;
+  }
+
+  footer {
+    padding-left: 1rem;
+  }
+</style>
+<header>
+  <h1>User-Agent 👀 Client Hints</h1>
+  <nav>
+    <a href="./">[via JavaScript]</a>
+    <a href="./headers">[via headers]</a>
+  </nav>
+</header>
+<main>
+  <h2>[Response] Server asked for:</h2>
+<!--   <details>
+    <summary>Seeing double values?</summary>The spec is changing to make the
+    hint tokens match the header name,
+    i.e. always including the <code>Sec-CH-</code> prefix. In the transition
+    period, this demo sends both formats.
+  </details> -->
+  <pre class="response" disabled>{{displayHeader}}</pre>
+  <h2>[Subsequent Request] Client sent:</h2>
+  <pre class="request" disabled>[…]</pre>
+  <h2>[For comparison] User-Agent:</h2>
+  <pre class="user-agent" disabled>[…]</pre>
+  <h2>Server should ask for:</h2>
+  <form method="get" action="/headers">
+    <fieldset class="hints">
+      <legend>Available hints</legend>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-arch"
+          value="Sec-CH-UA-Arch">
+        <code>Sec-CH-UA-Arch</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-bitness"
+          value="Sec-CH-UA-Bitness">
+        <code>Sec-CH-UA-Bitness</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-full-version"
+          value="Sec-CH-UA-Full-Version">
+        <code>Sec-CH-UA-Full-Version</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-full-version-list"
+          value="Sec-CH-UA-Full-Version-List">
+        <code>Sec-CH-UA-Full-Version-List</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-mobile"
+          value="Sec-CH-UA-Mobile">
+        <code>Sec-CH-UA-Mobile</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-model"
+          value="Sec-CH-UA-Model">
+        <code>Sec-CH-UA-Model</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-platform-version"
+          value="Sec-CH-UA-Platform-Version">
+        <code>Sec-CH-UA-Platform-Version</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-platform"
+          value="Sec-CH-UA-Platform">
+        <code>Sec-CH-UA-Platform</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua-wow64"
+          value="Sec-CH-UA-Wow64">
+        <code>Sec-CH-UA-Wow64</code>
+      </label>
+      <label>
+        <input type="checkbox" name="uach" id="sec-ch-ua" value="Sec-CH-UA">
+        <code>Sec-CH-UA</code>
+      </label>
+    </fieldset>
+    <label>
+      <input type="checkbox" id="noheader" name="noheader" value="noheader">
+      Do <em>not</em> send
+      <code>Accept-CH</code>
+    </label>
+    <button type="submit">🔄 Send</button>
+  </form>
+</main>
+<footer>
+  <p>*️⃣ Requires Chrome 84 or equivalent.<br>
+    📃 Read the proposal at <a href="https://github.com/WICG/ua-client-hints">github.com/WICG/ua-client-hints</a><br>
+    💻 <a href="https://glitch.com/edit/#!/user-agent-client-hints?path=public%2Findex.html">See the demo code</a>.
+  </p>
+</footer>
+<script>
+  'use strict';
+
+  const activeHeaders = new URLSearchParams(document.location.search);
+  for (var header of activeHeaders.values()) {
+    const checkbox = document.querySelector(`input[value=${header}]`);
+    if (checkbox) {
+      checkbox.checked = true;
+    }
+  }
+
+  const availHints = document.querySelector('.hints');
+  const headerToggle = document.querySelector('#noheader');
+
+  function toggleHeader() {
+    availHints.disabled = (headerToggle.checked) ? true : false
+  }
+
+  toggleHeader();
+  headerToggle.addEventListener('change', toggleHeader);
+
+  fetch('/show-headers.json' + document.location.search)
+    .then((res) => {
+      if (res.status === 200) {
+        res.json().then((data) => {
+          let secChText = '';
+
+          for (const header in data['Sec-CH-UA']) {
+            secChText += `${header}: ${data['Sec-CH-UA'][header]}\n`;
+          }
+
+          document.querySelector('.request').textContent = secChText;
+          document.querySelector('.user-agent').textContent = data['User-Agent'];
+        });
+      }
+    });
+</script>

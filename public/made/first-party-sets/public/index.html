@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- <link rel="icon" href="data:;base64,iVBORw0KGgo="> -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍪</text></svg>"/>
+<link rel="stylesheet" href="./water.css">
+<title>First-Party Sets demo</title>
+<style>
+  .status {
+    font-weight: bold;
+    padding-left: .5rem;
+    padding-right: .5rem;
+  }
+
+  .pass {
+    color: darkgreen;
+    background: palegreen;
+  }
+
+  .fail {
+    color: darkred;
+    background: lightcoral;
+  }
+
+  pre {
+    width: 100%;
+    overflow: auto;
+    text-indent: 0;
+  }
+  
+  iframe {
+    width: 100%;
+    overflow: auto;
+  }
+  
+  .set-3pc-iframe {
+    height: 5rem;
+  }
+  
+  .padded {
+    display: inline-block;
+    width: 11ch;
+  }
+  
+  ul {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  li {
+    padding-left: 3ch;
+    text-indent: -3.25ch;
+    margin-top: 1rem;
+  }
+
+  ul.demos>li:nth-child(1):before {
+    content: "⏫";
+    padding-right: 1ch;
+  }
+  
+  ul.demos>li:nth-child(2):before {
+    content: "⏬";
+    padding-right: 1ch;
+  }
+  
+  li:before {
+    content: "🔎";
+    padding-right: 1ch;
+  }
+</style>
+<h1>First-Party Sets demo</h1>
+  
+<p><strong>📖 Note: Refer to the <a href="https://developer.chrome.com/docs/privacy-sandbox/first-party-sets-integration/">First-Party Sets documentation</a> to understand how the API works.</strong></p>
+
+<h2>Demo scenarios</h2>
+  
+<p>👋 Make sure you follow and <span class="status pass">[PASS]</span> the "Set-up and settings" steps below before trying the demos.</p>
+
+<ul class="demos">
+  <li><strong>Bottom-up approach:</strong> <a href="https://fps-member-1.glitch.me/request-storage-access.html">use <code>requestStorageAccess()</code> in a cross-site, same-set <code>iframe</code></a>.</li>
+  <li><strong>Top-down approach:</strong> <a href="https://fps-member-1.glitch.me/request-storage-access-for.html">use <code>requestStorageAccessFor()</code> for embedded cross-site, same-set resources</a>.</li>
+</ul>
+
+<p>This demo uses two sites: <code>first-party-sets.glitch.me</code> and <code>fps-member-1.glitch.me</code>, which are both part of the same First-Party Set. <code>first-party-sets.glitch.me</code> sets a cookie named <code>crossSite</code> to that will be allowed in the cross-site, same-set contexts via the Storage Access API.</p>  
+
+<h2>Set-up and settings</h2>
+<ul>
+
+  <li><span class="major-version status">[…]</span> Chrome 113 or higher required.</li>
+
+  <li>Launch Chrome with the following <a href="https://www.chromium.org/developers/how-tos/run-chromium-with-flags/">command line arguments</a>:
+  <pre>
+--enable-features="FirstPartySets:FirstPartySetsClearSiteDataOnChangedSets/1,StorageAccessAPI,StorageAccessAPIForOriginExtension,PageInfoCookiesSubpage,PrivacySandboxFirstPartySetsUI" \
+--use-first-party-set="{\"primary\": \"https://first-party-sets.glitch.me\", \"associatedSites\": [\"https://fps-member-1.glitch.me\"]}" \
+https://first-party-sets.glitch.me/
+  </pre>
+  </li>
+  <li><span class="has-storage-access status">[…]</span> <code>document.hasStorageAccess()</code> available.</li>
+  <li><span class="request-storage-access status">[…]</span> <code>document.requestStorageAccess()</code> available.</li>
+  <li><span class="request-storage-access-for status">[…]</span> <code>document.requestStorageAccessFor()</code> available.</li>
+
+  <li>In Chrome settings, go to <strong>Privacy and Security</strong> → <strong>Cookies and other site data</strong> or <code>chrome://settings/cookies</code>. Under <strong>General settings</strong> ensure that <strong>Block third-party cookies</strong> is enabled and the sub-option <strong>Allow related sites to see your activity in the group</strong> is also enabled.</li>
+
+  <li><span class="set-3pc status">[TEST]</span> Third-party cookies look like they're blocked.</li>
+
+  <li><span class="demo-cookie status">[TEST]</span> Set demo cookie:
+  <br />Check <code>Set-Cookie: crossSite=[timestamp]; Path=/; Secure; SameSite=None</code>: <span class="crosssite-cookie-check"></span>
+  </li>
+</ul>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  document.querySelector('.major-version').textContent = (navigator.userAgentData.brands.some(b => { return b.brand === 'Google Chrome' && parseInt(b.version, 10) >= 113 })) ? '[PASS]' : '[FAIL]';
+  document.querySelector('.major-version').classList.add((navigator.userAgentData.brands.some(b => { return b.brand === 'Google Chrome' && parseInt(b.version, 10) >= 113 })) ? 'pass' : 'fail');
+
+  
+  document.querySelector('.has-storage-access').textContent = ('hasStorageAccess' in document) ?  '[PASS]' : '[FAIL]';
+  document.querySelector('.has-storage-access').classList.add(('hasStorageAccess' in document) ?  'pass' : 'fail');
+  
+  document.querySelector('.request-storage-access').textContent = ('requestStorageAccess' in document) ?  '[PASS]' : '[FAIL]';
+  document.querySelector('.request-storage-access').classList.add(('requestStorageAccess' in document) ?  'pass' : 'fail');
+  
+  document.querySelector('.request-storage-access-for').textContent = ('requestStorageAccessFor' in document) ?  '[PASS]' : '[FAIL]';
+  document.querySelector('.request-storage-access-for').classList.add(('requestStorageAccessFor' in document) ?  'pass' : 'fail');
+  
+  fetch('https://sandbox-sandbox.glitch.me/set-3pc.json', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    fetch('https://sandbox-sandbox.glitch.me/get-3pc.json', {
+      method: 'GET',
+      credentials: 'include'
+    })
+    .then(response => response.json())
+    .then(json => {
+      console.log(json);
+      document.querySelector('.set-3pc').textContent = ('3pc' in json) ?  '[FAIL]' : '[PASS]';
+      document.querySelector('.set-3pc').classList.add(('3pc' in json) ?  'fail' : 'pass');
+    }).catch(err => {
+      console.log(err);
+      document.querySelector('.set-3pc').textContent = '[FAIL]';
+      document.querySelector('.set-3pc').classList.add('fail');
+    });
+  });
+  
+  fetch('/getcookies.json', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => response.json())
+  .then(json => {
+    document.querySelector('.crosssite-cookie-check').textContent = ('crossSite' in json) ?  '🍪 cookie set' : '⛔ NOT SET!';
+    document.querySelector('.demo-cookie').textContent = ('crossSite' in json) ?  '[PASS]' : '[FAIL]';
+    document.querySelector('.demo-cookie').classList.add(('crossSite' in json) ?  'pass' : 'fail');
+  });
+</script>

@@ -1,0 +1,35 @@
+<p>Active features in this browser:</p>
+<ul>
+  <li>Topics status: <span class="status topics-status">…</span></li>
+  <li>FLEDGE status: <span class="status fledge-status">…</span></li>
+  <li>Attribution Reporting status: <span class="status ara-status">…</span></li>
+  <li>Fenced Frames status: <span class="status ff-status">…</span></li>
+  <li>Shared Storage status: <span class="status shst-status">…</span></li>
+</ul>
+<p><strong>Note:</strong> The origin trial is only enabled for a subset of Chrome users, so you may not see the features as enabled. Check the <strong>Application</strong> → <strong>Frames</strong> → <strong>Origin Trials</strong> section in DevTools to see the token status. You may also need to press the <strong>Refresh</strong> button in that section.</p>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  // Topics feature detection
+  document.querySelector('.topics-status').textContent = ('browsingTopics' in document) ? 'Enabled' : 'Disabled';
+  document.querySelector('.topics-status').classList.add(('browsingTopics' in document) ? 'enabled' : 'disabled');
+  
+  // FLEDGE feature detection
+  document.querySelector('.fledge-status').textContent = ('runAdAuction' in navigator) ? 'Enabled' : 'Disabled';
+  document.querySelector('.fledge-status').classList.add(('runAdAuction' in navigator) ? 'enabled' : 'disabled');
+  
+  // Attribution Reporting feature detection
+  document.querySelector('.ara-status').textContent = (document.featurePolicy.allowsFeature('attribution-reporting')) ? 'Enabled' : 'Disabled';
+  document.querySelector('.ara-status').classList.add((document.featurePolicy.allowsFeature('attribution-reporting')) ? 'enabled' : 'disabled');
+  
+  // Fenced Frames feature detection
+  document.querySelector('.ff-status').textContent = ('HTMLFencedFrameElement' in window) ? 'Enabled' : 'Disabled';
+  document.querySelector('.ff-status').classList.add(('HTMLFencedFrameElement' in window) ? 'enabled' : 'disabled');
+  
+  // Shared Storage feature detection
+  document.querySelector('.shst-status').textContent = ('sharedStorage' in window) ? 'Enabled' : 'Disabled';
+  document.querySelector('.shst-status').classList.add(('sharedStorage' in window) ? 'enabled' : 'disabled');
+</script>

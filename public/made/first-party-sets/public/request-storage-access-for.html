@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- <link rel="icon" href="data:;base64,iVBORw0KGgo="> -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>➕</text></svg>"/>
+<link rel="stylesheet" href="./water.css">
+<title>iframe content - First-Party Sets demoFirst-Party Sets demo</title>
+<style>
+  .status {
+    font-weight: bold;
+  }
+
+  .pass {
+    color: darkgreen;
+    background: palegreen;
+  }
+
+  .fail {
+    color: darkred;
+    background: lightcoral;
+  }
+</style>
+
+<p>🍪 Cookies visible to JavaScript at page load: <code class="cookies-load"></code></p>
+
+  <p>4️⃣ Subsequent requests initiated within this frame will now include cookies, so if you <a href="./request-storage-access-for.html">🔃 navigate back here again</a> you should see the page immediate has storage access and can see the cross-site cookie.</p>
+
+  <script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  console.log('['+document.location.hostname+'] 🍪 Cookies visible to JavaScript at page load: ' + document.cookie);
+  document.querySelector('.cookies-load').textContent = document.cookie;  
+    
+    // Check if storage access is already enabled
+  document.hasStorageAccess().then((access) => {
+    console.log('['+document.location.hostname+'] 1️⃣ Check if storage access is enabled');
+    console.log('['+document.location.hostname+'] document.hasStorageAccess().then(access => console.log(access)) → ' + access);
+  });
+
+  navigator.permissions.query({name: 'storage-access'}).then(res => {
+    console.log('['+document.location.hostname+'] 2️⃣ Check if the storage-access permission has been granted');
+    console.log('['+document.location.hostname+'] navigator.permissions.query({name: \'storage-access\'}).then(res => console.log(res.state)) → ' + res.state);
+    
+    // Permission has already been granted
+    if (res.state === 'granted') {
+      
+      // Request storage access without any user gesture
+      if ('requestStorageAccess' in document) {
+        document.requestStorageAccess().then(
+          (res) => {
+            console.log('['+document.location.hostname+'] 3️⃣🅰 Storage-access permission granted, immediately request storage access.');
+            console.log('['+document.location.hostname+'] document.requestStorageAccess().then(res => {…}) → success');
+          },
+          (err) => {
+            console.log('['+document.location.hostname+'] 3️⃣🅰 Storage-access permission granted, immediately request storage access.');
+            console.log('['+document.location.hostname+'] document.requestStorageAccess().then(res => {…}, err => {…}) → ERROR:', err);
+          }
+        );
+      }
+    }
+  });
+</script>

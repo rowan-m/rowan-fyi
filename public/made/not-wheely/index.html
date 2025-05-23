@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Not wheely</title>
+
+<meta name="Description" content="Optical illusion where the wheels look like
+they change position, but they really only spin." />
+
+<link rel="icon" type="image/png" sizes="32x32"
+  href="https://cdn.glitch.com/67e793d5-13ec-45f1-b964-6cf9e6e9bdf6%2Ffavicon-32x32.png?v=1606494011321" />
+<link rel="icon" type="image/png" sizes="16x16"
+  href="https://cdn.glitch.com/67e793d5-13ec-45f1-b964-6cf9e6e9bdf6%2Ffavicon-16x16.png?v=1606494010982" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="mask-icon"
+  href="https://cdn.glitch.com/67e793d5-13ec-45f1-b964-6cf9e6e9bdf6%2Fsafari-pinned-tab.svg?v=1606494011620"
+  color="#ebba31" />
+<link rel="apple-touch-icon" sizes="180x180"
+  href="https://cdn.glitch.com/67e793d5-13ec-45f1-b964-6cf9e6e9bdf6%2Fapple-touch-icon.png?v=1606494011393" />
+
+<meta name="apple-mobile-web-app-title" content="Not wheely" />
+<meta name="application-name" content="Not wheely" />
+<meta name="msapplication-TileColor" content="#ebba31" />
+<meta name="theme-color" content="#8a8a8a" />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@rowan_m" />
+<meta name="twitter:title" content="Not wheely" />
+<meta name="twitter:description" content="Optical illusion where the wheels look like they change position, but
+they really only spin in place." />
+<meta name="twitter:image"
+  content="https://cdn.glitch.com/67e793d5-13ec-45f1-b964-6cf9e6e9bdf6%2Fnot-wheely-preview.jpg?v=1606494500051" />
+<meta name="twitter:image:width" content="1920" />
+<meta name="twitter:image:height" content="1080" />
+<meta name="twitter:image:alt" content="Two spinning wheels with buttons to
+control direction, animation, color, and grid overlay." />
+
+<style>
+  @keyframes rotation {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(359deg);
+    }
+  }
+
+  :root {
+    --anim-dur: .7;
+    --anim-timing: steps(20, jump-start);
+    --bg-color: #8a8a8a;
+    --r: 40%;
+    --circ: calc(2 * 3.141592 * var(--r));
+    --wheel-color: rgb(0, 49, 186);
+    --wheel-alt-color: rgb(235, 186, 49);
+  }
+
+  * {
+    color: #222;
+    font-family: sans-serif;
+    font-weight: lighter;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--bg-color);
+  }
+
+  main {
+    display: flex;
+    justify-content: space-between;
+    margin: 2vmin auto 4vmin;
+    max-width: 1050px;
+  }
+
+  fieldset,
+  footer,
+  nav {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  footer {
+    align-items: center;
+    flex-flow: column nowrap;
+    text-align: center;
+  }
+
+  form {
+    font-size: 5vmin;
+    width: 100%;
+  }
+
+  fieldset {
+    border: 0;
+    margin-bottom: 3vmin;
+  }
+
+  button {
+    background: #aaa;
+    border-radius: 3vmin;
+    border: 2px outset #9a9a9a;
+    font-size: 4vmin;
+    font-weight: bolder;
+    height: 10vmin;
+    width: 14vmin;
+  }
+
+  button:focus {
+    box-shadow: 2px 2px 4px #666;
+    outline: 0;
+  }
+
+  .animation button {
+    width: 10vmin;
+  }
+
+  section {
+    position: relative;
+    height: 48vmin;
+    width: 48vmin;
+  }
+
+  svg {
+    height: 48vmin;
+    width: 48vmin;
+    contain: size layout paint style;
+    will-change: contents, transform;
+    transform: translateZ(0);
+  }
+
+  .wheel {
+    fill: none;
+    stroke-width: 16%;
+    stroke: var(--wheel-color);
+    transform-origin: 50% 50%;
+    transition: stroke 1s;
+    will-change: stroke;
+  }
+
+  .back {
+    stroke-dasharray: calc(var(--circ)/4);
+  }
+
+  .back.alt {
+    stroke-dashoffset: calc(var(--circ)/4);
+  }
+
+  .seg {
+    stroke-dasharray: calc(var(--circ)/7.97) calc((var(--circ)/8)*3);
+  }
+
+  .one {
+    stroke-dashoffset: calc(var(--circ)/8);
+  }
+
+  .two {
+    stroke-dashoffset: calc(var(--circ)/4);
+  }
+
+  .one.alt {
+    stroke-dashoffset: 0;
+  }
+
+  .two.alt {
+    stroke-dashoffset: calc(var(--circ)/-8);
+  }
+
+  .alt {
+    stroke: var(--wheel-alt-color);
+  }
+
+  .grid,
+  .mask {
+    fill: none;
+    transition-duration: 1s;
+  }
+
+  .mask {
+    stroke-width: 1%;
+    stroke: #000;
+    will-change: cx, cy, ry, ry;
+  }
+
+  .grid {
+    opacity: 1;
+    stroke-width: .4%;
+    stroke: #b8c1e0;
+  }
+
+  .label {
+    contain: size layout paint style;
+    font-size: 10vmin;
+    height: 20vmin;
+    left: 50%;
+    line-height: 20vmin;
+    margin: -10vmin 0 0 -10vmin;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    transition: opacity 1s, transform .8s;
+    white-space: nowrap;
+    width: 20vmin;
+    will-change: contents, opacity, transform;
+  }
+
+  .label.on {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .label.off {
+    opacity: 0.001;
+    transform: scale(0.01) rotate(-90deg);
+  }
+
+  .dir-io .illusion1 .label,
+  .dir-oi .illusion2 .label {
+    font-size: 7vmin;
+  }
+
+  main.grid-off .grid {
+    opacity: .001;
+  }
+
+  main.anim-on .wheel {
+    animation: rotation calc(var(--anim-dur)*1s) infinite var(--anim-timing);
+  }
+
+  p {
+    font-size: 1rem;
+    margin: 2vmin;
+  }
+
+  a,
+  button {
+    color: var(--wheel-color);
+    transition: color 1s;
+  }
+
+  .io-butt span,
+  .oi-butt span {
+    font-size: 3vmin;
+  }
+</style>
+<main class="anim-on grid-off">
+  <section class="illusion1">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+      preserveAspectRatio="none">
+      <circle class="wheel back" cx="50" cy="50" r="40"></circle>
+      <circle class="wheel back alt" cx="50" cy="50" r="40"></circle>
+      <mask id="mask1">
+        <rect x="0" y="0" width="100" height="100" fill="white"></rect>
+        <ellipse class="mask inner" cx="50" cy="50" rx="31" ry="31"></ellipse>
+        <ellipse class="mask outer" cx="50" cy="50" rx="49" ry="49"></ellipse>
+      </mask>
+      <mask id="mask2">
+        <rect x="0" y="0" width="100" height="100" fill="white"></rect>
+        <ellipse class="mask inner" cx="50" cy="50" rx="31" ry="31"></ellipse>
+        <ellipse class="mask outer" cx="50" cy="50" rx="49" ry="49"></ellipse>
+      </mask>
+      <g mask="url(#mask1)">
+        <circle class="wheel seg one" cx="50" cy="50" r="40"></circle>
+      </g>
+      <g mask="url(#mask2)">
+        <circle class="wheel seg two" cx="50" cy="50" r="40"></circle>
+      </g>
+      <g mask="url(#mask2)">
+        <circle class="wheel seg one alt" cx="50" cy="50" r="40"></circle>
+      </g>
+      <g mask="url(#mask1)">
+        <circle class="wheel seg two alt" cx="50" cy="50" r="40"></circle>
+      </g>
+      <path class="grid"
+        d="M2,0 V100 M18,0 V100 M82 0 V100 M98,0 V100 M0,2 H100 M0,18 H100 M0,82 H100 M0,98 H100">
+      </path>
+    </svg>
+    <div class="label on">&nbsp;</div>
+    <div class="label off">&nbsp;</div>
+  </section>
+  <section class="illusion2">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"
+      preserveAspectRatio="none">
+      <circle class="wheel back" cx="50" cy="50" r="40"></circle>
+      <circle class="wheel back alt" cx="50" cy="50" r="40"></circle>
+      <g mask="url(#mask2)">
+        <circle class="wheel seg one" cx="50" cy="50" r="40"></circle>
+      </g>
+      <g mask="url(#mask1)">
+        <circle class="wheel seg two" cx="50" cy="50" r="40"></circle>
+      </g>
+      <g mask="url(#mask1)">
+        <circle class="wheel seg one alt" cx="50" cy="50" r="40"></circle>
+      </g>
+      <g mask="url(#mask2)">
+        <circle class="wheel seg two alt" cx="50" cy="50" r="40"></circle>
+      </g>
+      <path class="grid"
+        d="M2,0 V100 M18,0 V100 M82 0 V100 M98,0 V100 M0,2 H100 M0,18 H100 M0,82 H100 M0,98 H100">
+      </path>
+    </svg>
+    <div class="label on">&nbsp;</div>
+    <div class="label off">&nbsp;</div>
+  </section>
+</main>
+<nav>
+  <form>
+    <fieldset class="directions">
+      <button type="button" class="rl-butt">👉👈</button>
+      <button type="button" class="lr-butt">👈👉</button>
+      <button type="button" class="du-butt">👇☝️</button>
+      <button type="button" class="ud-butt">☝️👇</button>
+      <button type="button" class="oi-butt">🖐️<span>✊</span></button>
+      <button type="button" class="io-butt"><span>✊</span>🖐️</button>
+    </fieldset>
+    <fieldset class="animation">
+      <button type="button" class="anim-toggle-butt">⏸️</button>
+      <button type="button" class="anim-dur-inc-butt">🐌</button>
+      <button type="button" class="anim-dur-dec-butt">🐇</button>
+      <button type="button" class="grid-toggle-butt">📐</button>
+      <button type="button" class="color-butt">🌈</button>
+      <button type="button" class="anim-timing-toggle-butt">∿</button>
+    </fieldset>
+  </form>
+</nav>
+<footer>
+  <p>None of the wheels are changing position. They only rotate in place.</p>
+  <p>Based on original from 💙 <a
+      href="https://twitter.com/jagarikin/status/1331409504953540613">@jagarikin</a>
+  </p>
+  <p>💛 <a
+      href="https://twitter.com/rowan_m/status/1332024958155943940">@rowan_m</a>
+    💻 <a href="https://glitch.com/edit/#!/not-wheely?path=index.html">Code</a>
+  </p>
+</footer>
+
+<script>
+  'use strict';
+
+  if (location.protocol !== 'https:') {
+    location.replace(`https:${location.href.substring(location.protocol.length)}`);
+  }
+
+  const mask = {
+    mask1: {
+      inner: document.querySelector('#mask1>.inner'),
+      outer: document.querySelector('#mask1>.outer')
+    },
+    mask2: {
+      inner: document.querySelector('#mask2>.inner'),
+      outer: document.querySelector('#mask2>.outer')
+    },
+  };
+
+  const config = document.documentElement;
+  const main = document.querySelector('main');
+
+  function setDirection(d) {
+    const l1off = document.querySelector('.illusion1 > .label.off');
+    const l1on = document.querySelector('.illusion1 > .label.on');
+    const l2off = document.querySelector('.illusion2 > .label.off');
+    const l2on = document.querySelector('.illusion2 > .label.on');
+
+    l1off.textContent = d.label.one;
+    l1off.classList.toggle('off');
+    l1off.classList.toggle('on');
+    l2off.textContent = d.label.two;
+    l2off.classList.toggle('off');
+    l2off.classList.toggle('on');
+
+    l1on.classList.toggle('on');
+    l1on.classList.toggle('off');
+    l2on.classList.toggle('on');
+    l2on.classList.toggle('off');
+
+    mask.mask1.inner.setAttribute('cx', d.mask.one.inner.cx);
+    mask.mask1.inner.setAttribute('cy', d.mask.one.inner.cy);
+    mask.mask1.inner.setAttribute('rx', d.mask.one.inner.rx);
+    mask.mask1.inner.setAttribute('ry', d.mask.one.inner.ry);
+
+    mask.mask1.outer.setAttribute('cx', d.mask.one.outer.cx);
+    mask.mask1.outer.setAttribute('cy', d.mask.one.outer.cy);
+    mask.mask1.outer.setAttribute('rx', d.mask.one.outer.rx);
+    mask.mask1.outer.setAttribute('ry', d.mask.one.outer.ry);
+
+    mask.mask2.inner.setAttribute('cx', d.mask.two.inner.cx);
+    mask.mask2.inner.setAttribute('cy', d.mask.two.inner.cy);
+    mask.mask2.inner.setAttribute('rx', d.mask.two.inner.rx);
+    mask.mask2.inner.setAttribute('ry', d.mask.two.inner.ry);
+
+    mask.mask2.outer.setAttribute('cx', d.mask.two.outer.cx);
+    mask.mask2.outer.setAttribute('cy', d.mask.two.outer.cy);
+    mask.mask2.outer.setAttribute('rx', d.mask.two.outer.rx);
+    mask.mask2.outer.setAttribute('ry', d.mask.two.outer.ry);
+
+    main.classList.remove('dir-rl', 'dir-lr', 'dir-du', 'dir-ud', 'dir-oi', 'dir-io');
+    main.classList.add('dir-' + d.d);
+  }
+
+  document.querySelector('.rl-butt').addEventListener('click', e => {
+    setDirection({
+      d: 'rl',
+      label: { one: '👉', two: '👈' },
+      mask: {
+        one: {
+          inner: { cx: 49.5, cy: 50, rx: 32, ry: 31 },
+          outer: { cx: 49.5, cy: 50, rx: 48, ry: 49 },
+        },
+        two: {
+          inner: { cx: 50.5, cy: 50, rx: 32, ry: 31 },
+          outer: { cx: 50.5, cy: 50, rx: 48, ry: 49 },
+        },
+      },
+    });
+  });
+
+  document.querySelector('.lr-butt').addEventListener('click', e => {
+    setDirection({
+      d: 'lr',
+      label: { one: '👈', two: '👉' },
+      mask: {
+        one: {
+          inner: { cx: 50.5, cy: 50, rx: 32, ry: 31 },
+          outer: { cx: 50.5, cy: 50, rx: 48, ry: 49 },
+        },
+        two: {
+          inner: { cx: 49.5, cy: 50, rx: 32, ry: 31 },
+          outer: { cx: 49.5, cy: 50, rx: 48, ry: 49 },
+        },
+      },
+    });
+  });
+
+  document.querySelector('.du-butt').addEventListener('click', e => {
+    setDirection({
+      d: 'du',
+      label: { one: '👇', two: '☝️' },
+      mask: {
+        one: {
+          inner: { cx: 50, cy: 49.5, rx: 31, ry: 32 },
+          outer: { cx: 50, cy: 49.5, rx: 49, ry: 48 },
+        },
+        two: {
+          inner: { cx: 50, cy: 50.5, rx: 31, ry: 32 },
+          outer: { cx: 50, cy: 50.5, rx: 49, ry: 48 },
+        },
+      },
+    });
+  });
+
+  document.querySelector('.ud-butt').addEventListener('click', e => {
+    setDirection({
+      d: 'ud',
+      label: { one: '☝️', two: '👇' },
+      mask: {
+        one: {
+          inner: { cx: 50, cy: 50.5, rx: 31, ry: 32 },
+          outer: { cx: 50, cy: 50.5, rx: 49, ry: 48 },
+        },
+        two: {
+          inner: { cx: 50, cy: 49.5, rx: 31, ry: 32 },
+          outer: { cx: 50, cy: 49.5, rx: 49, ry: 48 },
+        },
+      },
+    });
+  });
+
+  document.querySelector('.oi-butt').addEventListener('click', e => {
+    setDirection({
+      d: 'oi',
+      label: { one: '🖐️', two: '✊' },
+      mask: {
+        one: {
+          inner: { cx: 50, cy: 50, rx: 31, ry: 31 },
+          outer: { cx: 50, cy: 50, rx: 48, ry: 48 },
+        },
+        two: {
+          inner: { cx: 50, cy: 50, rx: 32, ry: 32 },
+          outer: { cx: 50, cy: 50, rx: 49, ry: 49 },
+        },
+      },
+    });
+  });
+
+  document.querySelector('.io-butt').addEventListener('click', e => {
+    setDirection({
+      d: 'io',
+      label: { one: '✊', two: '🖐️' },
+      mask: {
+        one: {
+          inner: { cx: 50, cy: 50, rx: 32, ry: 32 },
+          outer: { cx: 50, cy: 50, rx: 49, ry: 49 },
+        },
+        two: {
+          inner: { cx: 50, cy: 50, rx: 31, ry: 31 },
+          outer: { cx: 50, cy: 50, rx: 48, ry: 48 },
+        },
+      },
+    });
+  });
+
+  document.querySelector('.anim-toggle-butt').addEventListener('click', e => {
+    if (main.classList.contains('anim-on')) {
+      e.target.textContent = '▶️';
+      main.classList.remove('anim-on');
+    } else {
+      e.target.textContent = '⏸️';
+      main.classList.add('anim-on');
+    }
+  });
+
+  document.querySelector('.grid-toggle-butt').addEventListener('click', e => {
+    if (main.classList.contains('grid-off')) {
+      e.target.textContent = '🤯';
+      main.classList.remove('grid-off');
+    } else {
+      e.target.textContent = '📐';
+      main.classList.add('grid-off');
+    }
+  });
+
+  function getDur() {
+    return parseFloat(getComputedStyle(config).getPropertyValue("--anim-dur"));
+  }
+
+  document.querySelector('.anim-dur-dec-butt').addEventListener('click', e => {
+    let d = getDur();
+    d -= (d / 4);
+    config.style.setProperty('--anim-dur', d.toFixed(1));
+  });
+
+  document.querySelector('.anim-dur-inc-butt').addEventListener('click', e => {
+    let d = getDur();
+    d += (d / 4);
+    config.style.setProperty('--anim-dur', d.toFixed(1));
+  });
+
+  document.querySelector('.color-butt').addEventListener('click', e => {
+    const comp = [0, 1, 2];
+    for (let i = comp.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [comp[i], comp[j]] = [comp[j], comp[i]];
+    }
+
+    const color = [0, 0, 0];
+
+    color[comp[0]] = 235;
+    color[comp[1]] = Math.floor(Math.random() * 236);
+    color[comp[2]] = 235 - color[comp[1]];
+
+    config.style.setProperty('--wheel-color', `rgb(${color[0]}, ${color[1]}, ${color[2]})`);
+    config.style.setProperty('--wheel-alt-color', `rgb(${235 - color[0]}, ${235 - color[1]}, ${235 - color[2]})`);
+  });
+
+  document.querySelector('.anim-timing-toggle-butt').addEventListener('click', e => {
+    let timing = getComputedStyle(config).getPropertyValue("--anim-timing");
+
+    if (timing.startsWith('linear')) {
+      e.target.textContent = '∿';
+      config.style.setProperty('--anim-timing', 'steps(20, jump-start)');
+    } else {
+      e.target.textContent = '⑀';
+      config.style.setProperty('--anim-timing', 'linear');
+    }
+  });
+
+</script>

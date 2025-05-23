@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Naughty naughty no alt</title>
+  <style>
+    body {
+      margin: 5vw;
+    }
+
+    img {
+      max-width: 25vw;
+      margin: 1vw;
+      box-sizing: border-box;
+    }
+    img:not([alt]) {
+      border: 2px solid red;
+      animation: pulse 1.2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1) rotate(0);
+      }
+      25% {
+        transform: scale(1.3) rotate(15deg);
+        filter: blur(2px);
+        opacity: 0.8;
+        box-shadow: 0 0 2vw 2vw red;
+      }
+      50% {
+        transform: scale(1) rotate(0);
+        filter: none;
+      }
+      75% {
+        transform: scale(1.3) rotate(-15deg);
+        filter: blur(5px);
+        opacity: 0.8;
+        box-shadow: 0 0 2vw 2vw red;
+      }
+
+      100% {
+        transform: scale(1) rotate(0);
+      }
+    }
+  </style>
+  <img
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F71142347_446078422703384_5461860829958837723_n.jpg?v=1580642011370"
+  />
+  <img
+    alt="The nighttime city scape of Tokyo"
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F70361582_2580952328805913_6535199330128237535_n.jpg?v=1580642011691"
+  />
+  <img
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F82224617_471660250454277_8102177855991322547_n.jpg?v=1580642012009"
+  />
+  <img
+    alt="The nighttime cityscape of foggy San Francisco"
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F72289281_2465643027010170_3575790183307336154_n.jpg?v=1580642012348"
+  />
+  <img
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F69432156_515626225853279_3431010009738289326_n.jpg?v=1580642012433"
+  />
+  <img
+    alt="The daytime cityscape of Tokyo"
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F77308863_589651738505034_1193382705711115891_n.jpg?v=1580642012733"
+  />
+  <img
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F74435676_936875253358725_6039719083395354991_n.jpg?v=1580642012780"
+  />
+  <img
+    alt="A close-up view of a wise, ginger cat"
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F80736819_245664206412796_6601888962660608142_n.jpg?v=1580642013165"
+  />
+  <img
+    alt="The dome of Kings Cross station in London"
+    src="https://cdn.glitch.com/8f529ef8-c635-4c04-98b7-14940af802d6%2F79012467_487868828599854_1035374634562053056_n.jpg?v=1580642013537"
+  />
+</html>

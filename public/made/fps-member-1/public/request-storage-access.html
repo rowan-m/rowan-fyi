@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍪</text></svg>"/>
+<link rel="stylesheet" href="./water.css">
+<title>requestStorageAccess() - First-Party Sets demo</title>
+<style>
+  .hidden {
+    display: none;
+  }
+  .status {
+    font-weight: bold;
+  }
+
+  .pass {
+    color: darkgreen;
+    background: palegreen;
+  }
+
+  .fail {
+    color: darkred;
+    background: lightcoral;
+  }
+
+  iframe {
+    width: 100%;
+    height: 50rem;
+  }
+  
+  ul {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .demos>li {
+    padding-left: 3ch;
+    text-indent: -3.25ch;
+    margin-top: 1rem;
+  }
+
+  .demos>li:nth-child(1):before {
+    content: "⏫";
+    padding-right: 1ch;
+  }
+  
+  .demos>li:nth-child(2):before {
+    content: "⏬";
+    padding-right: 1ch;
+  }
+</style>
+<h1><code>requestStorageAccess()</code> - First-Party Sets demo</h1>
+<nav>
+  <a href="https://first-party-sets.glitch.me">⤴ Back home</a>
+</nav>
+
+<p class="req-check hidden">📋 <strong>Quick requirements check:</strong> Make sure you do <a href="https://first-party-sets.glitch.me">the set-up instructions on the home page first</a>! 🔎 Chrome 113+: <span class="major-version status">[…]</span> 🔎 <code>requestStorageAccess()</code> <span class="request-storage-access status">[…]</span></p>
+
+<ul class="demos">
+  <li>👉 <strong>Bottom-up approach:</strong> <a href="https://fps-member-1.glitch.me/request-storage-access.html">use <code>requestStorageAccess()</code> in a cross-site, same-set <code>iframe</code></a>.</li>
+  <li><strong>Top-down approach:</strong> <a href="https://fps-member-1.glitch.me/request-storage-access-for.html">use <code>requestStorageAccessFor()</code> for embedded cross-site, same-set resources</a>.</li>
+</ul>
+
+<p>🧑‍💻 <a href="https://glitch.com/edit/#!/first-party-sets?path=public%2Frequest-storage-access.html">Code for the iframe.</a></p>
+  
+<p>This demo uses two sites: <code>first-party-sets.glitch.me</code> and <code>fps-member-1.glitch.me</code>, which are both part of the same First-Party Set. <code>first-party-sets.glitch.me</code> sets a cookie named <code>crossSite</code> to that will be allowed in the cross-site, same-set contexts via the Storage Access API.</p>
+
+<iframe src="https://first-party-sets.glitch.me/request-storage-access.html"></iframe>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  const reqChromeVer = navigator.userAgentData.brands.some(b => { return b.brand === 'Google Chrome' && parseInt(b.version, 10) >= 113 });
+  const reqStorageAccess = ('requestStorageAccess' in document);
+  
+  if (!reqChromeVer || !reqStorageAccess) {
+    document.querySelector('.major-version').textContent = (reqChromeVer) ? 'pass' : 'fail';
+    document.querySelector('.major-version').classList.add((reqChromeVer) ? 'pass' : 'fail');
+
+    document.querySelector('.request-storage-access').textContent = (reqStorageAccess) ?  'enabled' : 'not available';
+    document.querySelector('.request-storage-access').classList.add((reqStorageAccess) ?  'pass' : 'fail');
+    
+    document.querySelector('.req-check').classList.remove('hidden');
+  }  
+</script>

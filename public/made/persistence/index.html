@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<title>Persistence of Memory</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="twitter:card" content="player" />
+<meta name="twitter:title" content="Persistence of Memory" />
+<meta name="twitter:site" content="@rowan_m" />
+<meta name="twitter:description" content="A melting clock in your browser inspired by Salvador Dalí's painting La persistencia de la memoria (The Persistence of Memory)" />
+<meta name="twitter:player" content="https://persistence.glitch.me/" />
+<meta name="twitter:player:width" content="480" />
+<meta name="twitter:player:height" content="480" />
+<meta name="twitter:image" content="https://cdn.glitch.com/f0fb25ee-b555-42d8-9c28-8854e91ed3d0%2Fandroid-chrome-512x512.png?v=1588502697802" />
+<meta name="twitter:image:alt" content="Tap and watch the clock melt." />  
+
+<meta name="Description" content="Persistence of Memory" />
+
+<link rel="apple-touch-icon" sizes="180x180"
+  href="https://cdn.glitch.com/f0fb25ee-b555-42d8-9c28-8854e91ed3d0%2Fapple-touch-icon.png?v=1588502696915" crossorigin/>
+<link rel="icon" type="image/png" sizes="32x32"
+  href="https://cdn.glitch.com/f0fb25ee-b555-42d8-9c28-8854e91ed3d0%2Ffavicon-32x32.png?v=1588502697205" crossorigin/>
+<link rel="icon" type="image/png" sizes="16x16"
+  href="https://cdn.glitch.com/f0fb25ee-b555-42d8-9c28-8854e91ed3d0%2Ffavicon-16x16.png?v=1588502697223" crossorigin/>
+<link rel="manifest" href="./manifest.json" />
+<link rel="mask-icon"
+  href="https://cdn.glitch.com/f0fb25ee-b555-42d8-9c28-8854e91ed3d0%2Fsafari-pinned-tab.svg?v=1588502697480"
+  color="#e6994c" crossorigin/>
+<meta name="apple-mobile-web-app-title" content="Persistence" />
+<meta name="application-name" content="Persistence" />
+<meta name="msapplication-TileColor" content="#e6994c" />
+<meta name="theme-color" content="#e0ebeb" />
+
+<meta property="og:url" content="https://persistence.glitch.me" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Persistence of Memory" />
+<meta property="og:description"
+  content="A melting clock in your browser inspired by Salvador Dalí's painting La persistencia de la memoria (The Persistence of Memory)" />
+<meta property="og:image"
+  content="https://cdn.glitch.com/f0fb25ee-b555-42d8-9c28-8854e91ed3d0%2Fpersistence-preview.jpg?v=1588503192340" crossorigin/>
+<meta property="og:image:width" content="1920" />
+<meta property="og:image:height" content="1080" />
+<meta property="fb:app_id" content="267304771325045" />
+
+<link rel="stylesheet" href="./core.css">
+<link rel="stylesheet" href="./day.css"
+  media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)">
+<link rel="stylesheet" href="./night.css" media="(prefers-color-scheme: dark)">
+
+<header>
+  <h1>La persistencia de la memoria</h1>
+  <button class="start" type="button"> Apply gravity</button>
+</header>
+<main class="watch">
+  <div class="crown"></div>
+  <div class="casing">
+    <canvas class="face" width="1000" height="1000"></canvas>
+  </div>
+</main>
+<footer>
+  <nav>
+    <dark-mode-toggle id="dmt" appearance="switch" dark="Night" light="Day"
+      remember="Permanent"></dark-mode-toggle>
+    <a href="https://en.wikipedia.org/wiki/The_Persistence_of_Memory">🖼️
+      Salvador Dalí</a>
+    <a href="https://glitch.com/edit/#!/persistence">💻 Code</a>
+    <a href=" https://twitter.com/rowan_m">🖤 @rowan_m</a><br />
+    <a href="./svg.html">🖋️ SVG version</a>
+  </nav>
+</footer>
+
+<script src="page.js"></script>
+<script src="shared.js"></script>
+<script type="module"
+  src="https://googlechromelabs.github.io/dark-mode-toggle/src/dark-mode-toggle.mjs" crossorigin></script>
+<script>
+  'use strict';
+
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+
+  if (window.self !== window.top) {
+    document.documentElement.classList.add('iframe');  
+  }
+  
+  const startButt = document.querySelector('.start');
+  const accel = new Acceleration(startButt);
+  const baseCanvas = document.querySelector('.face');
+  let scale = baseCanvas.getBoundingClientRect().width / 1000;
+  // scale = 1;
+  let theme = (window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'night' : 'day';
+  let renderer = null;
+  let worker = null;
+
+  if ('OffscreenCanvas' in window) {
+    worker = new Worker('watchmaker.js');
+    const faceCanvas = baseCanvas.transferControlToOffscreen();
+    worker.postMessage({ cmd: 'start', canvas: faceCanvas, scale: scale, theme: theme }, [faceCanvas]);
+    accel.setWorker(worker);
+  } else {
+    renderer = new CanvasRenderer(baseCanvas, scale, theme);
+    const watch = new Watch(hands, renderer);
+    window.requestAnimationFrame(watch.tick);
+    accel.setWatch(watch);
+  }
+
+  accel.start();
+
+  document.addEventListener('colorschemechange', (e) => {
+    theme = (e.detail.colorScheme === 'dark') ? 'night' : 'day';
+
+    if (worker !== null) {
+      worker.postMessage({ cmd: 'theme', theme: theme });
+    }
+    else if (renderer !== null) {
+      renderer.setTheme(theme);
+    }
+  });
+
+  window.addEventListener('resize', (e) => {
+    scale = baseCanvas.getBoundingClientRect().width / 1000;
+
+    if (worker !== null) {
+      worker.postMessage({ cmd: 'resize', scale: scale });
+    }
+    else if (renderer !== null) {
+      renderer.resize(scale);
+    }
+  });
+</script>
+
+<script type="module">
+  import 'https://cdn.jsdelivr.net/npm/@pwabuilder/pwaupdate';
+  const el = document.createElement('pwa-update');
+  document.body.appendChild(el);
+</script>

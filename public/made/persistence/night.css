@@ -1,0 +1,58 @@
+body {
+  background: hsl(180, 10%, 10%);
+}
+
+header,
+footer {
+  color: hsl(30, 10%, 50%);
+}
+
+a,
+a:visited {
+  color: hsl(30, 10%, 50%);
+}
+
+.start {
+  color: hsl(30, 10%, 30%);
+  border: 2px solid hsl(30, 10%, 30%);
+  background: hsl(30, 10%, 20%);
+  box-shadow: 0.5vmin 0.5vmin 2vmin rgba(0, 0, 0, 0.75);
+}
+
+.crown {
+  background: hsl(30, 10%, 30%);
+  border: 2px solid hsl(30, 10%, 10%);
+}
+
+.casing {
+  background: radial-gradient(
+    circle,
+    hsl(30, 10%, 20%),
+    hsl(30, 10%, 30%) 65%,
+    hsl(30, 10%, 20%) 75%,
+    hsl(30, 10%, 20%) 75%
+  );
+  border: 2px solid hsl(30, 10%, 10%);
+}
+
+.face {
+  background: hsl(30, 20%, 15%);
+  border: 2px solid hsl(30, 10%, 20%);
+}
+
+/* SVG styles */
+
+.hour-num {
+  color: hsl(156,90%,60%);
+}
+
+.second-hand {
+  fill: hsl(156,90%,55%);
+  stroke: hsl(156,90%,35%);
+}
+
+.minute-hand,
+.hour-hand {
+  fill: hsl(156,90%,75%);
+  stroke: hsl(156,90%,35%);
+}

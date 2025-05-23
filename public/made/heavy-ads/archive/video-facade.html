@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<title>Heavy Ad Intervention ⚖️ demo</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link id="favicon" rel="icon" href="data:" type="image/x-icon" />
+<meta name="Description" content="Demonstrate the Heavy Ad Intervention ⚖️ in Chrome" />
+<style>
+  iframe {
+    margin-top: 1rem;
+    width: 100%;
+    max-width: 560px;
+    max-height: 315px;
+  }
+</style>
+<header>
+  <h1>Video facade</h1>
+  <form method="get" target="video-facade.html">
+    <button type="submit">🔁</button>
+    <input type="hidden" name="nocache" value="1">
+  </form>
+</header>
+<main id="video-facade">
+  <figure id="ytplayer"></figure>
+</main>
+<script src="adex.js"></script>

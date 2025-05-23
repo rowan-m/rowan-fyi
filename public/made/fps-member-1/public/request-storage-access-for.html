@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍪</text></svg>"/>
+<link rel="stylesheet" href="./water.css">
+<title>requestStorageAccessFor() - First-Party Sets demo</title>
+<style>
+  .hidden {
+    display: none;
+  }
+  .status {
+    font-weight: bold;
+  }
+
+  .pass {
+    color: darkgreen;
+    background: palegreen;
+  }
+
+  .fail {
+    color: darkred;
+    background: lightcoral;
+  }
+
+  ul {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  ol {
+    padding-inline-start: 1rem;
+  }
+  
+  ol>li {
+    margin-top: .6rem;
+  }
+  
+  ol>li::marker {
+    font-weight: bolder;
+    color: var(--text-muted);
+    
+  }
+  
+  .demos>li {
+    padding-left: 3ch;
+    text-indent: -3.25ch;
+    margin-top: 1rem;
+  }
+
+  .demos>li:nth-child(1):before {
+    content: "⏫";
+    padding-right: 1ch;
+  }
+  
+  .demos>li:nth-child(2):before {
+    content: "⏬";
+    padding-right: 1ch;
+  }
+</style>
+<h1><code>requestStorageAccessFor()</code> - First-Party Sets demo</h1>
+<nav>
+  <a href="https://first-party-sets.glitch.me">⤴ Back home</a>
+</nav>
+  
+<p class="req-check hidden">📋 <strong>Quick requirements check:</strong> Make sure you do <a href="https://first-party-sets.glitch.me">the set-up instructions on the home page first</a>! 🔎 Chrome 113+: <span class="major-version status">[…]</span> 🔎 <code>requestStorageAccess()</code> <span class="request-storage-access-for status">[…]</span></p>
+
+<ul class="demos">
+  <li><strong>Bottom-up approach:</strong> <a href="https://fps-member-1.glitch.me/request-storage-access.html">use <code>requestStorageAccess()</code> in a cross-site, same-set <code>iframe</code></a>.</li>
+  <li>👉 <strong>Top-down approach:</strong> <a href="https://fps-member-1.glitch.me/request-storage-access-for.html">use <code>requestStorageAccessFor()</code> for embedded cross-site, same-set resources</a>.</li>
+</ul>
+
+<p>🧑‍💻 <a href="https://glitch.com/edit/#!/fps-member-1?path=public%2Frequest-storage-access-for.html">Code for this page.</a></p>
+
+<p>This demo uses two sites: <code>first-party-sets.glitch.me</code> and <code>fps-member-1.glitch.me</code>, which are both part of the same First-Party Set. <code>first-party-sets.glitch.me</code> sets a cookie named <code>crossSite</code> to that will be allowed in the cross-site, same-set contexts via the Storage Access API.</p>
+
+<p>🍪 <code>crossSite</code> cookie sent on cross-site, same-set requests? <span class="status cookie-immediate">[…]</span></p>
+
+<ol>
+  <li>Check <code>navigator.permissions.query({name: 'top-level-storage-access', requestedOrigin: 'https://first-party-sets.glitch.me'}).then(res =&gt; {…}</code> and see that <code>res.state</code> is <code class="status permission">[…]</code>.</li>  
+  <li>
+    <ol type="a">
+      <li>If <code class="fail">prompt</code> we need to put the <code>document.requestStorageAccessFor('https://first-party-sets.glitch.me').then(res =&gt; {…})</code> behind a user gesture, e.g. clicking a button:<br /><button type="button" class="click-for-cookies">🍪 Click for cookies</button>  → <span class="rsa-gesture status">[…]</span></li>
+      <li>If <code class="pass">granted</code> we can just call <code>document.requestStorageAccessFor('https://first-party-sets.glitch.me').then(res =&gt; {…})</code> immediately → <span class="rsa-immediate status">[…]</span></li>
+    </ol>  
+  </li>
+  <li>After a successful <code>requestStorageAccessFor()</code> call, cross-site requests will include cookies if they include CORS or the <code>crossorigin</code> attribute.</li>
+</ol>  
+
+<p>🍪 <code>crossSite</code> cookie sent on subsequent cross-site, same-set requests? <span class="status cookie-after">[…]</span></p>
+ 
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  const reqChromeVer = navigator.userAgentData.brands.some(b => { return b.brand === 'Google Chrome' && parseInt(b.version, 10) >= 113 });
+  const reqStorageAccess = ('requestStorageAccessFor' in document);
+  
+  if (!reqChromeVer || !reqStorageAccess) {
+    document.querySelector('.major-version').textContent = (reqChromeVer) ? 'pass' : 'fail';
+    document.querySelector('.major-version').classList.add((reqChromeVer) ? 'pass' : 'fail');
+
+    document.querySelector('.request-storage-access-for').textContent = (reqStorageAccess) ?  'enabled' : 'not available';
+    document.querySelector('.request-storage-access-for').classList.add((reqStorageAccess) ?  'pass' : 'fail');
+    
+    document.querySelector('.req-check').classList.remove('hidden');
+  }  
+  
+  fetch('https://first-party-sets.glitch.me/getcookies.json', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => response.json())
+  .then(json => {
+    console.log('['+document.location.hostname+'] 🍪 Check if the demo cookie is sent on an initial cross-site, same-set request');
+    console.log('['+document.location.hostname+`] fetch('https://first-party-sets.glitch.me/getcookies.json', { method: 'GET', credentials: 'include' }).then(response => response.json()).then(json => {console.log(json)}) → `, json);
+    document.querySelector('.cookie-immediate').textContent = ('crossSite' in json) ? '[SENT]' : '[NOT SENT]';
+    document.querySelector('.cookie-immediate').classList.add(('crossSite' in json) ? 'pass' : 'fail');
+    
+    nextSteps();
+  });
+
+  function nextSteps() {
+    // If storage access is not enabled, we will need to request it.
+    // Check the storage access permission to see if that requires a user gesture or can be automatically granted
+    navigator.permissions.query({name: 'top-level-storage-access', requestedOrigin: 'https://first-party-sets.glitch.me'}).then(res => {
+      console.log('['+document.location.hostname+'] 1. Check if the top-level-storage-access permission has been granted');
+      console.log('['+document.location.hostname+'] navigator.permissions.query({name: \'top-level-storage-access\', requestedOrigin: \'https://first-party-sets.glitch.me\'}).then(res => console.log(res.state)) → ' + res.state);
+
+      // Permission has already been granted
+      if (res.state === 'granted') {
+        document.querySelector('.permission').textContent = 'granted';
+        document.querySelector('.permission').classList.add('pass');
+
+        // Request storage access without any user gesture
+        if ('requestStorageAccessFor' in document) {
+          document.requestStorageAccessFor('https://first-party-sets.glitch.me').then(
+            res => {
+              console.log('['+document.location.hostname+'] 2.b. Storage-access permission granted, immediately request storage access.');
+              console.log('['+document.location.hostname+'] document.requestStorageAccessFor(\'https://first-party-sets.glitch.me\').then(res => {…}) → success');
+              document.querySelector('.rsa-immediate').textContent = 'success';
+              document.querySelector('.rsa-immediate').classList.add('pass');
+
+              checkCookie();
+            },
+            err => {
+              console.log('['+document.location.hostname+'] 2.b. Storage-access permission granted, immediately request storage access.');
+              console.log('['+document.location.hostname+'] requestStorageAccessFor(\'https://first-party-sets.glitch.me\').then(res => {…}, err => {…}) → ERROR:', err);
+            }
+          );
+        }
+      } else if (res.state === 'prompt') {
+        document.querySelector('.permission').textContent = 'prompt';
+        document.querySelector('.permission').classList.add('fail');
+      }
+    });
+
+    document.querySelector('.click-for-cookies').addEventListener('click', () => {
+      if ('requestStorageAccess' in document) {
+        document.requestStorageAccessFor('https://first-party-sets.glitch.me').then(
+            res => {
+              console.log('['+document.location.hostname+'] 2.a. Request storage access after user gesture, e.g. this button click.');
+              console.log('['+document.location.hostname+'] document.requestStorageAccessFor(\'https://first-party-sets.glitch.me\').then(res => {…}) → success');
+              document.querySelector('.rsa-gesture').textContent = 'success';
+              document.querySelector('.rsa-gesture').classList.add('pass');
+
+              checkCookie();
+            },
+            err => {
+              console.log('['+document.location.hostname+'] 2.a. Request storage access after user gesture, e.g. this button click.');
+              console.log('['+document.location.hostname+'] requestStorageAccessFor(\'https://first-party-sets.glitch.me\').then(res => {…}, err => {…}) → ERROR:', err);
+            }
+        );
+      }
+    });
+  }
+  
+  function checkCookie() {
+    fetch('https://first-party-sets.glitch.me/getcookies.json', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      .then((response) => response.json())
+      .then((json) => {
+        console.log('['+document.location.hostname+'] 🍪 Check if the demo cookie is sent on a cross-site, same-set request');
+        console.log('['+document.location.hostname+`] fetch('https://first-party-sets.glitch.me/getcookies.json', { method: 'GET', credentials: 'include' }).then(response => response.json()).then(json => {console.log(json)}) → `, json);
+        document.querySelector('.cookie-after').textContent = ('crossSite' in json) ? '[SENT]' : '[NOT SENT]';
+        document.querySelector('.cookie-after').classList.add(('crossSite' in json) ? 'pass' : 'fail');
+      });
+  }
+</script>

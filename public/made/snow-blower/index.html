@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="https://cdn.glitch.com/28cff8b9-4c45-40cc-b5ff-15d954060c78%2Fsnowflake.png?v=1612632934209">
+<title>Snow blower</title>
+<style></style>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  main {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    background: rgb(97, 161, 246);
+    background: linear-gradient(0deg, hsl(214, 90%, 70%) 0%, hsl(214, 40%, 30%) 100%);
+  }
+
+  .main-canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    touch-action: none;
+  }
+
+  .snow-butt {
+    font-size: 2rem;
+    padding: 1rem;
+    border: 3px outset hsl(214, 90%, 70%);
+    background: hsl(214, 60%, 25%);
+    border-radius: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+</style>
+<main>
+  <canvas class="main-canvas" draggable="false" width="512" height="512"></canvas>
+  <button type="button" class="snow-butt">👆➡️❄️</button>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
+<script>
+  'use strict';
+
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+
+  const FLAKEURL = 'https://cdn.glitch.com/28cff8b9-4c45-40cc-b5ff-15d954060c78%2Fsnowflake.png?v=1612632934209';
+
+  class World {
+    constructor() {
+      this.cvs = document.querySelector('.main-canvas');
+      this.butt = document.querySelector('.snow-butt');
+      this.maxflakes = 10000;
+      this.flakes = [];
+      this.width = this.cvs.getBoundingClientRect().width;
+      this.height = this.cvs.getBoundingClientRect().height;
+      this.friction = new FrictionMap(this);
+      this.gravity = { x: 0, xdir: 1, y: 9.8 };
+      this.wind = { angle: Math.random() * 2 * Math.PI, v: 0, vmax: 1, x: 0, y: 0 };
+
+      this.app = new PIXI.Application({
+        view: this.cvs,          // default: unset
+        width: this.width,   // default: 800
+        height: this.height, // default: 600
+        antialias: false,         // default: false
+        backgroundAlpha: 0,       // default: false
+        // resolution: 1,           // default: 1
+      });
+      this.sprites = new PIXI.ParticleContainer(this.maxflakes, {
+        scale: true,
+        position: true,
+        rotation: false,
+        uvs: false,
+        alpha: false,
+      });
+      this.app.stage.addChild(this.sprites);
+      
+      this.handleAccel = this.handleAccel.bind(this);
+      this.handleResize = this.handleResize.bind(this);
+      this.handlePointerdown = this.handlePointerdown.bind(this);
+      this.handlePointermove = this.handlePointermove.bind(this);
+      this.handlePointerup = this.handlePointerup.bind(this);
+      this.spawnFlake = this.spawnFlake.bind(this);
+      this.start = this.start.bind(this);
+      this.tick = this.tick.bind(this);
+
+      this.init();
+    }
+
+    init() {
+      this.butt.addEventListener('click', this.start);
+      this.handleResize(null);
+      window.addEventListener('resize', this.handleResize);
+
+      // PIXI.Loader.shared
+      //   .add(FLAKEURL)
+      //   .load();
+    }
+
+    start(e) {
+      if (window.DeviceMotionEvent) {
+        if (DeviceMotionEvent.requestPermission) {
+          DeviceMotionEvent.requestPermission().then(response => {
+            if (response == 'granted') {
+              // check if iOS needs this
+              // this.sensorDirection = -1;
+              window.addEventListener('devicemotion', this.handleAcccel);
+            }
+          });
+        } else {
+          this.gravity.xdir = -1;
+          window.addEventListener('devicemotion', this.handleAccel);
+        }
+      }
+
+      this.butt.style.display = 'none';
+      this.app.ticker.add(delta => this.tick(delta));
+      this.cvs.addEventListener('pointerdown', this.handlePointerdown);
+      this.cvs.addEventListener('click', this.spawnFlake);
+    }
+
+    handleAccel(e) {    
+      const orientation = (screen.orientation || {}).type || screen.mozOrientation || screen.msOrientation;
+
+      switch (orientation) {
+        case 'portrait-primary':
+          this.gravity.x = this.gravity.xdir * e.accelerationIncludingGravity.x;
+          this.gravity.y = e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * .1;
+          break;
+        case 'landscape-primary':
+          this.gravity.y = -(this.gravity.xdir * e.accelerationIncludingGravity.x);
+          this.gravity.x = e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * .1;
+          break;
+        case 'landscape-secondary':
+          this.gravity.y = this.gravity.xdir * e.accelerationIncludingGravity.x;
+          this.gravity.x = -(e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * .1);
+          break;
+        case 'portrait-secondary':
+          this.gravity.x = this.gravity.xdir * e.accelerationIncludingGravity.x;
+          this.gravity.y = -(e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * .1);
+          break;
+      }
+    }
+
+    handleResize(e) {
+      this.width = this.cvs.getBoundingClientRect().width;
+      this.height = this.cvs.getBoundingClientRect().height;
+      this.cvs.width = this.width;
+      this.cvs.height = this.height;
+      this.app.renderer.resize(this.width, this.height);
+      this.friction.resize(this.width, this.height);
+    }
+
+    spawnFlake(e) {
+      if (this.flakes.length < this.maxflakes) {
+        const x = e.pageX - this.cvs.offsetLeft;
+        const y = e.pageY - this.cvs.offsetTop;
+        const flake = new Flake(this);
+
+        flake.dx = Math.random() * 10 - 5;
+        flake.dy = Math.random() * -7 - 14;
+        flake.sprite.x = x;
+        flake.sprite.y = y;
+
+        this.flakes.push(flake);
+        this.sprites.addChild(flake.sprite);
+      }
+    }
+
+    handlePointerdown(e) {
+      this.cvs.addEventListener('pointermove', this.handlePointermove);
+      this.cvs.addEventListener('pointerup', this.handlePointerup);
+      this.cvs.addEventListener('pointerleave', this.handlePointerup);
+    }
+
+    handlePointermove(e) {
+      this.spawnFlake(e);
+    }
+
+    handlePointerup(e) {
+      this.cvs.removeEventListener('pointermove', this.handlePointermove);
+      this.cvs.removeEventListener('pointerup', this.handlePointerup);
+      this.cvs.removeEventListener('pointerleave', this.handlePointerup);
+    }
+
+    updateWind(t) {
+      this.wind.angle += Math.random() * .2 - .1;
+      this.wind.v += Math.random() * .2 - .1;
+      
+      if (Math.abs(this.wind.v) > this.wind.vmax) {
+        this.wind.v *= Math.random() * 0.3;
+      }
+
+      this.wind.x = Math.cos(this.wind.angle) * this.wind.v * .5;
+      this.wind.y = (Math.sin(this.wind.angle) + 1) * this.wind.v;
+    }
+
+    tick(t) {
+      this.updateWind(t);
+      this.flakes.forEach((flake, i) => {
+        flake.update(t);
+
+        if (flake.melted) {
+          this.sprites.removeChild(flake.sprite);
+          flake.destroy();
+          this.flakes.splice(i, 1);
+        }
+      });
+    }
+  }
+
+  class FrictionMap {
+    constructor(width, height) {
+      this.precision = 25;
+      this.max = 20;
+      this.resize(width, height);
+      this.neighbours = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+    }
+
+    resize(width, height) {
+      this.cellx = Math.ceil(width / this.precision);
+      this.celly = Math.ceil(height / this.precision);
+      this.friction = Array.from(Array(this.precision), () => new Array(this.precision));
+    }
+
+    reduce(x, y) {
+      const fx = Math.floor(x / this.cellx);
+      const fy = Math.floor(y / this.celly);
+
+      if (this.friction[fx]?.[fy] > 1) {
+        this.friction[fx][fy]--;
+      }
+
+      this.neighbours.forEach(n => {
+        // if (this.friction[fx + n[0]] && this.friction[fx + n[0]][fy + n[1]] > 1) {
+        if (this.friction[fx + n[0]]?.[fy + n[1]] > 1) {
+          this.friction[fx + n[0]][fy + n[1]] -= .5;
+        }
+      });
+    }
+
+    increase(x, y) {
+      const fx = Math.floor(x / this.cellx);
+      const fy = Math.floor(y / this.celly);
+
+      // if (this.friction[fx] && this.friction[fx][fy] >= 1) {
+      if (this.friction[fx]?.[fy] >= 1) {
+        this.friction[fx][fy]++;
+      } else {
+        this.friction[fx][fy] = 1;
+      }
+
+      this.neighbours.forEach(n => {
+        if (this.friction[fx + n[0]]?.[fy + n[1]] > 1) {
+          this.friction[fx + n[0]][fy + n[1]] += .5;
+        }
+      });
+    }
+
+    get(x, y) {
+      const fx = Math.floor(x / this.cellx);
+      const fy = Math.floor(y / this.celly);
+
+      if (this.friction[fx]?.[fy] >= this.max) {
+        return .9;
+      }
+      else if (this.friction[fx]?.[fy] > 1) {
+        return this.friction[fx][fy] / this.max;
+      } else {
+        return 0;
+      }
+    }
+  }
+
+  class Flake {
+    constructor(world) {
+      this.world = world;
+      this.dx = 0;
+      this.dy = 0;
+      this.age = 0;
+      this.inceptBase = 1200;
+      this.inceptDate = this.inceptBase + Math.random() * this.inceptBase;
+      this.mass = 0.7 + Math.random() * 0.3;
+      this.calc();
+
+      this.sprite = PIXI.Sprite.from(FLAKEURL);
+      this.sprite.anchor.set(0.5);
+      this.sprite.scale.set(this.scale);
+
+    }
+
+    destroy() {
+      this.world = null;
+      this.sprite = null;
+    }
+
+    calc() {
+      this.lifeprogress = this.age / this.inceptDate;
+      this.scaleBase = (this.world.width + this.world.height) / (6000 * this.mass);
+      this.scale = this.scaleBase - this.scaleBase * this.lifeprogress * this.lifeprogress;
+      this.melted = (this.age >= this.inceptDate);
+    }
+
+    update(t) {
+      this.dt = t / 10;
+      this.calc();
+      this.deregisterPosition();
+
+      if (this.melted) {
+        this.sprite.alpha = 0;
+        this.sprite.visible = false;
+        return;
+      }
+
+      this.sprite.scale.set(this.scale);
+      this.sprite.rotation += this.dx * .03;
+      this.applyGravity();
+      this.applyWind();
+      this.applyFriction();
+      this.updatePosition();
+      this.checkBounds();
+      this.age++;
+      this.registerPosition();
+    }
+
+    deregisterPosition() {
+      if (this.lifeprogress > .01) {
+        this.world.friction.reduce(this.sprite.x, this.sprite.y);
+      }
+    }
+
+    registerPosition() {
+      if (this.lifeprogress > .01 && this.age < this.inceptDate) {
+        this.world.friction.increase(this.sprite.x, this.sprite.y);
+      }
+    }
+
+    applyGravity() {
+      const gravityFactor = (Math.random()*0.2 + 0.2) * this.dt;
+      this.dy += this.world.gravity.y * gravityFactor;
+      this.dx += this.world.gravity.x * gravityFactor;
+    }
+
+    applyWind() {
+      const windFactor = (Math.random()*0.2 + 0.2) + this.dt * this.lifeprogress;
+      this.dx += this.world.wind.x * windFactor;
+      this.dy += this.world.wind.y * windFactor * 1.1;
+    }
+
+    applyFriction() {
+      if (this.lifeprogress > .02) {
+        const friction = this.world.friction.get(this.sprite.x, this.sprite.y) * (Math.random()*0.2 + 0.3) * (1 - this.lifeprogress);
+        this.dx -= this.dx * friction;
+        this.dy -= this.dy * friction;
+      }
+    }
+
+    updatePosition(t) {
+      this.sprite.x += this.dx;
+      this.sprite.y += this.dy;
+    }
+
+    checkBounds() {
+      const radius = (this.scaleBase * this.scale) * 120;
+      if (this.sprite.x < 0) {
+        this.sprite.x = this.world.width;
+      } else if (this.sprite.x > this.world.width) {
+        this.sprite.x = 0;
+      }
+
+      if (this.sprite.y < radius) {
+        this.sprite.y = radius;
+        this.dy = this.dy * -.1;
+      } else if (this.sprite.y > this.world.height - radius) {
+        this.sprite.y = this.world.height - radius;
+        this.dy = this.dy * -.1;
+      }
+    }
+  }
+  const world = new World();
+</script>

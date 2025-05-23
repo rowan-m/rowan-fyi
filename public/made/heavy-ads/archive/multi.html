@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<title>Heavy Ad Intervention ⚖️ demo</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link id="favicon" rel="icon" href="data:" type="image/x-icon" />
+<meta name="Description" content="Demonstrate the Heavy Ad Intervention ⚖️ in Chrome" />
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: sans-serif;
+    margin: 1rem;
+  }
+
+  h1 {
+    font-size: 1.2rem;
+  }
+
+  button, fieldset, h1, iframe, p, pre {
+    margin: 0.25rem;
+    max-width: 600px;
+  }
+
+  pre {
+    padding: 1rem;
+    overflow: scroll;
+  }
+
+  iframe {
+    overflow: hidden;
+  }
+  
+  iframe, pre {
+    width: 100%;
+    height: 30vh;
+    max-height: 40rem;
+    border: 2px inset #ddd;
+  }
+</style>
+<header>
+  <h1>Multiple Heavy Ads</h1>
+    <form method="get" action="/multi.html">
+    <fieldset>
+      <legend>Reload demo</legend>
+      <button name="reset" value="reset" type="submit">⏮️ Reset</button>
+      <input name="n" value="" type="hidden" class="nocache" />
+    </fieldset>
+  </form>
+  <p>
+    🚩 ✔️ Enable <tt>enable-heavy-ad-intervention</tt><br />
+    🚩 ❌ Disable <tt>heavy-ad-privacy-mitigations</tt>
+  </p>
+</header>
+<main></main>
+<footer>
+  <p>📝 <b>Note:</b> For repeated testing against the same ad you may need to close the tab and clear your browsing data.</p>
+  <p><a href="https://glitch.com/edit/#!/heavy-ads">💻 <b>Code</b> for this demo</a></p>
+</footer>
+<script src="/gads-multi.js"></script>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSS Zen Gardener</title>
+  <style>
+    * {
+      font-family: cursive;
+      box-sizing: border-box;
+      color: saddlebrown;
+    }
+    
+    form {
+      position: relative;
+      display: inline-block;
+      padding: 0;
+      left: 8vmin;
+      width: 84vmin;
+    }
+    
+    .texture {
+      position: absolute;
+      z-index: -3;
+      top: 0;
+      left; 0;
+      width: 100%;
+      height: 100%;
+      background: cornsilk;
+    }
+    
+    .sand {
+      border: 0.5vmin dashed wheat;
+      position: relative;
+      width: 20vmin;
+      height: 20vmin;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: inline-grid;
+      grid-template-rows: 2fr 3fr 2fr;
+      grid-template-areas:
+        "north north"
+        "west  east"
+        "south south";
+    }
+
+    .north {
+      grid-area: north;
+    }
+
+    .south {
+      grid-area: south;
+    }
+
+    .east {
+      grid-area: east;
+    }
+
+    .west {
+      grid-area: west;
+    }
+
+    .raked {
+      position: absolute;
+      top: -5%;
+      left: -5%;
+      height: 110%;
+      width: 110%;
+      transition: z-index 0s, transform 0s 2s, opacity 0s 2s;
+      z-index: -2;
+      opacity: 0.01;
+    }
+
+    :checked ~ .raked {
+      transition: opacity 2s ease, transform 2s ease, z-index 0s;
+      z-index: -1;
+      opacity: 1;
+    }
+
+    .north ~ .raked {
+      background: repeating-linear-gradient(
+        90deg,
+        cornsilk 1vmin,
+        wheat 2vmin,
+        cornsilk 3vmin 4vmin
+      );
+      transform: translateY(100%);
+    }
+
+    .north:checked ~ .raked {
+      transform: translateY(0);
+    }
+
+    .east ~ .raked {
+      background: repeating-linear-gradient(
+        0deg,
+        cornsilk 1vmin,
+        wheat 2vmin,
+        cornsilk 3vmin 4vmin
+      );
+      transform: translateX(-100%);
+    }
+
+    .east:checked ~ .raked {
+      transform: translateX(0);
+    }
+
+    .south ~ .raked {
+      background: repeating-linear-gradient(
+        90deg,
+        cornsilk 1vmin,
+        wheat 2vmin,
+        cornsilk 3vmin 4vmin
+      );
+      transform: translateY(-100%);
+    }
+
+    .south:checked ~ .raked {
+      transform: translateY(0);
+    }
+
+    .west ~ .raked {
+      background: repeating-linear-gradient(
+        0deg,
+        cornsilk 1vmin,
+        wheat 2vmin,
+        cornsilk 3vmin 4vmin
+      );
+      transform: translateX(100%);
+    }
+
+    .west:checked ~ .raked {
+      transform: translateX(0);
+    }
+
+    label {
+      overflow: hidden;
+      text-indent: 100%;
+      white-space: nowrap;
+      font-size: 0;
+    }
+
+    .sand input {
+      opacity: 0;
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+  <h1>CSS Zen Gardener</h1>
+  <p>Rake in peace.</p>
+  <p>Get the <a href="https://glitch.com/edit/#!/csszengardener?path=index.html">dirty, dirty code</a>.</p>
+
+  <form method="get" action="/">
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction01" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction01" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction01" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction01" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction02" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction02" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction02" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction02" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction03" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction03" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction03" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction03" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction04" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction04" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction04" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction04" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction05" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction05" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction05" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction05" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="directio06" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction06" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction06" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction06" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction07" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction07" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction07" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction07" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction08" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction08" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction08" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction08" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction09" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction09" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction09" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction09" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction10" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction10" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction10" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction10" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction11" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction11" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction11" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction11" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction12" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction12" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction12" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction12" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction13" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction13" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction13" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction13" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction14" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction14" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction14" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction14" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction15" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction15" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction15" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction15" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    
+    <div class="sand">
+      <label class="north"
+        >Rake northwards
+        <input class="north" type="radio" name="direction16" value="north" />
+        <div class="raked"></div>
+      </label>
+      <label class="east"
+        >Rake eastwards
+        <input class="east" type="radio" name="direction16" value="east" />
+        <div class="raked"></div>
+      </label>
+      <label class="south"
+        >Rake southwards
+        <input class="south" type="radio" name="direction16" value="south" />
+        <div class="raked"></div>
+      </label>
+      <label class="west"
+        >Rake westwards
+        <input class="west" type="radio" name="direction16" value="west" />
+        <div class="raked"></div>
+      </label>
+    </div>
+    <div class="texture"></div>
+  </form>
+</html>

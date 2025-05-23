@@ -1,0 +1,682 @@
+<!--
+ Copyright 2019 Google Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<title>Jake in the Box</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="Description" content="Jake in the Box" />
+<meta name="theme-color" content="firebrick" />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@rowan_m" />
+<meta name="twitter:title" content="Jake in the Box" />
+<meta name="twitter:description" content="Jake in the Box" />
+<meta name="twitter:image"
+  content="https://cdn.glitch.com/040323d7-3e7f-47a6-9de2-8b33e8ad2204%2Fitb-preview.png?v=1563536863957" />
+<meta name="twitter:image:width" content="565" />
+<meta name="twitter:image:height" content="565" />
+<meta name="twitter:image:alt" content="Jake in the Box" />
+
+<meta property="og:url" content="https://jake-in-the-box.glitch.me" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Jake in the Box" />
+<meta property="og:description" content="Jake in the Box" />
+<meta property="og:image"
+  content="https://cdn.glitch.com/040323d7-3e7f-47a6-9de2-8b33e8ad2204%2Fitb-preview.png?v=1563536863957" />
+<meta property="og:image:width" content="565" />
+<meta property="og:image:height" content="565" />
+
+<style>
+  body {
+    font-family: monospace;
+    background: #f2e880;
+    margin-top: 30vh;
+  }
+
+  .contraption {
+    width: 30vh;
+    margin: 0 auto 0 auto;
+    display: flex;
+    flex-flow: column nowrap;
+  }
+  
+  .lid {
+    box-sizing: border-box;
+    width: 30vh;
+    height: 30vh;
+    transform-origin: center bottom;
+    transform: perspective(0) rotateX(-90deg);
+    transition-property: transform;
+    transition-duration: 0.4s;
+    transition-timing-function: ease-out;
+    will-change: transform;
+    background: firebrick;
+    border: 2vh double darkred;
+    border-bottom: 2vh solid darkred;
+    border-radius: 6vh 6vh 0 0;
+  }
+  
+  .lid-open {
+    transform: perspective(500px) rotateX(50deg);
+  }
+  
+  .box {
+    box-sizing: border-box;
+    width: 30vh;
+    height: 30vh;
+    top: 0;
+    border: 2vh double firebrick;
+    border-bottom: 2vh solid firebrick;
+    border-radius: 0 0 2vh 2vh;
+    z-index: 10;
+    
+    /* https://leaverou.github.io/css3patterns/#steps */
+    background-color: gold;
+    background-size: 58px 58px;
+    background-position: 0px 2px, 4px 35px, 29px 31px, 33px 6px,
+    0px 36px, 4px 2px, 29px 6px, 33px 30px;
+    background-image:
+    linear-gradient(335deg, indianred 23px, transparent 23px),
+    linear-gradient(155deg, indianred 23px, transparent 23px),
+    linear-gradient(335deg, indianred 23px, transparent 23px),
+    linear-gradient(155deg, indianred 23px, transparent 23px),
+
+    linear-gradient(335deg, indianred 10px, transparent 10px),
+    linear-gradient(155deg, indianred 10px, transparent 10px),
+    linear-gradient(335deg, indianred 10px, transparent 10px),
+    linear-gradient(155deg, indianred 10px, transparent 10px);
+  }
+  
+  .popout {
+    width: 2vh;
+    height: 0;
+    margin: auto;
+    transform-origin: center bottom;
+    transform: translateY(30vh) scale(0.1);
+    transition-property: transform;
+    transition-duration: .4s;
+    transition-timing-function: ease-out;
+    will-change: transform;
+    z-index: 5;
+  }
+  
+  .popout-open {
+    transform: translateY(0);
+  }
+  
+  .spring {
+    width: 2vh;
+    height: 10vh;
+    position: absolute;
+    top: -9vh;
+    transform-origin: center bottom;
+    animation-name: sway;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    animation-duration: 2s;
+    will-change: transform;
+    background: repeating-linear-gradient(15deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 5px, gray 5px, gray 10px);
+    z-index: 1;
+  }
+  
+  .hidden {
+    opacity: 0.001;
+  }
+  
+  .core {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: center bottom;
+    animation-name: bounce;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    animation-duration: .6s;
+    will-change: transform;
+    background: repeating-linear-gradient(15deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 5px, gray 5px, gray 10px);
+    z-index: 1;
+  }
+  
+  .head {
+    width: 20vh;
+    height: 20vh;
+    position: absolute;
+    top: -19vh;
+    left: -9vh;
+    z-index: 2;
+  }
+  
+  .head>img {
+    position: absolute;
+    width: 20vh;
+  }
+  
+  .jakemouth {
+    transform-origin: center bottom;
+    animation-name: talk;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    animation-duration: .3s;
+    will-change: transform;
+  }
+
+  input-knob {
+    width: 15vh;
+    height: 15vh;
+    margin: 6vh auto;
+    display: block;
+    border-radius: 100%;
+    box-shadow: 0 0.5vh 0.5vh rgba(0, 0, 0, 0.5);
+  }
+  
+  input-knob::part(container) {
+    box-sizing: border-box;
+    background: lightgreen;
+    border: 2vh double forestgreen;
+    border-bottom: 2vh solid forestgreen;
+    border-radius: 100%;
+    width: 15vh;
+    height: 15vh;
+  }
+
+  input-knob.fallback>span.fallback {
+    display: block;
+    box-sizing: border-box;
+    background: lightgreen;
+    border: 2vh double forestgreen;
+    border-bottom: 2vh solid forestgreen;
+    border-radius: 100%;
+    width: 15vh;
+    height: 15vh;
+  }
+  
+  .spindle {
+    position: relative;
+    display: block;
+    height: 4vh;
+    width: 4vh;
+    top: 3vh;
+    left: 3vh;
+    border: .5vh solid gray;
+    background: lightgray;
+    border-radius: 100%;
+  }
+  
+  .arm {
+    position: absolute;
+    top: 1vh;
+    left: 1vh;
+    height: 1vh;
+    width: 11vh;
+    border: 0.5vh solid peru;
+    border-radius: 20%;
+    background: burlywood;
+  }
+  
+  .handle {
+    position: absolute;
+    top: -1.75vh;
+    left: 10vh;
+    height: 3.5vh;
+    width: 3.5vh;
+    border: 0.5vh solid powderblue;
+    border-radius: 50%;
+    background: steelblue;
+  }
+  
+  .blurb {
+    position: absolute;
+    top: 0.5rem;
+    background: rgba(53, 98, 17, 0.6);
+    margin: 0.rem;
+  }
+
+  h1,
+  p {
+    margin: 0;
+    padding: 0.5rem;
+  }
+
+  h1 {
+    color: #F2E880;
+  }
+
+  p {
+    color: #eeeeee;
+  }
+  
+  @keyframes sway {
+    0% {
+      transform: rotate(-10deg);
+    }
+    100% {
+      transform: rotate(10deg);
+    }
+  }
+
+  @keyframes bounce {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-3vh);
+    }
+  }
+  
+  @keyframes talk {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(2vh);
+    }
+  }
+</style>
+
+<main class="contraption">
+  <section class="lid">
+  </section>
+  <section class="popout hidden">
+    <span class="spring">
+      <span class="core">
+        <span class="spring">
+          <span class="core">
+            <span class="spring">
+                <span class="core">
+                  <span class="head">
+                    <img class="jakehead" src="https://cdn.glitch.com/040323d7-3e7f-47a6-9de2-8b33e8ad2204%2Fjakehead.png?v=1563467089349">
+                    <img class="jakemouth" src="https://cdn.glitch.com/040323d7-3e7f-47a6-9de2-8b33e8ad2204%2Fjakemouth.png?v=1563467105024">
+                  </span>
+                </span>
+            </span>
+          </span>
+        </span>
+      </span>
+    </span>
+  </section>
+  <section class="box">
+    <input-knob value="0.1" scale="5" min="0" max="46"><span class="spindle"><span class="arm"><span class="handle"></span></span></span></input-knob>
+  </section>
+</main>
+
+  <section class="blurb">
+    <h1>Jake in the Box</h1>
+    <p class="instructions">Test your sound <button class="beep">🔊 Little beep</button> and try 🔁 turning the crank! <a href="https://dev.to/rowan_m/form-and-function-emm">📑 Learn more.</a></p>
+  </section>
+  
+<script src="https://unpkg.com/@webcomponents/webcomponentsjs"></script>
+<script src="https://unpkg.com/tone"></script>
+<script>
+  const template = document.createElement('template');
+  template.innerHTML = `
+    <style>
+      :host {
+        display: inline-block;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        touch-action: none;
+        cursor: pointer;
+      }
+      #container {
+        display: block;
+        --angle: 0rad;
+        transform: rotate(var(--angle));
+        will-change: transform;
+      }
+    </style>
+    <div id="container" part="container"><slot></slot></div>`;
+  
+  window.ShadyCSS && ShadyCSS.prepareTemplate(template, 'input-knob');
+
+  const TWO_PI = 2 * Math.PI;
+
+  class InputKnob extends HTMLElement {
+    constructor() {
+      super();
+
+      window.ShadyCSS && ShadyCSS.styleElement(this);
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
+      this._container = this.shadowRoot.getElementById('container');
+      this._fallback = null;
+
+      this._drawState = this._drawState.bind(this);
+      this._onMousedown = this._onMousedown.bind(this);
+      this._onMousemove = this._onMousemove.bind(this);
+      this._onMouseup = this._onMouseup.bind(this);
+      this._onPointerdown = this._onPointerdown.bind(this);
+      this._onPointermove = this._onPointermove.bind(this);
+      this._onPointerup = this._onPointerup.bind(this);
+      this._onTouchend = this._onTouchend.bind(this);
+      this._onTouchmove = this._onTouchmove.bind(this);
+      this._onTouchstart = this._onTouchstart.bind(this);
+      this._rotationStart = this._rotationStart.bind(this);
+      this._rotationChange = this._rotationChange.bind(this);
+      this._rotationEnd = this._rotationEnd.bind(this);
+    }
+
+    static get observedAttributes() {
+      return ['value', 'scale', 'min', 'max'];
+    }
+
+    get value() {
+      return this.hasAttribute('value') ? this.getAttribute('value') : 0;
+    }
+
+    set value(value) {
+      this.setAttribute('value', parseFloat(value));
+    }
+
+    get scale() {
+      return this.hasAttribute('scale') ? this.getAttribute('scale') : 0;
+    }
+
+    set scale(scale) {
+      this.setAttribute('scale', parseFloat(scale));
+    }
+    
+    get min() {
+      return this.hasAttribute('min') ? this.getAttribute('min') : null;
+    }
+
+    set min(min) {
+      this.setAttribute('min', parseFloat(min));
+    }
+    
+    get max() {
+      return this.hasAttribute('max') ? this.getAttribute('max') : null;
+    }
+
+    set max(max) {
+      this.setAttribute('max', parseFloat(max));
+    }
+    
+    connectedCallback() {
+      if (!this._container.part) {
+        this._fallback = document.createElement('span');
+        this._fallback.style.setProperty('--angle', `${this._angle}rad`);
+        this._fallback.style.setProperty('transform', `rotate(var(--angle))`);
+        
+        while (this.childNodes.length > 0) {
+          this._fallback.appendChild(this.childNodes[0]);
+        }
+        
+        this._fallback.classList.add('fallback');
+        this.classList.add('fallback');
+        this.append(this._fallback);
+      }
+
+      this._drawState();
+
+      if ('PointerEvent' in window) {
+        this.addEventListener('pointerdown', this._onPointerdown);
+      } else {
+        this.addEventListener('touchstart', this._onTouchstart);
+        this.addEventListener('mousedown', this._onMousedown);
+      }
+    }
+
+    disconnectedCallback() {
+      if ('PointerEvent' in window) {
+        this.removeEventListener('pointerdown', this._onPointerdown);
+      } else {
+        this.removeEventListener('touchstart', this._onTouchstart);
+        this.removeEventListener('mousedown', this._onMousedown);
+      }
+    }
+
+    attributeChangedCallback(attrName, oldVal, newVal) {
+      this._angle = (TWO_PI / this.scale) * (this.value % this.scale);
+      this._rotations = Math.floor(this.value / this.scale);
+      this._drawState();
+    }
+
+    _drawState() {
+      let target = this._container;
+      
+      if (this._fallback !== null) {
+          target = this._fallback;
+      }
+      
+      target.style.setProperty('--angle', `${this._angle}rad`);
+    }
+
+    _rotationStart() {
+      window.oncontextmenu = () => { return false; };
+      this._centerX = this.offsetLeft - this.scrollLeft + this.clientLeft + this.offsetWidth / 2;
+      this._centerY = this.offsetTop - this.scrollTop + this.clientTop + this.offsetHeight / 2;
+      this._initialAngle = this._angle;
+      this._attemptedAngle = this._angle;
+      this._attemptedRotations = this._rotations;
+      this._initialTouchAngle = Math.atan2(
+        this._touchY - this._centerY,
+        this._touchX - this._centerX
+      );
+      
+      const evt = new CustomEvent('knob-move-start', { bubbles: true });
+      this.dispatchEvent(evt);
+    }
+
+    _rotationChange() {
+      this._previousAttemptedAngle = this._attemptedAngle;
+      this._attemptedAngle =
+        this._initialAngle
+        - this._initialTouchAngle
+        + Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
+      this._attemptedAngle = (this._attemptedAngle + TWO_PI) % TWO_PI;
+
+      if (this.max !== null && this.min !== null) {
+        if (this._attemptedAngle < 1.57 && this._previousAttemptedAngle > 4.71) {
+          this._attemptedRotations++;
+        } else if (this._previousAttemptedAngle < 1.57 && this._attemptedAngle > 4.71) {
+          this._attemptedRotations--;
+        }
+      }
+
+      this._attemptedValue = (this._attemptedAngle / (TWO_PI / this.scale)) + (this.scale * this._attemptedRotations);
+
+      if (
+        (this.min === null || this._attemptedValue >= this.min) &&
+        (this.max === null || this._attemptedValue <= this.max)
+      ) {
+        this._angle = this._attemptedAngle;
+        this._rotations = this._attemptedRotations;
+        this.value = this._attemptedValue;
+      }
+
+      const evt = new CustomEvent('knob-move-change', { bubbles: true });
+      this.dispatchEvent(evt);
+    }
+
+    _rotationEnd() {
+      window.oncontextmenu = null;
+      const evt = new CustomEvent('knob-move-end', { bubbles: true });
+      this.dispatchEvent(evt);
+    }
+
+    _onPointerdown(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+
+      this._rotationStart();
+
+      this.setPointerCapture(e.pointerId);
+      this.addEventListener('pointermove', this._onPointermove);
+      this.addEventListener('pointerup', this._onPointerup);
+      this.addEventListener('pointercancel', this._onPointerup);
+    }
+
+    _onPointermove(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationChange();
+    }
+
+    _onPointerup(e) {
+      e.preventDefault();
+      this._rotationEnd();
+      this.releasePointerCapture(e.pointerId);
+      this.removeEventListener('pointermove', this._onPointermove);
+      this.removeEventListener('pointerup', this._onPointerup);
+      this.removeEventListener('pointercancel', this._onPointerup);
+    }
+
+    _onMousedown(e) {
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationStart();
+      document.addEventListener('mousemove', this._onMousemove);
+      document.addEventListener('mouseup', this._onMouseup);
+    }
+
+    _onMousemove(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationChange();
+    }
+
+    _onMouseup(e) {
+      e.preventDefault();
+      document.removeEventListener('mousemove', this._onMousemove);
+      document.removeEventListener('mouseup', this._onMouseup);
+      this._rotationEnd();
+    }
+
+    _onTouchstart(e) {
+      e.preventDefault();
+      this._touchX = e.changedTouches[0].clientX;
+      this._touchY = e.changedTouches[0].clientY;
+      this._rotationStart();
+      this.addEventListener('touchmove', this._onTouchmove);
+      this.addEventListener('touchend', this._onTouchend);
+      this.addEventListener('touchcancel', this._onTouchend);
+    }
+
+    _onTouchmove(e) {
+      e.preventDefault();
+      this._touchX = e.targetTouches[0].clientX;
+      this._touchY = e.targetTouches[0].clientY;
+      this._rotationChange();
+    }
+
+    _onTouchend(e) {
+      e.preventDefault();
+      this.removeEventListener('touchmove', this._onTouchmove);
+      this.removeEventListener('touchend', this._onTouchend);
+      this.removeEventListener('touchcancel', this._onTouchend);
+      this._rotationEnd();
+    }
+  }
+
+  window.customElements.define('input-knob', InputKnob);
+  const knob = document.querySelector('input-knob');
+  let curValue = Number.parseFloat(knob.value).toFixed(3);
+  let prevValue = curValue;
+  const lid = document.querySelector('.lid');
+  const popout = document.querySelector('.popout');
+  let synth = null;
+  
+  const button = document.querySelector('.beep').addEventListener('click', (e) => {
+    initTone();
+    synth.triggerAttackRelease('C4', '8n');
+  });
+  
+  const tune = {
+    1:  'C4',
+    2:  'C4',
+    3:  'D4',
+    4:  'D4',
+    5:  'E4',
+    6:  'G4',
+    8:  'E4',
+    9:  'C4',
+    
+    11: 'G3',
+    13: 'C4',
+    14: 'C4',
+    16: 'D4',
+    17: 'D4',
+    19: 'E4',
+    20: 'C4',
+    
+    22: 'G3',
+    24: 'C4',
+    25: 'C4',
+    27: 'D4',
+    28: 'D4',
+    30: 'E4',
+    31: 'G4',
+    32: 'E4',
+    33: 'C4',
+    
+    35: 'A4',
+    37: 'D4',
+    39: 'F4',
+    41: 'E4',
+    43: 'C4',
+  };
+
+  
+  function initTone() {
+    if (synth === null) {
+      Tone.start();
+      
+      if (Tone.context.state !== 'running') {
+        Tone.context.resume();
+      }
+      
+      synth = new Tone.Synth().toMaster();
+    }
+  }
+  
+  function logEvent(evt) {
+    prevValue = curValue;
+    curValue = Number.parseFloat(knob.value).toFixed(3);
+    floorCurValue = Math.floor(curValue);
+    
+    if (Math.floor(prevValue) !== floorCurValue) {
+      const note = tune[floorCurValue];
+      
+      if (note) {
+        synth.triggerAttackRelease(note, '8n');
+      }
+    }
+    
+    if (curValue > 44) {
+      popopen();
+    }
+  }
+
+  function popopen() {
+    lid.classList.add('lid-open');
+    popout.classList.remove('hidden');
+    popout. classList.add('popout-open');
+  }
+  
+  document.addEventListener('knob-move-start', initTone);
+  document.addEventListener('knob-move-change', logEvent);
+</script>

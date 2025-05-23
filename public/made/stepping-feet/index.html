@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stepping Feet 👣 optical illusion</title>
+  <meta
+    name="Description"
+    content="Inspired by a tweet from @SteveStuWill here's a CSS version of the Stepping Feet illusion.Both rectangles are moving steadily together, but they appear out of sync. Give me a shout at @rowan_m with any comments"
+  />
+  <meta name="theme-color" content="slategray" />
+  <link
+    rel="shortcut icon"
+    href="https://cdn.glitch.com/8cc6d586-40b3-4f2c-bf1f-4048ac5e94ff%2Ffootprints_1f463.png?v=1581279772247"
+  />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@rowan_m" />
+  <meta name="twitter:title" content="Stepping Feet 👣 optical illusion" />
+  <meta
+    name="twitter:description"
+    content="Inspired by a tweet from @SteveStuWill here's a CSS version of the Stepping Feet illusion.Both rectangles are moving steadily together, but they appear out of sync. Give me a shout at @rowan_m with any comments"
+  />
+  <meta property="og:url" content="https://stepping-feet.glitch.me/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Stepping Feet 👣 optical illusion" />
+  <meta
+    property="og:description"
+    content="Inspired by a tweet from @SteveStuWill here's a CSS version of the Stepping Feet illusion.Both rectangles are moving steadily together, but they appear out of sync. Give me a shout at @rowan_m with any comments"
+  />
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0 2vw 0 2vw;
+      padding: 0;
+    }
+    p {
+      max-width: 80vw;
+    }
+    .bars {
+      position: relative;
+      width: 95vw;
+      height: 60vh;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 1) 0vw,
+        rgba(0, 0, 0, 1) 2vw,
+        rgba(0, 0, 0, 0) 2vw,
+        rgba(0, 0, 0, 0) 4vw
+      );
+    }
+    .flat {
+      width: 100%;
+      height: 100%;
+      background: grey;
+      animation: 8s infinite ease fade;
+    }
+    .stepper {
+      position: absolute;
+      width: 8vw;
+      height: 6vh;
+      animation: 7s infinite alternate linear slide;
+    }
+    .alpha {
+      top: 17vh;
+      background: blue;
+    }
+    .beta {
+      top: 27vh;
+      background: yellow;
+    }
+    @keyframes slide {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(87.2vw);
+      }
+    }
+    @keyframes fade {
+      0% {
+        opacity: 0.01;
+      }
+      60% {
+        opacity: 0.01;
+      }
+      70% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.01;
+      }
+    }
+  </style>
+  <p>
+    Inspired by a tweet from
+    <a href="https://twitter.com/SteveStuWill/status/1225746539898781698"
+      >🐦 @SteveStuWill</a
+    >
+    here's a CSS version of the Stepping Feet 👣 illusion.Both rectangles are
+    moving steadily together, but they appear out of sync and in a stepping
+    motion. Fade in a solid background and their steady movement can be seen.
+    Give me a shout at
+    <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a> with any comments,
+    feel free to remix and modify with that little fish button over there 🎏↗️
+  </p>
+
+  <div class="bars">
+    <div class="flat"></div>
+    <div class="stepper alpha"></div>
+    <div class="stepper beta"></div>
+  </div>
+
+  <div
+    class="glitchButton"
+    style="position: absolute; top: 2px; right: 2px;"
+  ></div>
+  <script src="https://button.glitch.me/button.js"></script>
+  <script></script>
+</html>

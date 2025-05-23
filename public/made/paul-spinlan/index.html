@@ -1,0 +1,327 @@
+<!--
+ Copyright 2019 Google Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<title>Paul ⟳ Spinlan</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="Description" content="Paul ⟳ Spinlan. You spin me right round." />
+<meta name="theme-color" content="#444444" />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@rowan_m" />
+<meta name="twitter:title" content="Paul ⟳ Spinlan" />
+<meta name="twitter:description" content="You spin me right round." />
+<meta name="twitter:image"
+  content="https://cdn.glitch.com/3de5dad4-e957-427f-ab83-bc3edd3f163c%2Fpaul-spinlan-head.png?v=1562058429009" />
+<meta name="twitter:image:width" content="100" />
+<meta name="twitter:image:height" content="921" />
+<meta name="twitter:image:alt" content="You spin me right round." />
+
+<meta property="og:url" content="https://paul-spinlan.glitch.me" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Paul ⟳ Spinlan" />
+<meta property="og:description" content="You spin me right round." />
+<meta property="og:image"
+  content="https://cdn.glitch.com/3de5dad4-e957-427f-ab83-bc3edd3f163c%2Fpaul-spinlan-head.png?v=1562058429009" />
+<meta property="og:image:width" content="1000" />
+<meta property="og:image:height" content="921" />
+
+<style>
+  html,
+  body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    font-family: sans-serif;
+    background: #333333;
+  }
+
+  .base {
+    max-height: 100vh;
+    max-width: 100vw;
+  }
+
+  .head {
+    max-height: 100vh;
+    max-width: 100vw;
+    contain: paint;
+  }
+
+  input-knob {
+    position: absolute;
+    max-height: 100vh;
+    max-width: 100vw;
+    top: 0;
+    left: 0;
+  }
+
+  input-knob.fallback>span.fallback {
+    display: block;
+  }
+  
+  main {
+    position: relative;
+  }
+
+  .blurb {
+    position: absolute;
+    bottom: 0.5rem;
+    background: rgba(53, 98, 17, 0.6);
+    margin: 0.rem;
+  }
+
+  h1,
+  p {
+    margin: 0;
+    padding: 0.5rem;
+  }
+
+  h1 {
+    color: #F2E880;
+  }
+
+  p, a {
+    color: #eeeeee;
+  }
+</style>
+
+<main>
+  <section class="blurb">
+    <h1>Paul ⟳ Spinlan</h1>
+    <p class="instructions">Try a 👆 interaction with the head…</p>
+  </section>
+  <section>
+    <img class="base"
+      src="https://cdn.glitch.com/3de5dad4-e957-427f-ab83-bc3edd3f163c%2Fpaul-spinlan-base.jpg?v=1562058425663" />
+    <input-knob class="head" value="0"><img class="head"
+        src="https://cdn.glitch.com/3de5dad4-e957-427f-ab83-bc3edd3f163c%2Fpaul-spinlan-head.png?v=1562058429009" />
+    </input-knob>
+  </section>
+</main>
+<script src="https://unpkg.com/@webcomponents/webcomponentsjs"></script>
+<script>
+  const template = document.createElement('template');
+  template.innerHTML = `
+    <style>
+      :host {
+        display: inline-block;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+      }
+      #container {
+        --angle: 0rad;
+        transform: rotate(var(--angle));
+        will-change: transform;
+        contain: paint layout;
+      }
+    </style>
+    <div id="container"><slot></slot></div>`;
+
+  const TWO_PI = 2 * Math.PI;
+
+  class InputKnob extends HTMLElement {
+    constructor() {
+      super();
+
+      window.ShadyCSS && ShadyCSS.styleElement(this);
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(template.content.cloneNode(true));
+      this._container = this.shadowRoot.getElementById('container');
+      this._fallback = null;
+
+      this._drawState = this._drawState.bind(this);
+      this._drawState = this._drawState.bind(this);
+      this._onMousedown = this._onMousedown.bind(this);
+      this._onMousemove = this._onMousemove.bind(this);
+      this._onMouseup = this._onMouseup.bind(this);
+      this._onPointerdown = this._onPointerdown.bind(this);
+      this._onPointermove = this._onPointermove.bind(this);
+      this._onPointerup = this._onPointerup.bind(this);
+      this._onTouchend = this._onTouchend.bind(this);
+      this._onTouchmove = this._onTouchmove.bind(this);
+      this._onTouchstart = this._onTouchstart.bind(this);
+      this._rotationStart = this._rotationStart.bind(this);
+      this._rotationChange = this._rotationChange.bind(this);
+      this._rotationEnd = this._rotationEnd.bind(this);
+    }
+
+    static get observedAttributes() {
+      return ['value'];
+    }
+
+    get value() {
+      return this.hasAttribute('value') ? this.getAttribute('value') : 0;
+    }
+
+    set value(value) {
+      this.setAttribute('value', value);
+    }
+
+    connectedCallback() {
+      if (!this._container.part) {
+        this._fallback = document.createElement('span');
+        this._fallback.style.setProperty('--angle', `${this.value}rad`);
+        this._fallback.style.setProperty('transform', `rotate(var(--angle))`);
+        
+        while (this.childNodes.length > 0) {
+          this._fallback.appendChild(this.childNodes[0]);
+        }
+        
+        this._fallback.classList.add('fallback');
+        this.classList.add('fallback');
+        this.append(this._fallback);
+      }
+
+      this._drawState();
+
+      if ('PointerEvent' in window) {
+        this.addEventListener('pointerdown', this._onPointerdown);
+      } else {
+        this.addEventListener('touchstart', this._onTouchstart);
+        this.addEventListener('mousedown', this._onMousedown);
+      }
+    }
+
+    disconnectedCallback() {
+      if ('PointerEvent' in window) {
+        this.removeEventListener('pointerdown', this._onPointerdown);
+      } else {
+        this.removeEventListener('touchstart', this._onTouchstart);
+        this.removeEventListener('mousedown', this._onMousedown);
+      }
+    }
+
+    attributeChangedCallback(attrName, oldVal, newVal) {
+      this._angle = this.value;
+      this._drawState();
+    }
+
+    _drawState() {
+      let target = this._container;
+      
+      if (this._fallback !== null) {
+          target = this._fallback;
+      }
+      
+      target.style.setProperty('--angle', `${this.value}rad`);
+    }
+
+    _rotationStart() {
+      window.oncontextmenu = () => { return false; };
+      this._centerX = this.offsetLeft - this.scrollLeft + this.clientLeft + this.offsetWidth / 2;
+      this._centerY = this.offsetTop - this.scrollTop + this.clientTop + this.offsetHeight / 2;
+      this._initialAngle = this._angle;
+      this._initialTouchAngle = Math.atan2(
+        this._touchY - this._centerY,
+        this._touchX - this._centerX
+      );
+    }
+
+    _rotationChange() {
+      this._angle =
+        this._initialAngle
+        - this._initialTouchAngle
+        + Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
+      this._angle = (this._angle + TWO_PI) % TWO_PI;
+      this.value = this._angle;
+    }
+
+    _rotationEnd() {
+      window.oncontextmenu = null;
+    }
+
+    _onPointerdown(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+
+      this._rotationStart();
+
+      this.setPointerCapture(e.pointerId);
+      this.addEventListener('pointermove', this._onPointermove);
+      this.addEventListener('pointerup', this._onPointerup);
+      this.addEventListener('pointercancel', this._onPointerup);
+    }
+
+    _onPointermove(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationChange();
+    }
+
+    _onPointerup(e) {
+      e.preventDefault();
+      this._rotationEnd();
+      this.releasePointerCapture(e.pointerId);
+      this.removeEventListener('pointermove', this._onPointermove);
+      this.removeEventListener('pointerup', this._onPointerup);
+      this.removeEventListener('pointercancel', this._onPointerup);
+    }
+
+    _onMousedown(e) {
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationStart();
+      document.addEventListener('mousemove', this._onMousemove);
+      document.addEventListener('mouseup', this._onMouseup);
+    }
+
+    _onMousemove(e) {
+      e.preventDefault();
+      this._touchX = e.clientX;
+      this._touchY = e.clientY;
+      this._rotationChange();
+    }
+
+    _onMouseup(e) {
+      e.preventDefault();
+      document.removeEventListener('mousemove', this._onMousemove);
+      document.removeEventListener('mouseup', this._onMouseup);
+      this._rotationEnd();
+    }
+
+    _onTouchstart(e) {
+      e.preventDefault();
+      this._touchX = e.changedTouches[0].clientX;
+      this._touchY = e.changedTouches[0].clientY;
+      this._rotationStart();
+      this.addEventListener('touchmove', this._onTouchmove);
+      this.addEventListener('touchend', this._onTouchend);
+      this.addEventListener('touchcancel', this._onTouchend);
+    }
+
+    _onTouchmove(e) {
+      e.preventDefault();
+      this._touchX = e.targetTouches[0].clientX;
+      this._touchY = e.targetTouches[0].clientY;
+      this._rotationChange();
+    }
+
+    _onTouchend(e) {
+      e.preventDefault();
+      this.removeEventListener('touchmove', this._onTouchmove);
+      this.removeEventListener('touchend', this._onTouchend);
+      this.removeEventListener('touchcancel', this._onTouchend);
+      this._rotationEnd();
+    }
+  }
+
+  window.customElements.define('input-knob', InputKnob);
+</script>

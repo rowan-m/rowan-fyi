@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<title>alert()</title>
+<style></style>
+<button type="button" name="alert">window.alert()</button>
+<button type="button" name="confirm">window.confirm()</button>
+<button type="button" name="prompt">window.prompt()</button>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  const observer = new ReportingObserver((reports, observer) => {
+    console.log(JSON.stringify(reports));
+  }, { types: ['deprecation'], buffered: false });
+  observer.observe();
+
+  document.querySelector('button[name="alert"]').addEventListener('click', e => window.alert('Cross-origin alert'));
+  document.querySelector('button[name="confirm"]').addEventListener('click', e => window.confirm('Cross-origin confirm'));
+  document.querySelector('button[name="prompt"]').addEventListener('click', e => window.prompt('Cross-origin prompt'));
+</script>

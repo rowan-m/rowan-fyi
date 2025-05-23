@@ -1,0 +1,29 @@
+<!-- See public/partial/head.html for standard snippet-->
+{{>partial/head}}
+<p>The Privacy Sandbox Relevance and Measurement origin trial is now open for registration, allowing sites to test Attribution Reporting, FLEDGE, and Topics on production traffic. This site demonstrates the different ways you can include an origin trial token depending on where you need to enable to the features.</p>
+<p>You can learn more about the origin trial on the <a href="https://developer.chrome.com/blog/privacy-sandbox-unified-origin-trial/">announcement blog</a> and <a href="https://developer.chrome.com/origintrials/#/view_trial/771241436187197441">sign up for the origin trial here</a>.</p>
+<p>The origin trial requires Chrome 101+ Beta / Chrome 104+ Stable: <span class="status">[…]</span></p>
+<ul>
+  <li><a href="./header.html">Sending the <code>Origin-Trial</code> HTTP header</a></li>
+  <li><a href="./meta.html">Setting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag</a></li>
+  <li><a href="./injected-meta.html">Injecting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag with JavaScript</a></li>
+  <li><a href="./iframe-header.html">Sending the <code>Origin-Trial</code> HTTP header in a same-origin iframe</a></li>
+  <li><a href="./iframe-meta.html">Setting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag in an iframe</a></li>
+  <li><a href="./3p-injected-meta.html">Injecting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag with third-party JavaScript</a></li>
+  <li><a href="./3p-iframe-header.html">Sending the <code>Origin-Trial</code> HTTP header in a third-party iframe</a></li>
+  <li><a href="./3p-iframe-meta.html">Setting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag in a third-party iframe</a></li>
+</ul>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  if (navigator.userAgentData.brands.some( (item) => item.brand === 'Google Chrome' && parseInt(item.version, 10) >= 101 )) {
+    document.querySelector('.status').textContent = '[Detected]';
+    document.querySelector('.status').classList.add('enabled');
+  } else {
+    document.querySelector('.status').textContent = '[Not detected]';
+    document.querySelector('.status').classList.add('disabled');
+  }
+</script>

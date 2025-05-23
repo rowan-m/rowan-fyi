@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<title>CHIPS</title>
+<style>
+</style>
+<code>Set-Cookie: __Host-count={{count}}; Secure; Path=/; SameSite=None; Partitioned</code>
+<form method="get" action="/chips">
+  <input type="hidden" name="v" value="">
+  <button>Bump</button>
+</form>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  document.querySelector('input[name="v"]').setAttribute('value', Date.now());
+</script>

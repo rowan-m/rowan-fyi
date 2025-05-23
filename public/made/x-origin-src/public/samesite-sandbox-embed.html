@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cross-site 🍪 sandbox</title>
+<p>Testing cross-site cookies</p>
+<script>
+  function fetchCookies(requestMethod) {
+    var req = new XMLHttpRequest();
+    req.withCredentials = true;
+    req.responseType = 'json';
+    req.open(requestMethod, "https://samesite-sandbox.glitch.me/cookies.json", true);
+    req.onload  = function() {
+       var jsonResponse = { method: requestMethod, cookies: req.response };
+       window.parent.postMessage(jsonResponse, "https://samesite-sandbox.glitch.me");
+    };
+    req.send(null);
+  }
+  
+  fetchCookies('GET');
+</script>

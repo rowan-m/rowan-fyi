@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+<title>History issue</title>
+<style>
+  button {
+    display: block;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+  }
+</style>
+<h1>History has issues</h1>
+<p>Open <code>about:history</code> so you can see and refresh it after each button press. </p>
+<form method="get" action="/">
+  <button type="button" name="push-state"><code>history.pushState('/?a=b')</code></button>
+  <button type="button" name="push-state-hash"><code>history.pushState('/#a=b')</code></button>
+  <button type="button" name="replace-state"><code>history.replaceState('/?a=b')</code></button>
+  <button type="button" name="replace-state-hash"><code>history.replaceState('/#a=b')</code></button>
+  <button type="button" name="assign"><code>location.assign('/?a=b')</code></button>
+  <button type="button" name="assign-hash"><code>location.assign('/#a=b')</code></button>
+  <button type="button" name="replace"><code>location.replace('/?a=b')</code></button>
+  <button type="button" name="replace-hash"><code>location.replace('/#a=b')</code></button>
+</form>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+  
+  const ACTIONS = ['pushState', 'pushStateHash', 'replaceState', 'replaceStateHash', 'assign', 'assignHash', 'replace', 'replaceHash'];
+  let action = '[none]';
+  let counter = 0;
+
+  function updateFromUrl() {
+    const params = (window.location.search) ? window.location.search : window.location.hash.substring(1);
+    const urlParams = new URLSearchParams(params);
+    urlParams.forEach(function(value, key) {
+      switch (key) {
+        case 'action':
+          action = (ACTIONS.includes(value)) ? value : '[none]';
+          break;
+        case 'counter':
+          counter = parseInt(value);
+          break;
+      }
+    });
+  }
+  
+  function generateTitle() {
+    return `History API issue @${action}:${counter}`;
+  }
+  
+  updateFromUrl();
+  document.title = generateTitle();
+  
+  document.querySelector('button[name="push-state"]').addEventListener('click', e => {
+    action = 'pushState';
+    counter++;
+    history.pushState({action, counter}, generateTitle(), `/?action=${action}&counter=${counter}`);
+    document.title = generateTitle();
+  });
+
+  document.querySelector('button[name="push-state-hash"]').addEventListener('click', e => {
+    action = 'pushStateHash';
+    counter++;
+    history.pushState({action, counter}, generateTitle(), `/#action=${action}&counter=${counter}`);
+    document.title = generateTitle();
+  });
+  
+  document.querySelector('button[name="replace-state"]').addEventListener('click', e => {
+    action = 'replaceState';
+    counter++;
+    history.replaceState({action, counter}, generateTitle(), `/?action=${action}&counter=${counter}`);
+    document.title = generateTitle();
+  });
+
+  document.querySelector('button[name="replace-state-hash"]').addEventListener('click', e => {
+    action = 'replaceStateHash';
+    counter++;
+    history.replaceState({action, counter}, generateTitle(), `/#action=${action}&counter=${counter}`);
+    document.title = generateTitle();
+  });
+  
+  document.querySelector('button[name="assign"]').addEventListener('click', e => {
+    action = 'assign';
+    counter++;
+    window.location.assign(`/?action=${action}&counter=${counter}`);
+  });
+  
+  document.querySelector('button[name="assign-hash"]').addEventListener('click', e => {
+    action = 'assignHash';
+    counter++;
+    window.location.assign(`/#action=${action}&counter=${counter}`);
+  });
+  
+  document.querySelector('button[name="replace"]').addEventListener('click', e => {
+    action = 'replace';
+    counter++;
+    const title = generateTitle();
+    window.location.replace(`/?action=${action}&counter=${counter}`);
+    document.title = generateTitle(); // redundant, the above triggers a request
+  });
+  
+  document.querySelector('button[name="replace-hash"]').addEventListener('click', e => {
+    action = 'replaceHash';
+    counter++;
+    window.location.replace(`/#action=${action}&counter=${counter}`);
+    document.title = generateTitle(); // not always redudant, this doesn't always trigger a request
+  });
+  
+</script>
+</html>
