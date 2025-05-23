@@ -386,13 +386,13 @@
         this.togglePlayPause();
       }
 
-      this.world = this.initWorld(30, 30);
-      this.touched = this.initWorld(30, 30);
+      this.world = this.initWorld(25, 25);
+      this.touched = this.initWorld(25, 25);
       this.render();
     }
 
     randomiseWorld = () => {
-      const randomWorld = this.initWorld(20, 20);
+      const randomWorld = this.initWorld(25, 25);
       const width = randomWorld.length;
       const height = randomWorld[0].length;
 
@@ -409,7 +409,7 @@
       }
 
       this.world = randomWorld;
-      this.touched = this.initWorld(20, 20);
+      this.touched = this.initWorld(25, 25);
       this.render();
     }
 
