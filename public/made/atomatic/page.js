@@ -62,7 +62,7 @@ class Atomatic {
         const link = card.querySelector('a');
 
         if (link) {
-            link.href = '/?e=' + atom.tag;
+            link.href = '?e=' + atom.tag;
         }
     }
 }
