@@ -11,7 +11,7 @@ self.addEventListener('message', (event) => {
 });
 
 workbox.routing.registerRoute(
-  new RegExp('/*'),
+  new RegExp('/made/persistence/*'),
   new workbox.strategies.StaleWhileRevalidate({
     cacheName: CACHE
   })
