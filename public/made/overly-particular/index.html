@@ -9,9 +9,9 @@
 <meta name="twitter:player" content="https://overly-particular.glitch.me/" />
 <meta name="twitter:player:width" content="480" />
 <meta name="twitter:player:height" content="480" />
-<meta name="twitter:image" content="https://cdn.glitch.global/4749aaa0-f16d-46bb-81d8-54a71cc3017c/click4cats.png?v=1651229664292" />
+<meta name="twitter:image" content="./assets/click4cats.png" />
 <meta name="twitter:image:alt" content="Tap and get cats" />
-<link rel="icon" href="https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrin.png?v=1611368509852">
+<link rel="icon" href="./assets/catgrin.png">
 <title>Click 4 cats</title>
 <style>
   body {
@@ -86,10 +86,10 @@
 
       PIXI.Loader.shared
         .add([
-          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrin.png?v=1611368509852',
-          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrincry.png?v=1611368509852',
-          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatscared.png?v=1611368509851',
-          'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatghost.png?v=1611368509937',
+          './assets/catgrin.png',
+          './assets/catgrincry.png',
+          './assets/catscared.png',
+          './assets/catghost.png',
         ])
         .load(this.postLoad);
     }
@@ -163,10 +163,10 @@
     constructor(x, y, dx, dy, life, size) {
       this.textureName = 'catgrin';
       this.textureNames = {
-          catgrin: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrin.png?v=1611368509852',
-          catgrincry: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatgrincry.png?v=1611368509852',
-          catscared: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatscared.png?v=1611368509851',
-          catghost: 'https://cdn.glitch.com/4749aaa0-f16d-46bb-81d8-54a71cc3017c%2Fcatghost.png?v=1611368509937',
+          catgrin: './assets/catgrin.png',
+          catgrincry: './assets/catgrincry.png',
+          catscared: './assets/catscared.png',
+          catghost: './assets/catghost.png',
       };
       this.sprite = new PIXI.Sprite(
         PIXI.Loader.shared.resources[ this.textureNames[this.textureName] ].texture

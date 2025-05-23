@@ -11,7 +11,7 @@
   "theme_color": "#4682b4",
   "icons": [
     {
-      "src": "https://cdn.glitch.global/310df37c-1974-4bda-b09c-03657a605652/cat-grin.png?v=1660084552083",
+      "src": "./assets/cat-grin.png",
       "sizes": "534x534",
       "type": "image/png"
     }

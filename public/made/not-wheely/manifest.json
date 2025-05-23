@@ -4,13 +4,13 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "https://cdn.glitch.com/67e793d5-13ec-45f1-b964-6cf9e6e9bdf6%2Fandroid-chrome-192x192.png?v=1606494010982",
+      "src": "./assets/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn.glitch.com/67e793d5-13ec-45f1-b964-6cf9e6e9bdf6%2Fandroid-chrome-512x512.png?v=1606494011520",
+      "src": "./assets/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

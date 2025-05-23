@@ -2,7 +2,7 @@
 <browserconfig>
     <msapplication>
         <tile>
-            <square150x150logo src="https://cdn.glitch.com/f0fb25ee-b555-42d8-9c28-8854e91ed3d0%2Fmstile-150x150.png?v=1588502697152"/>
+            <square150x150logo src="./assets/mstile-150x150.png"/>
             <TileColor>#e6994c</TileColor>
         </tile>
     </msapplication>

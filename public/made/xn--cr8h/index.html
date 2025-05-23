@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="https://cdn.glitch.com/3bf84c92-2ea2-4ec0-8082-6b31b7b989be%2Falien_1f47d.png?v=1630523173216">
+<link rel="icon" href="./assets/alien_1f47d.png">
 <title>👽</title>
 <style>
   body {
@@ -76,7 +76,7 @@
 
       PIXI.Loader.shared
         .add([
-          'https://cdn.glitch.com/3bf84c92-2ea2-4ec0-8082-6b31b7b989be%2Falien_1f47d.png?v=1630523173216',
+          './assets/alien_1f47d.png',
         ])
         .load(this.postLoad);
     }
@@ -148,7 +148,7 @@
     constructor(x, y, dx, dy, life, size) {
       this.textureName = 'alien';
       this.textureNames = {
-          alien: 'https://cdn.glitch.com/3bf84c92-2ea2-4ec0-8082-6b31b7b989be%2Falien_1f47d.png?v=1630523173216',
+          alien: './assets/alien_1f47d.png',
       };
       this.sprite = new PIXI.Sprite(
         PIXI.Loader.shared.resources[ this.textureNames[this.textureName] ].texture

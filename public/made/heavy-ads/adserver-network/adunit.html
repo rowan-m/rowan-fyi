@@ -35,7 +35,7 @@
 </header>
 <main>
   <p>This page loads a small (~15kB) image and a large (~6MB) image.</p>
-  <img src="https://cdn.glitch.com/e6885787-0a66-45e0-997e-cc55c210acf6%2Fimg_small.jpg?v=1587559846298">
+  <img src="./assets/img_small.jpg">
 </main>
 <script>
   "use strict";
@@ -66,7 +66,7 @@
   const img = document.createElement('img');
   img.setAttribute(
     'src',
-    'https://cdn.glitch.com/e6885787-0a66-45e0-997e-cc55c210acf6%2Fimg_large.jpg?v=1587559852111&n=' + Date.now()
+    './assets/img_large.jpg&n=' + Date.now()
   );
   document.querySelector('main').appendChild(img);
 </script>

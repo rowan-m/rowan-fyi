@@ -14,7 +14,7 @@
   "prefer_related_applications": false,
   "icons": [
             {
-            "src": "https://cdn.glitch.com/a4472519-9458-49b7-809d-5a003de34a56%2Ffractious-icon.png?v=1625866021581",
+            "src": "./assets/fractious-icon.png",
             "sizes": "512x512",
             "type": "image/png"
         }
