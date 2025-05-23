@@ -11,10 +11,10 @@
 <h2>Setting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag in a third-party iframe</h2>
 <p><a href="./">↰ All demos</a></p>
 <p><a href="https://glitch.com/edit/#!/ps-origin-trial?path=public%2Fheader.html">Code for this demo</a></p>
-<p>The top-level page creates cross-origin / cross-site / third-party <code>&lt;iframe&gt;</code> and embedded page on <code>https://ps-origin-trial.glitch.me</code> includes a <code>&lt;meta%gt;</code> tag with:</p>
+<p>The top-level page creates cross-origin / cross-site / third-party <code>&lt;iframe&gt;</code> and embedded page on <code>https://rowan.fyi/made/ps-origin-trial</code> includes a <code>&lt;meta%gt;</code> tag with:</p>
 <pre>&lt;meta http-equiv="origin-trial" content="{{token_3p_1p}}" /&gt;</pre>
 <p>This is a first-party token for <code>x-origin-src.glitch.me</code>.</p>
-<iframe src="https://x-origin-src.glitch.me/iframe-meta-src.html"></iframe>
+<iframe src="https://rowan.fyi/made/x-origin-src/iframe-meta-src.html"></iframe>
 <script>
   'use strict';
   if (location.protocol !== 'https:' && location.hostname !== 'localhost') {

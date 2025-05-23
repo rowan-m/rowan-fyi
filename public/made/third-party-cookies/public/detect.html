@@ -51,12 +51,12 @@
   }
   
   // Try setting a cross-site cookie
-  fetch('https://x-origin-src.glitch.me/set-3pc.json', {
+  fetch('https://rowan.fyi/made/x-origin-src/set-3pc.json', {
     method: 'GET',
     credentials: 'include'
   })
   .then(response => {
-    fetch('https://x-origin-src.glitch.me/get-3pc.json', {
+    fetch('https://rowan.fyi/made/x-origin-src/get-3pc.json', {
       method: 'GET',
       credentials: 'include'
     })

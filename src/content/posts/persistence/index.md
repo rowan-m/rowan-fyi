@@ -1,6 +1,6 @@
 ---
 title: Persistence of memory
-location: https://persistence.glitch.me/
+location: https://rowan.fyi/made/persistence/
 image: persistence.png
 description: Dali's La persistencia de la memoria
 pubDate: 2020-05-01

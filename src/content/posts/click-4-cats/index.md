@@ -1,6 +1,6 @@
 ---
 title: Click 4 Cats
-location: https://overly-particular.glitch.me/
+location: https://rowan.fyi/made/overly-particular/
 image: click-4-cats.png
 description: You click, you get cats.
 pubDate: 2021-01-20

@@ -44,7 +44,7 @@ app.use(function (req, res, next) {
 });
 
 app.get('/ua-ch-js', (req, res) => {
-  res.set('Permissions-Policy', 'ch-ua=(), ch-ua-platform=(), ch-ua-platform-version=(), ch-ua-full-version=(self "https://user-agent-client-hints.glitch.me")');
+  res.set('Permissions-Policy', 'ch-ua=(), ch-ua-platform=(), ch-ua-platform-version=(), ch-ua-full-version=(self "https://rowan.fyi/made/user-agent-client-hints")');
   res.set('Accept-CH', 'Sec-CH-UA-Full-Version');
   res.render('ua-ch-js');
 });

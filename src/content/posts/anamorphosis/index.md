@@ -1,6 +1,6 @@
 ---
 title: Anamorphosis
-location: https://anamorphosis.glitch.me/
+location: https://rowan.fyi/made/anamorphosis/
 image: anamorphosis.png
 description: A flat pattern turns into a three-dimensional image when folded.
 pubDate: 2023-02-18

@@ -38,7 +38,7 @@ app.use(function (req, res, next) {
 // });
 
 app.get('/request-storage-access.html', (req, res) => {
-  res.set('Permissions-Policy', 'storage-access=(self "https://first-party-sets.glitch.me")');
+  res.set('Permissions-Policy', 'storage-access=(self "https://rowan.fyi/made/first-party-sets")');
   res.render('request-storage-access');
 });
 

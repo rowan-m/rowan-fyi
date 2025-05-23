@@ -29,7 +29,7 @@ app.get("/", function(request, response) {
 app.all("/cookies.json", function(request, response) {
   response.set(
     "Access-Control-Allow-Origin",
-    "https://x-origin-src.glitch.me"
+    "https://rowan.fyi/made/x-origin-src"
   );
   response.set("Access-Control-Allow-Credentials", "true");
   response.json(request.cookies);

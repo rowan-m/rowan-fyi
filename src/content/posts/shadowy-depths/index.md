@@ -1,6 +1,6 @@
 ---
 title: Shadowy depths
-location: https://shadowy-depths.glitch.me/
+location: https://rowan.fyi/made/shadowy-depths/
 image: shadowy-depths.png
 description: Stacking simple animations creates seemingly random movement.
 pubDate: 2019-07-05

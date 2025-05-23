@@ -1,6 +1,6 @@
 ---
 title: Barnsley ferns
-location: https://barnsley-ferns.glitch.me/
+location: https://rowan.fyi/made/barnsley-ferns/
 image: barnsley-ferns.png
 description: Quick version of the classic Barnsley Fern fractal with tweakable parameters.
 pubDate: 2023-07-16

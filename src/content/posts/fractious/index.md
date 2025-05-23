@@ -1,6 +1,6 @@
 ---
 title: Fractious
-location: https://fractious.glitch.me/
+location: https://rowan.fyi/made/fractious/
 image: fractious.png
 description: A WebGL-based viewer for the Mandelbrot set.
 pubDate: 2021-02-26

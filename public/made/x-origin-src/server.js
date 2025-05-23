@@ -67,7 +67,7 @@ app.get('/alert', (req, res) => {
   const endpoint = {
     "max_age": 10886400,
     "endpoints": [{
-      "url": "https://x-origin-src.glitch.me/report"
+      "url": "https://rowan.fyi/made/x-origin-src/report"
     }]
   };
   res.set('Report-To', JSON.stringify(endpoint));
@@ -107,15 +107,15 @@ console.log({count});
 });
 
 const ALLOWED_ORIGINS = [
-  'https://chrome-facilitated-testing.glitch.me',
-  'https://first-party-sets.glitch.me',
-  'https://related-website-sets.glitch.me',
-  'https://third-party-cookies.glitch.me',
-  'https://3pc-dt.glitch.me'
+  'https://rowan.fyi/made/chrome-facilitated-testing',
+  'https://rowan.fyi/made/first-party-sets',
+  'https://rowan.fyi/made/related-website-sets',
+  'https://rowan.fyi/made/third-party-cookies',
+  'https://rowan.fyi/made/3pc-dt'
 ];
 
 app.get('/set-3pc.json', (req, res) => {
-  const allowedOrigin = (ALLOWED_ORIGINS.includes(req.headers.origin)) ? req.headers.origin : 'https://x-origin-src.glitch.me';
+  const allowedOrigin = (ALLOWED_ORIGINS.includes(req.headers.origin)) ? req.headers.origin : 'https://rowan.fyi/made/x-origin-src';
   res.set(
     "Access-Control-Allow-Origin",
     allowedOrigin

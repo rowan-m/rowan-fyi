@@ -9,10 +9,10 @@
     var req = new XMLHttpRequest();
     req.withCredentials = true;
     req.responseType = 'json';
-    req.open(requestMethod, "https://samesite-sandbox.glitch.me/cookies.json", true);
+    req.open(requestMethod, "https://rowan.fyi/made/samesite-sandbox/cookies.json", true);
     req.onload  = function() {
        var jsonResponse = { method: requestMethod, cookies: req.response };
-       window.parent.postMessage(jsonResponse, "https://samesite-sandbox.glitch.me");
+       window.parent.postMessage(jsonResponse, "https://rowan.fyi/made/samesite-sandbox");
     };
     req.send(null);
   }

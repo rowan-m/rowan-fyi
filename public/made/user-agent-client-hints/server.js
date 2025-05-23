@@ -140,7 +140,7 @@ app.get('/critical-ch', (req, res) => {
 
 
 app.get('/other', (req, res) => {
-  res.set('Permissions-Policy', 'ch-width=(self "https://cdn.glitch.me"), ch-dpr=(self "https://cdn.glitch.me")');
+  res.set('Permissions-Policy', 'ch-width=(self "https://rowan.fyi/made/cdn"), ch-dpr=(self "https://rowan.fyi/made/cdn")');
   res.set('Accept-CH', 'Sec-CH-Width, Sec-CH-DPR');
   res.render('other');
 });

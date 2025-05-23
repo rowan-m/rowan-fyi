@@ -16,10 +16,10 @@
   These will prevent the browser sending the <code>Sec-CH-UA</code> headers, but the information can still be accessed in JavaScript.</p>
 <p>This top-level page response sends the following headers:</p>
 <pre>
-Permissions-Policy: ch-ua=(), ch-ua-platform=(), ch-ua-platform-version=(), ch-ua-full-version=(self "https://user-agent-client-hints.glitch.me")
+Permissions-Policy: ch-ua=(), ch-ua-platform=(), ch-ua-platform-version=(), ch-ua-full-version=(self "https://rowan.fyi/made/user-agent-client-hints")
 Accept-CH: Sec-CH-UA-Full-Version
 </pre>
 <p>This is explicitly disallowing the default <code>Sec-CH-UA</code> and <code>Sec-CH-UA-Platform</code> hints while
   allowing and requesting the additional <code>Sec-CH-UA-Full-Version</code> hint. Use of the hint is also delegated to the cross-origin site.</p>
 <p>Open up DevTools in Chrome and you can verify that the request for the <code>iframe</code> does not include the default headers and does include the full version.</p>
-<iframe src="https://user-agent-client-hints.glitch.me/iframed-js.html"></iframe>
+<iframe src="https://rowan.fyi/made/user-agent-client-hints/iframed-js.html"></iframe>

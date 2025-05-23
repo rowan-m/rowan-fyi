@@ -9,7 +9,7 @@
 <meta name="twitter:site" content="@rowan_m" />
 <meta name="twitter:creator" content="@rowan_m" />
 <meta name="twitter:description" content="Press ▶ to play right in your timeline! 👆 to pan, 🤏 to zoom, or ⏫ head to the full app for more." />
-<meta name="twitter:player" content="https://fractious.glitch.me/embed.html" />
+<meta name="twitter:player" content="https://rowan.fyi/made/fractious/embed.html" />
 <meta name="twitter:player:width" content="480" />
 <meta name="twitter:player:height" content="480" />
 <meta name="twitter:image" content="./assets/fractious-preview.jpg" />
@@ -164,7 +164,7 @@
 <header>
   <h1>Fractious</h1>
   <section>
-    <a href="https://fractious.glitch.me/" target="_blank" class="fullapp">⏫ Full app</a>
+    <a href="https://rowan.fyi/made/fractious/" target="_blank" class="fullapp">⏫ Full app</a>
     <a href="https://glitch.com/edit/#!/fractious">🧑‍💻 Code</a>
     <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a>
   </section>
@@ -474,7 +474,7 @@
     async updateHistory() {
       const path = `?x=${this.config.center.x}&y=${this.config.center.y}&i=${this.config.iterations}&h=${this.config.hue.toFixed(3)}&s=${this.config.huestep.toFixed(3)}&z=${this.config.zoom}`;
       history.replaceState({config: this.config}, 'Fractious', '/embed.html' + path);
-      document.querySelector('.fullapp').href = 'https://fractious.glitch.me/' + path;
+      document.querySelector('.fullapp').href = 'https://rowan.fyi/made/fractious/' + path;
     }
 
     handleResize(e) {

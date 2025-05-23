@@ -5,11 +5,11 @@
 <title>Cross-site form submission</title>
 <h1>Cross-site form submission</h1>
 <ol>
-  <li>This form will submit with a <tt>POST</tt> request to <tt>https://crosssite-sandbox.glitch.me/</tt></li>
-  <li><tt>https://crosssite-sandbox.glitch.me/</tt> will set cookies then redirect to <tt>/redirected.html</tt></li>
+  <li>This form will submit with a <tt>POST</tt> request to <tt>https://rowan.fyi/made/crosssite-sandbox/</tt></li>
+  <li><tt>https://rowan.fyi/made/crosssite-sandbox/</tt> will set cookies then redirect to <tt>/redirected.html</tt></li>
   <li><tt>/redirected.html</tt> should see a request header with <tt>cookie: name=value</tt></li>
 </ol>
 <p>Open up DevTools on the Network tab. You probably want "Preserve log" checked to see the series of requests.</p>
-<form method="post" action="https://crosssite-sandbox.glitch.me">
+<form method="post" action="https://rowan.fyi/made/crosssite-sandbox">
   <button type="submit">Submit</button>
 </form>

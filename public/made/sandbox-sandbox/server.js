@@ -1,7 +1,7 @@
 const express = require('express');
 const cp = require("cookie-parser");
 
-const TRUSTED_ORIGINS = ['https://first-party-sets.glitch.me', 'https://related-website-sets.glitch.me'];
+const TRUSTED_ORIGINS = ['https://rowan.fyi/made/first-party-sets', 'https://rowan.fyi/made/related-website-sets'];
 
 const app = express();
 app.use(cp());

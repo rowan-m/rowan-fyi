@@ -1,6 +1,6 @@
 ---
 title: Peg Solo
-location: https://peg-solo.glitch.me/
+location: https://rowan.fyi/made/peg-solo/
 image: peg-solo.png
 description: It's peg solitaire but with cats.
 pubDate: 2022-08-08

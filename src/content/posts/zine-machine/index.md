@@ -1,6 +1,6 @@
 ---
 title: Zine Machine
-location: https://zine-machine.glitch.me/
+location: https://rowan.fyi/made/zine-machine/
 image: zine-machine.png
 description: A printable zine using CSS Grid and print styles.
 pubDate: 2019-06-06

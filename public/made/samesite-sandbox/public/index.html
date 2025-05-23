@@ -19,7 +19,7 @@
     content="Test SameSite cookie compatibility"
   />
 
-  <meta property="og:url" content="https://samesite-sandbox.glitch.me/" />
+  <meta property="og:url" content="https://rowan.fyi/made/samesite-sandbox/" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="SameSite 🍪 sandbox" />
   <meta
@@ -268,7 +268,7 @@
     var showingResults = false;
 
     function receiveMessage(event) {
-      if (event.origin !== "https://x-origin-src.glitch.me") {
+      if (event.origin !== "https://rowan.fyi/made/x-origin-src") {
         return;
       }
 
@@ -368,7 +368,7 @@
     var crossSiteFrame = document.createElement("iframe");
     crossSiteFrame.setAttribute(
       "src",
-      "https://x-origin-src.glitch.me/samesite-sandbox-embed.html"
+      "https://rowan.fyi/made/x-origin-src/samesite-sandbox-embed.html"
     );
     document.body.appendChild(crossSiteFrame);
   </script>

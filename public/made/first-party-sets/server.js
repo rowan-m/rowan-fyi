@@ -37,7 +37,7 @@ app.use(function (req, res, next) {
 
 // TODO - if you need any server-side routes, add them here
 app.get('/', (req, res) => {
-  res.redirect(301, 'https://related-website-sets.glitch.me/')
+  res.redirect(301, 'https://rowan.fyi/made/related-website-sets/')
   // res.cookie('sameSite', Date.now(), {sameSite: 'lax', secure: true});
   // res.cookie('crossSite', Date.now(), {sameSite: 'none', secure: true});
   // res.render('index');
@@ -46,7 +46,7 @@ app.get('/', (req, res) => {
 app.get('/getcookies.json', (req, res) => {
   // console.log(req.cookies);
   res.set('Access-Control-Allow-Credentials', 'true');
-  res.set('Access-Control-Allow-Origin', 'https://fps-member-1.glitch.me');
+  res.set('Access-Control-Allow-Origin', 'https://rowan.fyi/made/fps-member-1');
   res.json(req.cookies);
 });
 
