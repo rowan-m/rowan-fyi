@@ -33,7 +33,7 @@ while IFS= read -r line; do
 
         # Download the file using curl
         echo "Downloading: $url"
-        curl -s -o "$assets_dir/$filename" "$url" # Download the file using curl
+        wget -O "$assets_dir/$filename" "$url" # Download the file using curl
 
         if [ $? -eq 0 ]; then
             echo "Downloaded: $filename"
