@@ -20,3 +20,5 @@ pnpm-debug.log*
 # Firebase hosting
 .firebase/
 firebase-debug.log
+
+tmp

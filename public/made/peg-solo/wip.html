@@ -683,9 +683,9 @@
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register(
-          '/sw.js',
+          '/made/peg-solo/sw.js',
           {
-            scope: '/',
+            scope: '/made/peg-solo/',
           }
         );
         if (registration.installing) {
