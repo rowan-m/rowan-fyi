@@ -8,7 +8,7 @@ pubDate: 2025-04-01
 
 This started as a simple noise machine with classic white, pink, and brown noise. However, at the time the first of April was coming up so I decided to add some additional noises that fit with the modern world. As with any worthwhile April Fool's joke, I ended up putting in far more effort than was really justified. However, I'm pretty happy with the end result and wanted to share a few of the build details.
 
-The whole aesthetic is a shameless homage to the gorgeous <a href="https://teenage.engineering/products/ep-133">Teenage Engineering K.O. II</a>. Now, I've never even seen one in real life but I wasn't about to let that stop me having some kind of virtual approximation. Given its iconic look, the first step was assuming that other people had already recreated it... and they had.
+The whole aesthetic is a shameless homage to the gorgeous [Teenage Engineering K.O. II](https://teenage.engineering/products/ep-133). Now, I've never even seen one in real life but I wasn't about to let that stop me having some kind of virtual approximation. Given its iconic look, the first step was assuming that other people had already recreated it... and they had.
 
 ## Steal her look
 
