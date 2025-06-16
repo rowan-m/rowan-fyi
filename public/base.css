@@ -98,13 +98,20 @@ li::marker {
 }
 
 footer,header {
-  background: linear-gradient(130deg,#0d2a3f,#204460);
   color: var(--sec-fg);
   fill: var(--sec-fg);
   margin: 0;
-  filter: url(/img/grain.svg#grain);
-  /* Weird issue where filter overlaps edge of element, so we clip it */
-  clip-path: inset(0 0 1px 0);
+  position: relative;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(130deg,hsl(205, 66%, 15%),hsl(220, 36%, 45%));
+    filter: url(/img/grain.svg#grain);
+    clip-path: inset(0);
+    content: '' /* pseudo won't show up without it */
+  }
 }
 
 header {
