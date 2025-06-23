@@ -9,6 +9,12 @@
   --sec-border: light-dark(hsl(214, 11%, 48%), hsl(214, 11%, 48%));
   --sec-highlight: light-dark(hsl(214, 19%, 88%), hsl(214, 19%, 88%));
   --sec-accent: light-dark(hsl(335, 32%, 29%), hsl(335, 32%, 29%));
+  --size-step-0: 0.80rem;
+  --size-step-1: clamp(1rem, calc(0.96rem + 0.22vw), 1.13rem);
+  --size-step-2: clamp(1.25rem, calc(1.16rem + 0.43vw), 1.5rem);
+  --size-step-3: clamp(1.56rem, calc(1.41rem + 0.76vw), 2rem);
+  --size-step-4: clamp(1.95rem, calc(1.71rem + 1.24vw), 2.66rem);
+  --size-step-5: clamp(2.44rem, calc(2.05rem + 1.93vw), 3.55rem);
 }
 
 @font-face {
@@ -31,7 +37,18 @@ body,p {
 body {
   background-color: var(--main-bg);
   font-family: sans-serif;
+  font-size: var(--size-step-1);
   padding: 0;
+  text-rendering: optimizeSpeed;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
 }
 
 body,h1,h2,h3,ul {
@@ -42,16 +59,17 @@ h1,h2,h3 {
   font-family: "Share Tech",sans-serif;
   font-style: normal;
   font-weight: 400;
-  font-size: 2rem;
+  font-size: var(--size-step-4);
   margin-block: .5rem;
+  line-height: 1.1;
 }
 
-h2,h3 {
-  font-size: 1.6rem;
+h2 {
+  font-size: var(--size-step-3);
 }
 
 h3 {
-  font-size: 1.4rem;
+  font-size: var(--size-step-2);
 }
 
 p {
@@ -127,7 +145,7 @@ footer {
 }
 
 footer,header,main {
-  padding-inline: max(2rem,calc((100vw - 50rem)/2));
+  padding-inline: max(2rem,calc((100vw - 75ch)/2));
 }
 
 footer,main {
@@ -232,7 +250,7 @@ footer .socials svg {
 }
 
 .post-meta,.pubdate {
-  font-size: .8rem;
+  font-size: var(--size-step-0);
 }
 
 iframe {
