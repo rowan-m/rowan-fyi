@@ -32,10 +32,10 @@ I'm using the [Doto font](https://fonts.google.com/specimen/Doto) for the 5×9 m
 
 ```css
 background-image: url("/img/lcd-text-background.svg");
-  background-size: 1ch;
-  background-origin: content-box;
-  background-position: 0% 75%;
-  background-repeat: repeat-x;
+background-size: 1ch;
+background-origin: content-box;
+background-position: 0% 75%;
+background-repeat: repeat-x;
 ```
 
 Then we animate the text from fully off the right side of the screen to fully off the left.
@@ -67,16 +67,16 @@ After some time reading the [IIR Filter slides from the Signal and Image Analysi
 
 ```js
 for (var i = 0; i < bufferSize; i++) {
-    var white = Math.random() * 2 - 1;
-    b0 = 0.99886 * b0 + white * 0.0555179;
-    b1 = 0.99332 * b1 + white * 0.0750759;
-    b2 = 0.96900 * b2 + white * 0.1538520;
-    b3 = 0.86650 * b3 + white * 0.3104856;
-    b4 = 0.55000 * b4 + white * 0.5329522;
-    b5 = -0.7616 * b5 - white * 0.0168980;
-    output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-    output[i] *= 0.11; // (roughly) compensate for gain
-    b6 = white * 0.115926;
+  var white = Math.random() * 2 - 1;
+  b0 = 0.99886 * b0 + white * 0.0555179;
+  b1 = 0.99332 * b1 + white * 0.0750759;
+  b2 = 0.96900 * b2 + white * 0.1538520;
+  b3 = 0.86650 * b3 + white * 0.3104856;
+  b4 = 0.55000 * b4 + white * 0.5329522;
+  b5 = -0.7616 * b5 - white * 0.0168980;
+  output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+  output[i] *= 0.11; // (roughly) compensate for gain
+  b6 = white * 0.115926;
 }
 ```
 
