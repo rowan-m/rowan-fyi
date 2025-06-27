@@ -1,7 +1,7 @@
 {
   "name": "Not wheely",
   "short_name": "NotWheely",
-  "start_url": "/",
+  "start_url": "/made/not-wheely/",
   "icons": [
     {
       "src": "./assets/android-chrome-192x192.png",

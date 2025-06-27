@@ -5,9 +5,9 @@
   "display": "standalone",
   "name": "Peg Solitaire",
   "orientation": "any",
-  "scope": "/",
+  "scope": "/made/peg-solo/",
   "short_name": "Peg Solo",
-  "start_url": "/",
+  "start_url": "/made/peg-solo/",
   "theme_color": "#4682b4",
   "icons": [
     {

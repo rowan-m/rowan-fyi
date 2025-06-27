@@ -1,7 +1,7 @@
 {
   "name": "Persistence of Memory",
   "short_name": "Persistence",
-  "start_url": "/",
+  "start_url": "/made/persistence/",
   "icons": [
     {
       "src": "./assets/android-chrome-192x192.png",
