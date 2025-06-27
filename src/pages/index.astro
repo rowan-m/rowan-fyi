@@ -37,7 +37,7 @@ const posts = await getCollection('posts');
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BareLayout title="rowan.fyi" description="Rowan Merewood's site featuring a variery of web development projects and posts." >
+<BareLayout title="rowan.fyi" description="Rowan Merewood's site featuring a variety of web development projects and posts ranging over graphics, mathematics, optical illusions, and art." >
 	<script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
 	<Header useH1={true} />
 	<main class="h-card">
