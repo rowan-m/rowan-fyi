@@ -15,11 +15,20 @@
   --size-step-3: clamp(1.56rem, calc(1.41rem + 0.76vw), 2rem);
   --size-step-4: clamp(1.95rem, calc(1.71rem + 1.24vw), 2.66rem);
   --size-step-5: clamp(2.44rem, calc(2.05rem + 1.93vw), 3.55rem);
+  font-size: var(--size-step-1);
+  font-family: sans-serif;
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  text-rendering: optimizeSpeed;
+  line-height: 1.7;
+  text-wrap: pretty;
+  -webkit-font-smoothing: antialiased;
 }
 
 @font-face {
   font-family: "Share Tech";
-  src: url(/sharetech.woff2)format("woff2");
+  src: url(/sharetech.woff2) format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
@@ -30,18 +39,10 @@
   navigation: auto;
 }
 
-body,p {
-  margin: 0;
-}
-
 body {
   background-color: var(--main-bg);
-  font-family: sans-serif;
-  font-size: var(--size-step-1);
   padding: 0;
-  text-rendering: optimizeSpeed;
-  line-height: 1.7;
-  text-wrap: pretty;
+  margin: 0;
 }
 
 input,
@@ -73,6 +74,7 @@ h3 {
 }
 
 p {
+  margin: 0;
   margin-block: .75rem;
 }
 
