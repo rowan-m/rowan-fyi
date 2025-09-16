@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon"
+  href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌚</text></svg>">
+<title>Gradient watch</title>
+<style>
+  :root {
+    --watch-diameter: calc(80vmin - 2rem);
+    --gradient-angle: 15deg;
+  }
+
+  body {
+    margin: 1rem;
+    padding: 0;
+    font-family: sans-serif;
+    background: #222;
+    color: #ddd;
+    text-align: center;
+  }
+
+  h1 {
+    font-weight: 100;
+  }
+
+  main {
+    position: relative;
+    display: grid;
+    margin: auto;
+    width: var(--watch-diameter);
+    height: var(--watch-diameter);
+    border: 1.5vmin solid hsla(0, 0%, 70%, 0.6);
+    border-radius: 50%;
+    background: #eee;
+    /* overflow: hidden; */
+    /* contain: strict; */
+    contain: size layout;
+  }
+
+  .hours,
+  .minutes,
+  .pivot {
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    box-sizing: border-box;
+    backdrop-filter: url(#grain);
+  }
+
+  .hours {
+    clip-path: circle(33%);
+    background: conic-gradient(from 0deg at 48% 50%, hsla(0, 0%, 40%, 0.4), hsla(0, 0%, 0%, 0.0) calc(360deg - var(--gradient-angle)));
+    animation: 432s linear infinite rotate-hands;
+  }
+
+  .minutes {
+    clip-path: circle(49.5%);
+    background: conic-gradient(from 0deg at 52% 50%, hsla(0, 0%, 0%, 0) var(--gradient-angle), hsla(0, 0%, 40%, 0.4));
+    animation: 36s linear infinite rotate-hands;
+  }
+
+  .pivot {
+    clip-path: circle(2%);
+    background: hsla(0, 0%, 25%, 0.9);
+  }
+
+  @keyframes rotate-hands {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+<h1>Gradient watch</h1>
+<main>
+  <div class="hours"></div>
+  <div class="minutes"></div>
+  <div class="pivot"></div>
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="0" height="0" viewBox="0, 0, 0, 0">
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.2" />
+      <feColorMatrix type="saturate" values="0" />
+      <feBlend in='SourceGraphic' mode='lighten' />
+    </filter>
+  </svg>
+</main>
+<footer>
+  <p>Inspiration from <a href="https://lawadesign.dk/products/gradient-watch-silver">LAWA</a> Code by <a href="https://rowan.fyi">👋 rowan.fyi</a></p>
+</footer>
