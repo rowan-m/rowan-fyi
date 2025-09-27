@@ -8,8 +8,10 @@
 <style>
   :root {
     --watch-diameter: calc(80vmin - 2rem);
-    --gradient-angle: 15deg;
+    --gradient-angle: 45deg;
     --time-multiplier: 100;
+    --time-hour: 1;
+    --time-minute: 15;
   }
 
   body {
@@ -21,7 +23,9 @@
     text-align: center;
   }
 
-  a, a:hover, a:visited {
+  a,
+  a:hover,
+  a:visited {
     color: #99e;
   }
 
@@ -60,12 +64,16 @@
     clip-path: circle(33%);
     background: conic-gradient(from 0deg at 48% 50%, hsla(0, 0%, 40%, 0.4), hsla(0, 0%, 0%, 0.0) calc(360deg - var(--gradient-angle)));
     animation: calc(60s * 60 * 12 / var(--time-multiplier)) linear infinite rotate-hands;
+    animation-composition: add;
+    transform: rotate(calc(360deg / 12 * var(--time-hour)));
   }
 
   .minutes {
     clip-path: circle(49.5%);
     background: conic-gradient(from 0deg at 52% 50%, hsla(0, 0%, 0%, 0) var(--gradient-angle), hsla(0, 0%, 40%, 0.4));
     animation: calc(60s * 60 / var(--time-multiplier)) linear infinite rotate-hands;
+    animation-composition: add;
+    transform: rotate(calc(360deg / 60 * var(--time-minute)));
   }
 
   .pivot {
@@ -104,7 +112,7 @@
   </div>
   <section class="controls">
     <input name="time" type="time">
-    <button name="play-pause">⏯</button>
+    <button name="play-pause">⏸</button>
     <button name="1x">1×</button>
     <button name="10x">10×</button>
     <button name="100x">100×</button>
@@ -122,3 +130,56 @@
     <feBlend in='SourceGraphic' mode='lighten' />
   </filter>
 </svg>
+<script>
+  "use strict";
+
+  function setTime(hour, minute) {
+    document.documentElement.style.setProperty('--time-hour', hour % 12);
+    document.documentElement.style.setProperty('--time-minute', minute % 60);
+    document.querySelector('.hours').getAnimations()[0].currentTime = 0;
+    document.querySelector('.minutes').getAnimations()[0].currentTime = 0;
+  }
+
+    document.querySelector('button[name="play-pause"]').addEventListener('click', () => {
+    const hoursAnimation = document.querySelector('.hours').getAnimations()[0];
+    const minutesAnimation = document.querySelector('.minutes').getAnimations()[0];
+    if (hoursAnimation.playState === 'running') {
+      hoursAnimation.pause();
+      minutesAnimation.pause();
+      event.target.textContent = '▶️';
+    } else {
+      hoursAnimation.play();
+      minutesAnimation.play();
+      event.target.textContent = '⏸';
+    }
+  });
+
+  setTime(new Date().getHours(), new Date().getMinutes());
+  document.querySelector('input[name="time"]').value = `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`;
+
+  document.querySelector('input[name="time"]').addEventListener('input', (event) => {
+    const [hour, minute] = event.target.value.split(':');
+    setTime(hour, minute);
+  });
+
+  function setMultiplier(multiplier) {
+    document.documentElement.style.setProperty('--time-multiplier', multiplier);
+        setTime(document.querySelector('input[name="time"]').value.split(':')[0], document.querySelector('input[name="time"]').value.split(':')[1]);
+  }
+
+  document.querySelector('button[name="1x"]').addEventListener('click', () => {
+    setMultiplier(1);
+  });
+  
+  document.querySelector('button[name="10x"]').addEventListener('click', () => {
+    setMultiplier(10);
+  });
+  
+  document.querySelector('button[name="100x"]').addEventListener('click', () => {
+    setMultiplier(100);
+  });
+  
+  document.querySelector('button[name="1000x"]').addEventListener('click', () => {
+    setMultiplier(1000);
+  });
+</script>
