@@ -9,6 +9,7 @@
   :root {
     --watch-diameter: calc(80vmin - 2rem);
     --gradient-angle: 15deg;
+    --time-multiplier: 100;
   }
 
   body {
@@ -20,11 +21,19 @@
     text-align: center;
   }
 
-  h1 {
-    font-weight: 100;
+  a, a:hover, a:visited {
+    color: #99e;
   }
 
-  main {
+  h1 {
+    font-weight: 10;
+    font-size: 1.2rem;
+    margin: 0;
+    padding: 0;
+    margin-block-end: .5rem;
+  }
+
+  .watch-body {
     position: relative;
     display: grid;
     margin: auto;
@@ -33,8 +42,6 @@
     border: 1.5vmin solid hsla(0, 0%, 70%, 0.6);
     border-radius: 50%;
     background: #eee;
-    /* overflow: hidden; */
-    /* contain: strict; */
     contain: size layout;
   }
 
@@ -52,13 +59,13 @@
   .hours {
     clip-path: circle(33%);
     background: conic-gradient(from 0deg at 48% 50%, hsla(0, 0%, 40%, 0.4), hsla(0, 0%, 0%, 0.0) calc(360deg - var(--gradient-angle)));
-    animation: 432s linear infinite rotate-hands;
+    animation: calc(60s * 60 * 12 / var(--time-multiplier)) linear infinite rotate-hands;
   }
 
   .minutes {
     clip-path: circle(49.5%);
     background: conic-gradient(from 0deg at 52% 50%, hsla(0, 0%, 0%, 0) var(--gradient-angle), hsla(0, 0%, 40%, 0.4));
-    animation: 36s linear infinite rotate-hands;
+    animation: calc(60s * 60 / var(--time-multiplier)) linear infinite rotate-hands;
   }
 
   .pivot {
@@ -70,24 +77,48 @@
     from {
       transform: rotate(0deg);
     }
+
     to {
       transform: rotate(360deg);
     }
   }
+
+  .controls {
+    margin-block-start: 1rem;
+  }
+
+  input,
+  button {
+    font: inherit;
+    margin: .25rem;
+    padding: .25rem;
+    font-size: .8rem;
+  }
 </style>
 <h1>Gradient watch</h1>
 <main>
-  <div class="hours"></div>
-  <div class="minutes"></div>
-  <div class="pivot"></div>
-  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="0" height="0" viewBox="0, 0, 0, 0">
-    <filter id="grain" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="1.2" />
-      <feColorMatrix type="saturate" values="0" />
-      <feBlend in='SourceGraphic' mode='lighten' />
-    </filter>
-  </svg>
+  <div class="watch-body">
+    <div class="hours"></div>
+    <div class="minutes"></div>
+    <div class="pivot"></div>
+  </div>
+  <section class="controls">
+    <input name="time" type="time">
+    <button name="play-pause">⏯</button>
+    <button name="1x">1×</button>
+    <button name="10x">10×</button>
+    <button name="100x">100×</button>
+    <button name="1000x">1000×</button>
+  </section>
 </main>
 <footer>
-  <p>Inspiration from <a href="https://lawadesign.dk/products/gradient-watch-silver">LAWA</a> Code by <a href="https://rowan.fyi">👋 rowan.fyi</a></p>
+  <p>Inspired by <a href="https://lawadesign.dk/products/gradient-watch-silver">⌚ LAWA</a>
+    Code by <a href="https://rowan.fyi">👋 rowan.fyi</a></p>
 </footer>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="0" height="0" viewBox="0, 0, 0, 0">
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.2" />
+    <feColorMatrix type="saturate" values="0" />
+    <feBlend in='SourceGraphic' mode='lighten' />
+  </filter>
+</svg>
