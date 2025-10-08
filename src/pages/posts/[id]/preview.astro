@@ -1,0 +1,30 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import Header from "@/components/Header.astro";
+
+interface Props {
+  post: CollectionEntry<"posts">;
+}
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/base.css" />
+  <title>{post.data.title}</title>
+  <Header />
+  <main>
+    <h1>{post.data.title}</h1>
+  </main>
+</html>
