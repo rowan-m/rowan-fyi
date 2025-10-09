@@ -19,7 +19,7 @@ const profileData = {
 	'mainEntity': {
 		'@type': 'Person',
 		'name': 'Rowan Merewood',
-		'description': 'Developer, Developer Relations, and manager - sometimes all at once. Projects and posts ranging over graphics, mathematics, optical illusions, and art. Works on Privacy Sandbox at Google.',
+		'description': 'Developer, Developer Relations, and manager - sometimes all at once. Projects and posts ranging over graphics, mathematics, optical illusions, and art. Works on Chrome at Google.',
 		'image': new URL('/img/rowan-merewood.jpg', Astro.site),
 		'sameAs': [
 		  'https://bsky.app/profile/rowan.fyi',
@@ -42,7 +42,7 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 	<Header useH1={true} />
 	<main class="h-card">
 		<a class="u-url" href="/" style="display:none"><img class="u-photo" src="/img/rowan-merewood.jpg"></a>
-		<p><span class="p-note">Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a> is where I share my various projects and posts ranging over graphics, mathematics, optical illusions, and art. At work, I lead the web side of Developer Relations for <a href="https://privacysandbox.google.com">Privacy Sandbox</a> at Google.</span> You can say hello back across these various networks:</p>
+		<p><span class="p-note">Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a> is where I share my various projects and posts ranging over graphics, mathematics, optical illusions, and art. At work, I lead the web side of Developer Relations for <a href="https://developer.chrome.com/">Chrome</a> at Google.</span> You can say hello back across these various networks:</p>
 		<ul class="socials">
 			<li><a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a></li>
 			<li><a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon"><Mastodon /> @rowan_m@mastodon.social</a></li>
