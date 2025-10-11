@@ -7,12 +7,18 @@
   href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
 <title>Color date picker</title>
 <style>
+  :root {
+    --date-color: #32cd99;
+  }
+
   body {
     font-family: sans-serif;
     margin: 1rem;
     display: flex;
     flex-flow: column nowrap;
     align-items: center;
+    background: var(--date-color);
+    color: oklch(from var(--date-color) mod(calc(l + .60), 1) c h);
 
   }
 
@@ -20,9 +26,7 @@
     text-align: center;
   }
 
-  div {
-
-  }
+  div {}
 
   output {
     display: block;
@@ -32,11 +36,11 @@
   }
 </style>
 <h1>Color date picker</h1>
+<output id="date-output" for="date-input">2025/10/11</output>
 <div>
   <label for="date-input">Date</label>
   <input id="date-input" type="color" value="#32cd99">
 </div>
-<output id="date-output" for="date-input">2025/10/11</output>
 <script>
   'use strict';
   if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
@@ -91,16 +95,32 @@
     return `#${hexString}`;
   }
 
+  /**
+   * Update UI on color change
+   * 
+   * @param {Event} e
+   */
   function onColorChange(e) {
-    const color = e.target.value
-    dateOutput.textContent = decodeHexToDate(color).toLocaleDateString();
+    updateColorDate(e.target.value);
+    
+  }
 
+  function updateColorDate(color) {
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    dateOutput.textContent = decodeHexToDate(color).toLocaleDateString(undefined, options);
+    document.documentElement.style.setProperty('--date-color', color);
   }
 
   colorPicker.addEventListener("input", onColorChange);
   colorPicker.addEventListener("change", onColorChange);
   colorPicker.select();
   const now = new Date();
-  dateOutput.textContent = now.toLocaleDateString();
+  const color = encodeDateToHex(now);
   colorPicker.value = encodeDateToHex(now);
+  updateColorDate(color);
 </script>
