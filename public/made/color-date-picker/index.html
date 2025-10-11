@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<link rel="icon"
+  href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+<title>Color date picker</title>
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 1rem;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  div {
+
+  }
+
+  output {
+    display: block;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: bold;
+  }
+</style>
+<h1>Color date picker</h1>
+<div>
+  <label for="date-input">Date</label>
+  <input id="date-input" type="color" value="#32cd99">
+</div>
+<output id="date-output" for="date-input">2025/10/11</output>
+<script>
+  'use strict';
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    location.protocol = 'https:';
+  }
+
+  const colorPicker = document.querySelector("#date-input");
+  const dateOutput = document.querySelector("#date-output");
+
+  /**
+   * Start year, end year, and days inbetween
+   */
+  const START_YEAR = 1900;
+  const START_DATE = new Date(START_YEAR + '-01-01T00:00:00Z');
+  const END_YEAR = 2100;
+  const END_DATE = new Date(END_YEAR + '-12-31T23:59:59Z');
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  const TOTAL_DAYS = Math.floor((END_DATE.getTime() - START_DATE.getTime()) / MS_PER_DAY);
+
+  /**
+   * Decodes 6-digit hex string Date object between
+   * START_YEAR and END_YEAR
+   *
+   * @param {string} Hex string to decode (e.g., "#FFFFFF").
+   * @returns {Date} Equivalent date
+   */
+  function decodeHexToDate(hex) {
+    const hexAsInt = parseInt(hex.substring(1), 16);
+    const dayOffset = hexAsInt % TOTAL_DAYS;
+
+    // Start epoch at (Jan 1, 1000) and add the calculated offset.
+    const date = new Date(START_YEAR + '-01-01T00:00:00Z');
+    date.setUTCDate(date.getUTCDate() + dayOffset);
+    return date;
+  }
+
+  /**
+   * Encodes a Date object to a 6-digit hex string.
+   *
+   * @param {Date} Date to encode
+   * @returns {string|null} Equivalent hex string, or null if the date is out of range.
+   */
+  function encodeDateToHex(date) {
+    const year = date.getUTCFullYear();
+    if (year < START_YEAR || year > END_YEAR) {
+      console.error(`Year must be between ${START_YEAR} and ${END_YEAR}`);
+      return null;
+    }
+
+    const dayOffset = Math.floor((date.getTime() - START_DATE.getTime()) / MS_PER_DAY);
+    const hexString = dayOffset.toString(16).padStart(6, '0');
+    return `#${hexString}`;
+  }
+
+  function onColorChange(e) {
+    const color = e.target.value
+    dateOutput.textContent = decodeHexToDate(color).toLocaleDateString();
+
+  }
+
+  colorPicker.addEventListener("input", onColorChange);
+  colorPicker.addEventListener("change", onColorChange);
+  colorPicker.select();
+  const now = new Date();
+  dateOutput.textContent = now.toLocaleDateString();
+  colorPicker.value = encodeDateToHex(now);
+</script>
