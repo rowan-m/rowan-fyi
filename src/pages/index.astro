@@ -12,6 +12,9 @@ import Mastodon from '/public/img/socials/mastodon-fill.svg';
 import Threads from '/public/img/socials/threads-line.svg';
 import Glitch from '/public/img/socials/vip-diamond-fill.svg';
 
+const title = 'rowan.fyi';
+const description = "Rowan Merewood's site featuring a variety of web development projects and posts ranging over graphics, mathematics, optical illusions, and art.";
+
 const profileData = {
 	'@context': 'https://schema.org',
 	'@type': 'ProfilePage',
@@ -37,9 +40,20 @@ const posts = await getCollection('posts');
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BareLayout title="rowan.fyi" description="Rowan Merewood's site featuring a variety of web development projects and posts ranging over graphics, mathematics, optical illusions, and art." >
-	<script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
-	<Header useH1={true} />
+<BareLayout title="rowan.fyi" description={ description } >
+	<script is:inline type="application/ld+json" set:html={ JSON.stringify(profileData) } />
+	<meta property="og:url" content={ new URL(Astro.site) }>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content={ title }>
+  <meta property="og:description" content={ description }>
+  <meta name="image" property="og:image" content={ new URL('img/icon.svg', Astro.site) }>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="rowan.fyi">
+  <meta property="twitter:url" content={ new URL(Astro.site) }>
+  <meta name="twitter:title" content={ title }>
+  <meta name="twitter:description" content={ description }>
+  <meta name="twitter:image" content={ new URL('img/icon.svg', Astro.site) }>
+	<Header useH1={ true } />
 	<main class="h-card">
 		<a class="u-url" href="/" style="display:none"><img class="u-photo" src="/img/rowan-merewood.jpg"></a>
 		<p><span class="p-note">Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a> is where I share my various projects and posts ranging over graphics, mathematics, optical illusions, and art. At work, I'm Developer Relations for <a href="https://developer.chrome.com/">Chrome</a> at Google.</span> You can say hello back across these various networks:</p>
@@ -54,7 +68,7 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 		<section class="posts">
 			<h2>Posts</h2>
 			<div>
-				{posts.map((post) => <PostCardView post={post} />)}
+				{ posts.map((post) => <PostCardView post={ post } />) }
 			</div>
 		</section>
 	</main>
