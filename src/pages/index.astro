@@ -1,84 +1,130 @@
 ---
-import BareLayout from 'src/layouts/BareLayout.astro';
-import Header from '@/components/Header.astro';
-import PostCardView from '@/components/PostCardView.astro';
+import BareLayout from "src/layouts/BareLayout.astro";
+import Header from "@/components/Header.astro";
+import PostCardView from "@/components/PostCardView.astro";
 
-import { getCollection } from 'astro:content';
+import { getCollection } from "astro:content";
 
-import Bluesky from '/public/img/socials/bluesky-fill.svg';
-import GitHub from '/public/img/socials/github-fill.svg';
-import Linkedin from '/public/img/socials/linkedin-box-fill.svg';
-import Mastodon from '/public/img/socials/mastodon-fill.svg';
-import Threads from '/public/img/socials/threads-line.svg';
-import Glitch from '/public/img/socials/vip-diamond-fill.svg';
+import Bluesky from "/public/img/socials/bluesky-fill.svg";
+import GitHub from "/public/img/socials/github-fill.svg";
+import Linkedin from "/public/img/socials/linkedin-box-fill.svg";
+import Mastodon from "/public/img/socials/mastodon-fill.svg";
+import Threads from "/public/img/socials/threads-line.svg";
+import Glitch from "/public/img/socials/vip-diamond-fill.svg";
 
-const title = 'rowan.fyi';
-const description = "Rowan Merewood's site featuring a variety of web development projects and posts ranging over graphics, mathematics, optical illusions, and art.";
+const title = "rowan.fyi";
+const description =
+	"Rowan Merewood's site featuring a variety of web development projects and posts ranging over graphics, mathematics, optical illusions, and art.";
 
 const profileData = {
-	'@context': 'https://schema.org',
-	'@type': 'ProfilePage',
-	'dateCreated': '2025-05-06T00:00:00+00:00',
-	'mainEntity': {
-		'@type': 'Person',
-		'name': 'Rowan Merewood',
-		'description': 'Developer, Developer Relations, and manager - sometimes all at once. Projects and posts ranging over graphics, mathematics, optical illusions, and art. Works on Chrome at Google.',
-		'image': new URL('/img/rowan-merewood.jpg', Astro.site),
-		'sameAs': [
-		  'https://bsky.app/profile/rowan.fyi',
-			'https://mastodon.social/@rowan_m',
-			'https://glitch.com/@rowan-m',
-			'https://github.com/rowan-m/',               
-			'https://www.threads.com/@rowan_m',
-			'https://www.linkedin.com/in/rowanmerewood/',
-			'https://www.instagram.com/rowan_m/',
-		]
-	}
-}
+	"@context": "https://schema.org",
+	"@type": "ProfilePage",
+	dateCreated: "2025-05-06T00:00:00+00:00",
+	mainEntity: {
+		"@type": "Person",
+		name: "Rowan Merewood",
+		description:
+			"Developer, Developer Relations, and manager - sometimes all at once. Projects and posts ranging over graphics, mathematics, optical illusions, and art. Works on Chrome at Google.",
+		image: new URL("/img/rowan-merewood.jpg", Astro.site),
+		sameAs: [
+			"https://bsky.app/profile/rowan.fyi",
+			"https://mastodon.social/@rowan_m",
+			"https://glitch.com/@rowan-m",
+			"https://github.com/rowan-m/",
+			"https://www.threads.com/@rowan_m",
+			"https://www.linkedin.com/in/rowanmerewood/",
+			"https://www.instagram.com/rowan_m/",
+		],
+	},
+};
 
-const posts = await getCollection('posts');
+const posts = await getCollection("posts");
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BareLayout title="rowan.fyi" description={ description } >
-	<script is:inline type="application/ld+json" set:html={ JSON.stringify(profileData) } />
-	<meta property="og:url" content={ new URL(Astro.site) }>
-  <meta property="og:type" content="website">
-  <meta property="og:title" content={ title }>
-  <meta property="og:description" content={ description }>
-  <meta name="image" property="og:image" content={ new URL('img/og-preview.png', Astro.site) }>
-  <meta name="twitter:card" content="summary_large_image">
-  <meta property="twitter:domain" content="rowan.fyi">
-  <meta property="twitter:url" content={ new URL(Astro.site) }>
-  <meta name="twitter:title" content={ title }>
-  <meta name="twitter:description" content={ description }>
-  <meta name="twitter:image" content={ new URL('img/og-preview.png', Astro.site) }>
+<BareLayout title="rowan.fyi" description={description}>
+	<script
+		is:inline
+		type="application/ld+json"
+		set:html={JSON.stringify(profileData)}
+	/>
+	<meta property="og:url" content={new URL(Astro.site)} />
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content={title} />
+	<meta property="og:description" content={description} />
+	<meta
+		name="image"
+		property="og:image"
+		content={new URL("img/og-preview.png", Astro.site)}
+	/>
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta property="twitter:domain" content="rowan.fyi" />
+	<meta property="twitter:url" content={new URL(Astro.site)} />
+	<meta name="twitter:title" content={title} />
+	<meta name="twitter:description" content={description} />
+	<meta
+		name="twitter:image"
+		content={new URL("img/og-preview.png", Astro.site)}
+	/>
 	<style>
 		.socials {
 			margin-block-start: 0;
 			text-wrap: balance;
 		}
 
-		.socials>li {
+		.socials > li {
 			display: inline;
 		}
+
+		.posts > div {
+			display: flex;
+			flex-flow: row wrap;
+			gap: 1ch;
+		}
 	</style>
-	<Header useH1={ true } />
+	<Header useH1={true} />
 	<main class="h-card">
-		<a class="u-url" href="/" style="display:none"><img class="u-photo" src="/img/rowan-merewood.jpg"></a>
-		<p><span class="p-note">Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a> is where I share my various projects and posts ranging over graphics, mathematics, optical illusions, and art. At work, I'm Developer Relations for <a href="https://developer.chrome.com/">Chrome</a> at Google.</span></p>
+		<a class="u-url" href="/" style="display:none"
+			><img class="u-photo" src="/img/rowan-merewood.jpg" /></a
+		>
+		<p>
+			<span class="p-note"
+				>Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a
+					href="/">rowan.fyi</a
+				> is where I share my various projects and posts ranging over graphics, mathematics,
+				optical illusions, and art. At work, I'm Developer Relations for <a
+					href="https://developer.chrome.com/">Chrome</a
+				> at Google.</span>
+		</p>
 		<span>You can say hello back across these various networks:</span>
 		<ul class="socials">
-			<li><a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a></li>
-			<li><a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon"><Mastodon /> @rowan_m@mastodon.social</a></li>
-			<li><a href="https://github.com/rowan-m/" title="rowan-m on GitHub"><GitHub /> rowan-m</a></li>
-			<li><a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"><Threads /> rowan_m</a></li>
-			<li><a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a></li>
+			<li>
+				<a
+					href="https://bsky.app/profile/rowan.fyi"
+					title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a>
+			</li>
+			<li>
+				<a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon"
+					><Mastodon /> @rowan_m@mastodon.social</a>
+			</li>
+			<li>
+				<a href="https://github.com/rowan-m/" title="rowan-m on GitHub"
+					><GitHub /> rowan-m</a>
+			</li>
+			<li>
+				<a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"
+					><Threads /> rowan_m</a>
+			</li>
+			<li>
+				<a
+					href="https://www.linkedin.com/in/rowanmerewood/"
+					title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a>
+			</li>
 		</ul>
 		<section class="posts">
 			<h2>Posts</h2>
 			<div>
-				{ posts.map((post) => <PostCardView post={ post } />) }
+				{posts.map((post) => <PostCardView post={post} />)}
 			</div>
 		</section>
 	</main>

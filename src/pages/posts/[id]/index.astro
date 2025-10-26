@@ -1,10 +1,10 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import BareLayout from 'src/layouts/BareLayout.astro';
-import Header from '@/components/Header.astro';
-import NewTabIcon from '/public/img/new-tab.svg';
+import BareLayout from "src/layouts/BareLayout.astro";
+import Header from "@/components/Header.astro";
+import NewTabIcon from "/public/img/new-tab.svg";
 
-import ShareButton from '@/components/ShareButton.astro';
+import ShareButton from "@/components/ShareButton.astro";
 interface Props {
   post: CollectionEntry<"posts">;
 }
@@ -21,52 +21,100 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 
 const articleData = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
+  "@context": "https://schema.org",
+  "@type": "Article",
   headline: post.data.title,
   image: new URL(post?.data?.image?.src, Astro.site),
   datePublished: post.data.pubDate,
   dateModified: post.data.pubDate,
   author: [
     {
-      '@type': 'Person',
-      name: 'Rowan Merewood',
+      "@type": "Person",
+      name: "Rowan Merewood",
       url: Astro.site,
-    }
+    },
   ],
 };
 ---
 
-<BareLayout title={ post.data.title + " | rowan.fyi" } description={ post.data.description }>
-  <script is:inline type="application/ld+json" set:html={ JSON.stringify(articleData) } />
-  <meta property="og:url" content={ new URL(Astro.url.pathname, Astro.site) }>
-  <meta property="og:type" content="website">
-  <meta property="og:title" content={ post.data.title }>
-  <meta property="og:description" content={ post.data.description }>
-  <meta name="image" property="og:image" content={ new URL(post?.data?.image?.src, Astro.site) }>
-  <meta name="twitter:card" content="summary_large_image">
-  <meta property="twitter:domain" content="rowan.fyi">
-  <meta property="twitter:url" content={ new URL(Astro.url.pathname, Astro.site) }>
-  <meta name="twitter:title" content={ post.data.title }>
-  <meta name="twitter:description" content={ post.data.description }>
-  <meta name="twitter:image" content={ new URL(post?.data?.image?.src, Astro.site) }>
-  
+<BareLayout
+  title={post.data.title + " | rowan.fyi"}
+  description={post.data.description}
+>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(articleData)}
+  />
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={post.data.title} />
+  <meta property="og:description" content={post.data.description} />
+  <meta
+    name="image"
+    property="og:image"
+    content={new URL(post?.data?.image?.src, Astro.site)}
+  />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="twitter:domain" content="rowan.fyi" />
+  <meta
+    property="twitter:url"
+    content={new URL(Astro.url.pathname, Astro.site)}
+  />
+  <meta name="twitter:title" content={post.data.title} />
+  <meta name="twitter:description" content={post.data.description} />
+  <meta
+    name="twitter:image"
+    content={new URL(post?.data?.image?.src, Astro.site)}
+  />
+  <style>
+    iframe {
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 16/10;
+      box-sizing: border-box;
+      padding: 0.25rem;
+      margin-inline: 0;
+      margin-block: 0.25rem;
+      border: 1px solid var(--main-accent);
+    }
+  </style>
   <Header />
   <main class="h-entry">
-    <h1 class="p-name">{ post.data.title }</h1>
+    <h1 class="p-name">{post.data.title}</h1>
     <div class="post-meta">
-      <div class="pubdate">Published: { new Intl.DateTimeFormat("en-GB").format(post.data.pubDate) }</div>
-      <span class="dt-published" style="display:none">{ post.data.pubDate.toISOString() }</span>
-      <span class="u-url" style="display:none">{ new URL(Astro.url.pathname, Astro.site) }</span>
-      <span class="p-summary" style="display:none">{ post.data.description }</span>
-      <a rel="author" class="p-author h-card" style="display:none" href={ new URL(Astro.site) }>Rowan Merewood</a>
-      { post.data.location &&
-        <a href={ post.data.location } target="_blank" class="button"><NewTabIcon /> Launch</a>
+      <div class="pubdate">
+        Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}
+      </div>
+      <span class="dt-published" style="display:none"
+        >{post.data.pubDate.toISOString()}</span
+      >
+      <span class="u-url" style="display:none"
+        >{new URL(Astro.url.pathname, Astro.site)}</span
+      >
+      <span class="p-summary" style="display:none">{post.data.description}</span
+      >
+      <a
+        rel="author"
+        class="p-author h-card"
+        style="display:none"
+        href={new URL(Astro.site)}>Rowan Merewood</a
+      >
+      {
+        post.data.location && (
+          <a href={post.data.location} target="_blank" class="button">
+            <NewTabIcon /> Launch
+          </a>
+        )
       }
       <ShareButton />
     </div>
-    { post.data.location &&
-      <iframe src={ post.data.location } title={ post.data.title }> </iframe>
+    {
+      post.data.location && (
+        <iframe src={post.data.location} title={post.data.title}>
+          {" "}
+        </iframe>
+      )
     }
     <article class="e-content">
       <Content />
