@@ -1,190 +1,187 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Rolling circle 🎡 optical illusion</title>
-<meta
-  name="Description"
-  content="A tweet from @SteveStuWill and originally from @brusspup reminded me of one of my favourite illusions: Rolling Circles. Each individual circle is just moving back and forth on a straight line, but the combined effect creates a larger movement. Give me a shout at @rowan_m"
-/>
-<meta name="theme-color" content="slategray" />
-<link
-  rel="shortcut icon"
-  href="./assets/ferris-wheel_1f3a1.png"
-/>
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@rowan_m" />
-<meta name="twitter:title" content="Rolling circle 🎡 optical illusion" />
-<meta
-  name="twitter:description"
-  content="A tweet from @SteveStuWill and originally from @brusspup reminded me of one of my favourite illusions: Rolling Circles. Each individual circle is just moving back and forth on a straight line, but the combined effect creates a larger movement. Give me a shout at @rowan_m"
-/>
-<meta property="og:url" content="https://rowan.fyi/made/rolling-circle/" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Rolling circle 🎡 optical illusion" />
-<meta
-  property="og:description"
-  content="A tweet from @SteveStuWill and originally from @brusspup reminded me of one of my favourite illusions: Rolling Circles. Each individual circle is just moving back and forth on a straight line, but the combined effect creates a larger movement. Give me a shout at @rowan_m"
-/>
-<style>
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    font-family: sans-serif;
-    margin: 0 2vw 0 2vw;
-    padding: 0;
-    background: black;
-  }
-  p {
-    max-width: 80vw;
-    color: silver;
-  }
-  a,
-  a:visited {
-    color: lightblue;
-  }
-  .container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 80vh;
-    max-width: 80vw;
-    height: 80vw;
-    max-height: 80vh;
-    margin-left: 5vw;
-  }
-  .bar {
-    position: absolute;
-    width: 100%;
-    height: 10vw;
-    max-height: 10vh;
-    background-image: linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0) 0,
-      rgba(0, 0, 0, 0) 46%,
-      rgba(173, 216, 230, 0.6) 50%,
-      rgba(0, 0, 0, 0) 54%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    opacity: 0.01;
-    animation: fade infinite 30s ease-in-out;
-  }
-  .circle {
-    width: 10vh;
-    max-width: 10vw;
-    height: 10vw;
-    max-height: 10vh;
-    border-radius: 50%;
-    border: 0.75rem solid blue;
-    animation: slide infinite alternate 6s ease-in-out;
-    opacity: 0.8;
-  }
-  @keyframes slide {
-    from {
-      transform: translateX(0);
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rolling circle 🎡 optical illusion</title>
+  <meta
+    name="Description"
+    content="A tweet from @SteveStuWill and originally from @brusspup reminded me of one of my favourite illusions: Rolling Circles. Each individual circle is just moving back and forth on a straight line, but the combined effect creates a larger movement. Give me a shout at @rowan_m"
+  />
+  <meta name="theme-color" content="slategray" />
+  <link rel="shortcut icon" href="./assets/ferris-wheel_1f3a1.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@rowan_m" />
+  <meta name="twitter:title" content="Rolling circle 🎡 optical illusion" />
+  <meta
+    name="twitter:description"
+    content="A tweet from @SteveStuWill and originally from @brusspup reminded me of one of my favourite illusions: Rolling Circles. Each individual circle is just moving back and forth on a straight line, but the combined effect creates a larger movement. Give me a shout at @rowan_m"
+  />
+  <meta property="og:url" content="https://rowan.fyi/made/rolling-circle/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Rolling circle 🎡 optical illusion" />
+  <meta
+    property="og:description"
+    content="A tweet from @SteveStuWill and originally from @brusspup reminded me of one of my favourite illusions: Rolling Circles. Each individual circle is just moving back and forth on a straight line, but the combined effect creates a larger movement. Give me a shout at @rowan_m"
+  />
+  <style>
+    * {
+      box-sizing: border-box;
     }
-    to {
-      transform: translateX(700%);
+    body {
+      font-family: sans-serif;
+      margin: 0 2vw 0 2vw;
+      padding: 0;
+      background: black;
     }
-  }
-  @keyframes fade {
-    0% {
+    p {
+      max-width: 80vw;
+      color: silver;
+    }
+    a,
+    a:visited {
+      color: lightblue;
+    }
+    .container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 80vh;
+      max-width: 80vw;
+      height: 80vw;
+      max-height: 80vh;
+      margin-left: 5vw;
+    }
+    .bar {
+      position: absolute;
+      width: 100%;
+      height: 10vw;
+      max-height: 10vh;
+      background-image: linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0) 0,
+        rgba(0, 0, 0, 0) 46%,
+        rgba(173, 216, 230, 0.6) 50%,
+        rgba(0, 0, 0, 0) 54%,
+        rgba(0, 0, 0, 0) 100%
+      );
       opacity: 0.01;
+      animation: fade infinite 30s ease-in-out;
     }
-    5% {
-      opacity: 0.01;
+    .circle {
+      width: 10vh;
+      max-width: 10vw;
+      height: 10vw;
+      max-height: 10vh;
+      border-radius: 50%;
+      border: 0.75rem solid blue;
+      animation: slide infinite alternate 6s ease-in-out;
+      opacity: 0.8;
     }
-    10% {
-      opacity: 1;
+    @keyframes slide {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(700%);
+      }
     }
-    60% {
-      opacity: 1;
+    @keyframes fade {
+      0% {
+        opacity: 0.01;
+      }
+      5% {
+        opacity: 0.01;
+      }
+      10% {
+        opacity: 1;
+      }
+      60% {
+        opacity: 1;
+      }
+      65% {
+        opacity: 0.01;
+      }
+      100% {
+        opacity: 0.01;
+      }
     }
-    65% {
-      opacity: 0.01;
+    .ba {
+      transform: rotate(000deg);
     }
-    100% {
-      opacity: 0.01;
+    .bb {
+      transform: rotate(030deg);
+      animation-delay: 4s;
     }
-  }
-  .ba {
-    transform: rotate(000deg);
-  }
-  .bb {
-    transform: rotate(030deg);
-    animation-delay: 4s;
-  }
-  .bc {
-    transform: rotate(060deg);
-    animation-delay: 8s;
-  }
-  .bd {
-    transform: rotate(090deg);
-    animation-delay: 2s;
-  }
-  .be {
-    transform: rotate(120deg);
-    animation-delay: 6s;
-  }
-  .bf {
-    transform: rotate(150deg);
-    animation-delay: 10s;
-  }
-  .ba > div {
-    animation-delay: 0s;
-    border-color: red;
-    box-shadow: 0 0 0.5rem 0 red;
-  }
-  .bb > div {
-    animation-delay: 1s;
-    border-color: orange;
-    box-shadow: 0 0 0.5rem 0 orange;
-  }
-  .bc > div {
-    animation-delay: 2s;
-    border-color: yellow;
-    box-shadow: 0 0 0.5rem 0 yellow;
-  }
-  .bd > div {
-    animation-delay: 3s;
-    border-color: green;
-    box-shadow: 0 0 0.5rem 0 green;
-  }
-  .be > div {
-    animation-delay: 4s;
-    border-color: blue;
-    box-shadow: 0 0 0.5rem 0 blue;
-  }
-  .bf > div {
-    animation-delay: 5s;
-    border-color: indigo;
-    box-shadow: 0 0 0.5rem 0 indigo;
-  }
-</style>
-<p>
-  A tweet from
-  <a href="https://twitter.com/SteveStuWill/status/1225877674179981312"
-    >🐦 @SteveStuWill</a
-  >
-  and originally from
-  <a href="https://twitter.com/brusspup/status/491288352314757120"
-    >🐦 @brusspup</a
-  >
-  reminded me of one of my favourite illusions: Rolling Circles. Each
-  individual circle is just moving back and forth on a straight line, but the
-  combined effect creates a larger movement. Give me a shout at
-  <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a> with any comments,
-  feel free to remix and modify with that little fish button over there 🎏↗️
-</p>
+    .bc {
+      transform: rotate(060deg);
+      animation-delay: 8s;
+    }
+    .bd {
+      transform: rotate(090deg);
+      animation-delay: 2s;
+    }
+    .be {
+      transform: rotate(120deg);
+      animation-delay: 6s;
+    }
+    .bf {
+      transform: rotate(150deg);
+      animation-delay: 10s;
+    }
+    .ba > div {
+      animation-delay: 0s;
+      border-color: red;
+      box-shadow: 0 0 0.5rem 0 red;
+    }
+    .bb > div {
+      animation-delay: 1s;
+      border-color: orange;
+      box-shadow: 0 0 0.5rem 0 orange;
+    }
+    .bc > div {
+      animation-delay: 2s;
+      border-color: yellow;
+      box-shadow: 0 0 0.5rem 0 yellow;
+    }
+    .bd > div {
+      animation-delay: 3s;
+      border-color: green;
+      box-shadow: 0 0 0.5rem 0 green;
+    }
+    .be > div {
+      animation-delay: 4s;
+      border-color: blue;
+      box-shadow: 0 0 0.5rem 0 blue;
+    }
+    .bf > div {
+      animation-delay: 5s;
+      border-color: indigo;
+      box-shadow: 0 0 0.5rem 0 indigo;
+    }
+  </style>
+  <p>
+    A tweet from
+    <a href="https://twitter.com/SteveStuWill/status/1225877674179981312"
+      >🐦 @SteveStuWill</a
+    >
+    and originally from
+    <a href="https://twitter.com/brusspup/status/491288352314757120"
+      >🐦 @brusspup</a
+    >
+    reminded me of one of my favourite illusions: Rolling Circles. Each
+    individual circle is just moving back and forth on a straight line, but the
+    combined effect creates a larger movement. Give me a shout at
+    <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a> with any comments,
+    feel free to remix and modify with that little fish button over there 🎏↗️
+  </p>
 
-<div class="container">
-  <div class="bar ba"><div class="circle"></div></div>
-  <div class="bar bb"><div class="circle"></div></div>
-  <div class="bar bc"><div class="circle"></div></div>
-  <div class="bar bd"><div class="circle"></div></div>
-  <div class="bar be"><div class="circle"></div></div>
-  <div class="bar bf"><div class="circle"></div></div>
-</div>
-
+  <div class="container">
+    <div class="bar ba"><div class="circle"></div></div>
+    <div class="bar bb"><div class="circle"></div></div>
+    <div class="bar bc"><div class="circle"></div></div>
+    <div class="bar bd"><div class="circle"></div></div>
+    <div class="bar be"><div class="circle"></div></div>
+    <div class="bar bf"><div class="circle"></div></div>
+  </div>
+</html>

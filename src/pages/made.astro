@@ -1,22 +1,37 @@
 ---
-import BareLayout from '../layouts/BareLayout.astro';
-import Header from '@/components/Header.astro';
+import BareLayout from "../layouts/BareLayout.astro";
+import Header from "@/components/Header.astro";
 
-const madeItems = import.meta.glob('/public/made/*/index.html', { eager: true });
-
+const madeItems = import.meta.glob("/public/made/*/index.html", {
+  eager: true,
+});
 ---
 
 <BareLayout title="Made by Rowan" description="Things I've made">
-<Header />
-<main>
-  <h1>Things I've made</h1>
-  <p>This is a quick, dirty, and evolving import of projects from <a href="https://glitch.com">Glitch</a>. There are probably a few absolute links in here which means things might not work. Feel free to ping me on your preferred social network if you find something that's broken.</p>
-  <ul>
-    {Object.keys(madeItems).map(key => (
-      <li>
-        <a href={ key.replace('/public/made/', '/made/').replace('/index.html', '/') }>{ key.split('/').filter(Boolean).at(-2) }</a>
-      </li>
-    )) }
-  </ul>
-</main>
+  <Header />
+  <main>
+    <h1>Things I've made</h1>
+    <p>
+      This is a quick, dirty, and evolving import of projects from <a
+        href="https://glitch.com">Glitch</a
+      >. There are probably a few absolute links in here which means things
+      might not work. Feel free to ping me on your preferred social network if
+      you find something that's broken.
+    </p>
+    <ul>
+      {
+        Object.keys(madeItems).map((key) => (
+          <li>
+            <a
+              href={key
+                .replace("/public/made/", "/made/")
+                .replace("/index.html", "/")}
+            >
+              {key.split("/").filter(Boolean).at(-2)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </main>
 </BareLayout>

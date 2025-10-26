@@ -1,21 +1,22 @@
 ---
-title: 'Building Rotavo part 2: Form and function'
+title: "Building Rotavo part 2: Form and function"
 pubDate: 2019-07-19
 description: How to build a touch-sensitive rotating knob web component.
 image: 0xs99uvmp539mke9v2pm.png
 tags: ["rotavo"]
 ---
+
 _This is the second in a series of posts detailing how I built the_ [🥑 _Rotavo PWA_](https://bit.ly/rotavo-pwa)_. Give it a whirl and see what you can draw!_
 
 In the [previous instalment](https://dev.to/rowan_m/you-spin-me-right-r-und-k32) we built the touch-controlled `<input-knob>` component that let us create a rotating knob with a `value` attribute corresponding to its angle. However, [fun](https://rowan.fyi/made/paul-spinlan) as that might have been it's still missing some functionality to be practical for general use.
 
 ## Contents
 
- - [♻️ Freshen up](#freshen-up)
- - [👂 Quite the event](#quite-the-event)
- - [🔒 Enforcing limits](#enforcing-limits)
- - [🧛‍♂️ Count rotations](#count-rotations)
- - [🎁 Bonus content](#bonus-content)
+- [♻️ Freshen up](#freshen-up)
+- [👂 Quite the event](#quite-the-event)
+- [🔒 Enforcing limits](#enforcing-limits)
+- [🧛‍♂️ Count rotations](#count-rotations)
+- [🎁 Bonus content](#bonus-content)
 
 ## ♻️ Freshen up
 
@@ -25,7 +26,6 @@ We also want an indicator for which way is "up" on our knob. As we saw in the [f
 
 ```html
 <input-knob value="2.5"><div class="mark">▲</div></input-knob>
-
 ```
 
 We then need to style that so it's central:
@@ -47,7 +47,7 @@ input-knob {
   border-radius: 100%;
   box-shadow: 0 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
 }
-  
+
 input-knob::part(container) {
   box-sizing: border-box;
   background: #cadbbc;
@@ -80,22 +80,22 @@ Now we've added a little polish to our element, we've got something visually ple
 
 Much like the Pointer events, we want to track the beginning, middle, and end of the interaction. That means we will [create three `Event`](https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events) types:
 
-  * `knob-move-start`: when the element is touched / clicked
-  * `knob-move-change`: when the element is moved
-  * `knob-move-end`: when the element is released
+- `knob-move-start`: when the element is touched / clicked
+- `knob-move-change`: when the element is moved
+- `knob-move-end`: when the element is released
 
 We're going to emit these events at the end of each handler inside of the element, because we want to be sure that we've done all the necessary work inside the element before anything attempts to process the event.
 
 ```javascript
 // class InputKnob
 _rotationStart() {
-  // ✂️ existing code hidden      
+  // ✂️ existing code hidden
   const evt = new Event('knob-move-start', { bubbles: true });
   this.dispatchEvent(evt);
 }
 
 _rotationChange() {
-  // ✂️ existing code hidden    
+  // ✂️ existing code hidden
   const evt = new Event('knob-move-change', { bubbles: true });
   this.dispatchEvent(evt);
 }
@@ -112,10 +112,10 @@ Note, we need to make sure we specify `bubbles: true` because our [listener is g
 With these events firing, we can listen for them just like any other:
 
 ```javascript
-document.addEventListener('knob-move-start', logEvent);
+document.addEventListener("knob-move-start", logEvent);
 ```
 
-Take a peek at the demo below to see how we're using the `logEvent()` function to light up some `<span>` elements when the events fire. 
+Take a peek at the demo below to see how we're using the `logEvent()` function to light up some `<span>` elements when the events fire.
 
 <iframe src="https://rowan.fyi/made/building-rotavo-05" class="glitch"></iframe>
 
@@ -165,7 +165,7 @@ So, to reverse what we had above if the angle comes out at π then we should exp
 As a little bonus, take a peek at the CSS in this demo. The layout uses a CSS Grid layout with `grid-template-areas` where you basically draw a little text diagram of the layout you want. So, the arrangement of the items above is literally:
 
 ```css
-grid-template-areas: 
+grid-template-areas:
   ".  ⬆️ . "
   "⬅️ 🎛️ ➡️"
   ".  ⬇️ . ";
@@ -192,7 +192,7 @@ get min() {
 set min(min) {
   this.setAttribute('min', parseFloat(min));
 }
-    
+
 get max() {
   return this.hasAttribute('max') ? this.getAttribute('max') : null;
 }
@@ -200,7 +200,7 @@ get max() {
 set max(max) {
   this.setAttribute('max', parseFloat(max));
 }
-``` 
+```
 
 The default value is `null` since we won't want to enforce the limit if it's not set. In other words, if the attribute is `null`:  
 ![the limit does not exist](https://media.giphy.com/media/7JvlHfd7C2GDr7zfZF/giphy.gif "The limit does not exist.")
@@ -210,9 +210,9 @@ That means instead of just calculating and setting the `_angle` and `value` we n
 ```javascript
 // _rotationChange()
 this._attemptedAngle =
-  this._initialAngle
-  - this._initialTouchAngle
-  + Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
+  this._initialAngle -
+  this._initialTouchAngle +
+  Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
 this._attemptedAngle = (this._attemptedAngle + TWO_PI) % TWO_PI;
 this._attemptedValue = this._attemptedAngle / (TWO_PI / this.scale);
 
@@ -228,7 +228,7 @@ if (
 With that logic in place, now we can add a knob that restricts its movement between two values:
 
 ```html
-<input-knob value="5" scale="10" min="2.5" max="7.5">
+<input-knob value="5" scale="10" min="2.5" max="7.5"></input-knob>
 ```
 
 Give it a go in the demo. Spin all you like, but those upper values are all off limits! ⛔
@@ -305,7 +305,7 @@ We can set the tags up like so:
 
 ```html
 <input-knob value="50" scale="10" min="0" max="100">...</input-knob>
-<input type="range" class="progress" min="0" max="100">
+<input type="range" class="progress" min="0" max="100" />
 ```
 
 Then using the same listener for `knob-move-change` we update those values:

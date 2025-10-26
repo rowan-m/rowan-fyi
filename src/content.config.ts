@@ -1,5 +1,5 @@
 import { defineCollection, z } from "astro:content";
-import { glob } from 'astro/loaders'; // Not available with legacy API
+import { glob } from "astro/loaders"; // Not available with legacy API
 
 const posts = defineCollection({
   loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/posts" }),

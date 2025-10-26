@@ -1,185 +1,219 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐚</text></svg>">
-<title>Strange attractions</title>
-<style>
-  body {
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐚</text></svg>"
+  />
+  <title>Strange attractions</title>
+  <style>
+    body {
       margin: 0;
       padding: 0;
       font-family: sans-serif;
       background: #010110;
       color: oldlace;
-  }
-  
-  h1 {
-    font-size: 1rem;
-    font-weight: normal;
-    margin: 0;
-    padding: 0 1rem 0 1rem;
-  }
-  
-  main {
-    width: 100vw;
-    height: 90vh;
-  }
-  
-  canvas.viz {
-    width: 100%;
-    height: 100%;
-  }
-</style>
-<h1>Strange attractions</h1>
-<main><canvas class="viz"></canvas></main>
-<script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
-      "three/nodes": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/nodes/Nodes.js"
     }
-  }
-</script>
-<script type="module">
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-  
-  import * as THREE from 'three';
-  import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
-  import { vec3, vec4, storage, tslFn, instanceIndex, add, sub, mul, div, abs, atan2, max } from 'three/nodes';
-  import StorageBufferAttribute from 'three/addons/renderers/common/StorageBufferAttribute.js';
-  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-  const canvas = document.querySelector('canvas.viz');
-  let w = canvas.offsetWidth;
-  let h = canvas.offsetHeight;
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera( 75, w / h, 0.1, 1000 );
-  const renderer = new WebGPURenderer({ canvas: canvas, antialias: true });
-  renderer.setPixelRatio( window.devicePixelRatio );
-  
-  function resize() {
-    w = canvas.offsetWidth;
-    h = canvas.offsetHeight;
-    canvas.width = w;
-    canvas.height = h;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h, false);
-  }
+    h1 {
+      font-size: 1rem;
+      font-weight: normal;
+      margin: 0;
+      padding: 0 1rem 0 1rem;
+    }
 
-  resize();
-  window.addEventListener('resize', resize);
+    main {
+      width: 100vw;
+      height: 90vh;
+    }
 
-  const numTracers = 1000;
-  const numSegments = 10;
-  const points = [];
-  const colors = [];
-  
-  let computeUpdate;
-
-  function init() {
-    let x0, y0, z0, x1, y1, z1, dx, dy, dz, cr, cg, cb, tracerStart;
-
-    for (let i = 0; i < numTracers; i++) {
-      x0 = Math.random() * 20 - 10;
-      y0 = Math.random() * 20 - 10;
-      z0 = Math.random() * 20 - 10;
-      tracerStart = true;
-
-      for (let j = 0; j < numSegments; j++) {
-        dx = 10 * (y0 - x0);
-        dy = x0 * (28 - z0) - y0;
-        dz = x0*y0 - (8/3) * z0;
-
-        x1 = x0 + 0.005 * dx;
-        y1 = y0 + 0.005 * dy;
-        z1 = z0 + 0.005 * dz;
-
-        points.push(x0, y0, z0);
-        points.push(x1, y1, z1);
-
-        cr = Math.abs(Math.atan2(dx, dy) / (Math.PI * 2));
-        cg = Math.abs(Math.atan2(dy, dz) / (Math.PI * 2));
-        cb = Math.abs(Math.atan2(dz, dx) / (Math.PI * 2));
-        if (tracerStart !== true) {
-          colors.push(cr, cg, cb);
-        }
-        tracerStart = false;
-        colors.push(cr, cg, cb);
-
-        x0 = x1;
-        y0 = y1;
-        z0 = z1;
+    canvas.viz {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <h1>Strange attractions</h1>
+  <main><canvas class="viz"></canvas></main>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
+        "three/nodes": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/nodes/Nodes.js"
       }
-
-      colors.push(cr, cg, cb);
     }
-  }
-  
-  init();
-  
-  const pointsBaseAttribute = new THREE.Float32BufferAttribute(points, 3);
-  const colorsBaseAttribute = new THREE.Float32BufferAttribute(colors, 3);
-  
-  const pointsStorageBufferAttribute = new StorageBufferAttribute(pointsBaseAttribute.count, 4);
-  const colorsStorageBufferAttribute = new StorageBufferAttribute(colorsBaseAttribute.count, 4);
+  </script>
+  <script type="module">
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
 
-  const material = new THREE.LineBasicMaterial( { vertexColors: true } );
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', pointsStorageBufferAttribute);
-  geometry.setAttribute('color', colorsStorageBufferAttribute);
-  // geometry.setAttribute('position', pointsBaseAttribute);
-  // geometry.setAttribute('color', colorsBaseAttribute);
-  const tracers = new THREE.LineSegments(geometry, material);
-  scene.add(tracers);
-  
-  camera.position.z = 70;
-  const controls = new OrbitControls(camera, renderer.domElement);
-  
-  const computeFn = tslFn( () => {
-    const pointsAttribute = storage(pointsBaseAttribute, 'vec3', pointsBaseAttribute.count);
-    // const colorsAttribute = storage(colorsBaseAttribute, 'vec3', colorsBaseAttribute.count);
-    
-    const pointsStorageAttribute = storage(pointsStorageBufferAttribute, 'vec3', pointsStorageBufferAttribute.count);
-    const colorsStorageAttribute = storage(colorsStorageBufferAttribute, 'vec3', colorsStorageBufferAttribute.count);
-    
-    const point = vec3( pointsAttribute.element( instanceIndex ) );
-    // const color = vec3( colorsAttribute.element( instanceIndex ) );
-    
-    // const dx = 10 * (point.y - point.x);
-    let dx = mul(10, sub(point.y, point.x))
-    // const dy = point.x * (28 - point.z) - point.y;
-    let dy = sub(mul(point.x, sub(28, point.z)), point.y);
-    // const dz = point.x*point.y - (8/3) * point.z;
-    let dz = sub(mul(point.x, point.y), mul(div(8, 3), point.z));
-    
-    const pNext = vec3(
-      add(point.x, mul(0.005, dx)),
-      add(point.y, mul(0.005, dy)),
-      add(point.z, mul(0.005, dz))
+    import * as THREE from "three";
+    import WebGPURenderer from "three/addons/renderers/webgpu/WebGPURenderer.js";
+    import {
+      vec3,
+      vec4,
+      storage,
+      tslFn,
+      instanceIndex,
+      add,
+      sub,
+      mul,
+      div,
+      abs,
+      atan2,
+      max,
+    } from "three/nodes";
+    import StorageBufferAttribute from "three/addons/renderers/common/StorageBufferAttribute.js";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    const canvas = document.querySelector("canvas.viz");
+    let w = canvas.offsetWidth;
+    let h = canvas.offsetHeight;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+    const renderer = new WebGPURenderer({ canvas: canvas, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    function resize() {
+      w = canvas.offsetWidth;
+      h = canvas.offsetHeight;
+      canvas.width = w;
+      canvas.height = h;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const numTracers = 1000;
+    const numSegments = 10;
+    const points = [];
+    const colors = [];
+
+    let computeUpdate;
+
+    function init() {
+      let x0, y0, z0, x1, y1, z1, dx, dy, dz, cr, cg, cb, tracerStart;
+
+      for (let i = 0; i < numTracers; i++) {
+        x0 = Math.random() * 20 - 10;
+        y0 = Math.random() * 20 - 10;
+        z0 = Math.random() * 20 - 10;
+        tracerStart = true;
+
+        for (let j = 0; j < numSegments; j++) {
+          dx = 10 * (y0 - x0);
+          dy = x0 * (28 - z0) - y0;
+          dz = x0 * y0 - (8 / 3) * z0;
+
+          x1 = x0 + 0.005 * dx;
+          y1 = y0 + 0.005 * dy;
+          z1 = z0 + 0.005 * dz;
+
+          points.push(x0, y0, z0);
+          points.push(x1, y1, z1);
+
+          cr = Math.abs(Math.atan2(dx, dy) / (Math.PI * 2));
+          cg = Math.abs(Math.atan2(dy, dz) / (Math.PI * 2));
+          cb = Math.abs(Math.atan2(dz, dx) / (Math.PI * 2));
+          if (tracerStart !== true) {
+            colors.push(cr, cg, cb);
+          }
+          tracerStart = false;
+          colors.push(cr, cg, cb);
+
+          x0 = x1;
+          y0 = y1;
+          z0 = z1;
+        }
+
+        colors.push(cr, cg, cb);
+      }
+    }
+
+    init();
+
+    const pointsBaseAttribute = new THREE.Float32BufferAttribute(points, 3);
+    const colorsBaseAttribute = new THREE.Float32BufferAttribute(colors, 3);
+
+    const pointsStorageBufferAttribute = new StorageBufferAttribute(
+      pointsBaseAttribute.count,
+      4,
     );
-    
-    const cr = div(abs(atan2(dx, dy)), 6.28318530718);
-    const cg = div(abs(atan2(dy, dz)), 6.28318530718);
-    const cb = div(abs(atan2(dz, dx)), 6.28318530718);
-    
-    pointsAttribute.element(instanceIndex).assign(pNext);
-    // colorsAttribute.element(instanceIndex).assign(color);
-    pointsStorageAttribute.element(instanceIndex).assign(pNext);
-    colorsStorageAttribute.element(instanceIndex).assign(vec3(cr, cg, cb));
-    
-  });
-  computeUpdate = computeFn().compute( pointsBaseAttribute.count );
-  
-  async function animate() {
-    if ( computeUpdate ) await renderer.computeAsync( computeUpdate );
-    renderer.render( scene, camera );
-  }
-  
-  renderer.setAnimationLoop( animate );
-</script>
+    const colorsStorageBufferAttribute = new StorageBufferAttribute(
+      colorsBaseAttribute.count,
+      4,
+    );
+
+    const material = new THREE.LineBasicMaterial({ vertexColors: true });
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", pointsStorageBufferAttribute);
+    geometry.setAttribute("color", colorsStorageBufferAttribute);
+    // geometry.setAttribute('position', pointsBaseAttribute);
+    // geometry.setAttribute('color', colorsBaseAttribute);
+    const tracers = new THREE.LineSegments(geometry, material);
+    scene.add(tracers);
+
+    camera.position.z = 70;
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    const computeFn = tslFn(() => {
+      const pointsAttribute = storage(
+        pointsBaseAttribute,
+        "vec3",
+        pointsBaseAttribute.count,
+      );
+      // const colorsAttribute = storage(colorsBaseAttribute, 'vec3', colorsBaseAttribute.count);
+
+      const pointsStorageAttribute = storage(
+        pointsStorageBufferAttribute,
+        "vec3",
+        pointsStorageBufferAttribute.count,
+      );
+      const colorsStorageAttribute = storage(
+        colorsStorageBufferAttribute,
+        "vec3",
+        colorsStorageBufferAttribute.count,
+      );
+
+      const point = vec3(pointsAttribute.element(instanceIndex));
+      // const color = vec3( colorsAttribute.element( instanceIndex ) );
+
+      // const dx = 10 * (point.y - point.x);
+      let dx = mul(10, sub(point.y, point.x));
+      // const dy = point.x * (28 - point.z) - point.y;
+      let dy = sub(mul(point.x, sub(28, point.z)), point.y);
+      // const dz = point.x*point.y - (8/3) * point.z;
+      let dz = sub(mul(point.x, point.y), mul(div(8, 3), point.z));
+
+      const pNext = vec3(
+        add(point.x, mul(0.005, dx)),
+        add(point.y, mul(0.005, dy)),
+        add(point.z, mul(0.005, dz)),
+      );
+
+      const cr = div(abs(atan2(dx, dy)), 6.28318530718);
+      const cg = div(abs(atan2(dy, dz)), 6.28318530718);
+      const cb = div(abs(atan2(dz, dx)), 6.28318530718);
+
+      pointsAttribute.element(instanceIndex).assign(pNext);
+      // colorsAttribute.element(instanceIndex).assign(color);
+      pointsStorageAttribute.element(instanceIndex).assign(pNext);
+      colorsStorageAttribute.element(instanceIndex).assign(vec3(cr, cg, cb));
+    });
+    computeUpdate = computeFn().compute(pointsBaseAttribute.count);
+
+    async function animate() {
+      if (computeUpdate) await renderer.computeAsync(computeUpdate);
+      renderer.render(scene, camera);
+    }
+
+    renderer.setAnimationLoop(animate);
+  </script>
+</html>

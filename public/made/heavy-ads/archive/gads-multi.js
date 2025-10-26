@@ -2,7 +2,7 @@
 
 // add a timestamp to URLs to prevent caching
 const loadedAt = Date.now();
-document.querySelectorAll("input.nocache").forEach(e => {
+document.querySelectorAll("input.nocache").forEach((e) => {
   e.setAttribute("value", loadedAt);
 });
 

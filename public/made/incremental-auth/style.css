@@ -7,27 +7,28 @@ body {
 
 h1 {
   margin-right: 80px;
-  color: #1F618D;
+  color: #1f618d;
   font-size: 120%;
 }
 
 h2 {
-  color: #FEFEFE;
-  background: #2471A3;
+  color: #fefefe;
+  background: #2471a3;
   font-size: 110%;
 }
 
 h3 {
-  color: #1F618D;
+  color: #1f618d;
   font-size: 110%;
 }
 
-a, a:visited {
-  color: #1F618D;
+a,
+a:visited {
+  color: #1f618d;
 }
 
 footer {
   margin-top: 2em;
-  border-top: #1F618D 1px solid;
+  border-top: #1f618d 1px solid;
   font-size: 80%;
 }

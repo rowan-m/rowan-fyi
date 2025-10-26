@@ -1,101 +1,127 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💿</text></svg>"/>
-<title>Go Logo, Go!</title>
-  
-<meta name="Description" content="YoU WoULdN'T sTeAL a LoGo" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💿</text></svg>"
+  />
+  <title>Go Logo, Go!</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Emoji&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --scale: 15;
-    --logo-size: calc(var(--scale) * 1vmin);
-    --vh: 1vh;
-  }
+  <meta name="Description" content="YoU WoULdN'T sTeAL a LoGo" />
 
-  body {
-    background:
-      radial-gradient(circle, rgba(128,128,128,.2) 0%, rgba(0,0,0,.1) 100%),
-      black;
-    margin: 0;
-    overflow: hidden;
-    height: 100vh;
-    height: calc(var(--vh) * 100);
-  }
-
-  .logo-box {
-    height: var(--logo-size);
-    width: var(--logo-size);
-    line-height: var(--logo-size);
-    font-display: block;
-    font-family: 'Noto Emoji', sans-serif;
-    font-weight: 500;
-    font-size: var(--logo-size);
-    text-transform: full-width;
-    margin-left: -.26ch;
-    animation: xbounce 5s infinite alternate linear;
-  }
-  
-  @keyframes xbounce {
-    from {
-      transform: translateX(0);
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Emoji&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --scale: 15;
+      --logo-size: calc(var(--scale) * 1vmin);
+      --vh: 1vh;
     }
-    to {
-      transform: translateX(calc(100vw - var(--logo-size)));
-    }
-  }
-  
-  .logo {
-    animation: ybounce 6s infinite alternate linear;
-  }
 
-  @keyframes ybounce {
-    from {
-      transform: translateY(0);  
+    body {
+      background:
+        radial-gradient(
+          circle,
+          rgba(128, 128, 128, 0.2) 0%,
+          rgba(0, 0, 0, 0.1) 100%
+        ),
+        black;
+      margin: 0;
+      overflow: hidden;
+      height: 100vh;
+      height: calc(var(--vh) * 100);
     }
-    
-    to {
-      transform: translateY(calc(100*var(--vh) - var(--logo-size)));      
-    }
-  }
-</style>
-<main class="logo-box">
-  <div class="logo"></div>
-</main>
-<script>
-  'use strict';
-  // Always use HTTPS
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
 
-  // Hack to deal with vh going offscreen
-  document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-  window.addEventListener('resize', () => {
-    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-  });
-  
-  // Select a random color for the logo
-  const colors = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple', 'magenta'];
-  var current = Math.floor(Math.random() * (colors.length - 1));
-  const logo = document.querySelector('.logo');
-  logo.style.color = colors[current];
-  
-  // Change the logo color on each bounce
-  const logoBox = document.querySelector('.logo-box');
-  logoBox.addEventListener('animationiteration', () => {
-    const next = Math.floor(Math.random() * (colors.length - 1));
-    current = (current === next) ? (next + 1) % (colors.length - 1) : next;
+    .logo-box {
+      height: var(--logo-size);
+      width: var(--logo-size);
+      line-height: var(--logo-size);
+      font-display: block;
+      font-family: "Noto Emoji", sans-serif;
+      font-weight: 500;
+      font-size: var(--logo-size);
+      text-transform: full-width;
+      margin-left: -0.26ch;
+      animation: xbounce 5s infinite alternate linear;
+    }
+
+    @keyframes xbounce {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(calc(100vw - var(--logo-size)));
+      }
+    }
+
+    .logo {
+      animation: ybounce 6s infinite alternate linear;
+    }
+
+    @keyframes ybounce {
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(calc(100 * var(--vh) - var(--logo-size)));
+      }
+    }
+  </style>
+  <main class="logo-box">
+    <div class="logo"></div>
+  </main>
+  <script>
+    "use strict";
+    // Always use HTTPS
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    // Hack to deal with vh going offscreen
+    document.documentElement.style.setProperty(
+      "--vh",
+      `${window.innerHeight * 0.01}px`,
+    );
+    window.addEventListener("resize", () => {
+      document.documentElement.style.setProperty(
+        "--vh",
+        `${window.innerHeight * 0.01}px`,
+      );
+    });
+
+    // Select a random color for the logo
+    const colors = [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple",
+      "magenta",
+    ];
+    var current = Math.floor(Math.random() * (colors.length - 1));
+    const logo = document.querySelector(".logo");
     logo.style.color = colors[current];
-  });
-  
-  window.addEventListener('load', (event) => {
-    const params = new URLSearchParams(document.location.search);
-    const logoText = params.get('go');
-    logo.textContent = logoText ? params.get('go') : '☠';
-  });
-</script>
+
+    // Change the logo color on each bounce
+    const logoBox = document.querySelector(".logo-box");
+    logoBox.addEventListener("animationiteration", () => {
+      const next = Math.floor(Math.random() * (colors.length - 1));
+      current = current === next ? (next + 1) % (colors.length - 1) : next;
+      logo.style.color = colors[current];
+    });
+
+    window.addEventListener("load", (event) => {
+      const params = new URLSearchParams(document.location.search);
+      const logoText = params.get("go");
+      logo.textContent = logoText ? params.get("go") : "☠";
+    });
+  </script>
+</html>

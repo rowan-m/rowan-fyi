@@ -13,72 +13,78 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<title>Building Rotavo</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="shortcut icon" href="https://rotavo-pwa.firebaseapp.com/favicon.ico">
-<style>
-  input-knob {
-    width: 150px;
-    padding: 10px;
-    border: 2px dashed green;
-    background: lightgreen;
-  }
+  <meta charset="utf-8" />
+  <title>Building Rotavo</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="shortcut icon"
+    href="https://rotavo-pwa.firebaseapp.com/favicon.ico"
+  />
+  <style>
+    input-knob {
+      width: 150px;
+      padding: 10px;
+      border: 2px dashed green;
+      background: lightgreen;
+    }
 
-  input-knob::part(container) {
-    box-sizing: border-box;
-    background: lightblue;
-    border: 2px dashed blue;
-    border-radius: 100%;
-    width: 150px;
-    height: 150px;
-  }
+    input-knob::part(container) {
+      box-sizing: border-box;
+      background: lightblue;
+      border: 2px dashed blue;
+      border-radius: 100%;
+      width: 150px;
+      height: 150px;
+    }
 
-  .mark {
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-    font: bold 200% monospace;
-    color: blue;
-  }
+    .mark {
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      font: bold 200% monospace;
+      color: blue;
+    }
 
-  .monitor {
-    width: 20rem;
-    margin: 2rem auto 0 auto;
-    text-align: center;
-  }
+    .monitor {
+      width: 20rem;
+      margin: 2rem auto 0 auto;
+      text-align: center;
+    }
 
-  .progress {
-    display: block;
-    width: 20rem;
-    margin: 2rem auto 0 auto;
-    text-align: center;
-  }
-</style>
+    .progress {
+      display: block;
+      width: 20rem;
+      margin: 2rem auto 0 auto;
+      text-align: center;
+    }
+  </style>
 
-<input-knob value="50" scale="10" min="0" max="100"><div class="mark">▲</div></input-knob>
+  <input-knob value="50" scale="10" min="0" max="100"
+    ><div class="mark">▲</div></input-knob
+  >
 
-<input type="range" class="progress" min="0" max="100">
-<div class="monitor">Value: <span class="show-value"></span></div>
-<script src="/modules/input-knob/dist/input-knob.umd.js"></script>
-<!-- <script src="https://unpkg.com/input-knob"></script> -->
-<script>
-  const knob = document.querySelector('input-knob');
-  const range = document.querySelector('.progress');
-  const showValue = document.querySelector('.show-value');
+  <input type="range" class="progress" min="0" max="100" />
+  <div class="monitor">Value: <span class="show-value"></span></div>
+  <script src="/modules/input-knob/dist/input-knob.umd.js"></script>
+  <!-- <script src="https://unpkg.com/input-knob"></script> -->
+  <script>
+    const knob = document.querySelector("input-knob");
+    const range = document.querySelector(".progress");
+    const showValue = document.querySelector(".show-value");
 
-  const initValue = Number.parseFloat(knob.value).toFixed(3);
-  showValue.textContent = initValue;
-  range.value = initValue;
+    const initValue = Number.parseFloat(knob.value).toFixed(3);
+    showValue.textContent = initValue;
+    range.value = initValue;
 
-  function logEvent(evt) {
-    const curValue = Number.parseFloat(knob.value).toFixed(3);
-    showValue.textContent = curValue;
-    range.value = curValue;
-  }
+    function logEvent(evt) {
+      const curValue = Number.parseFloat(knob.value).toFixed(3);
+      showValue.textContent = curValue;
+      range.value = curValue;
+    }
 
-  document.addEventListener('knob-move-change', logEvent);
-</script>
+    document.addEventListener("knob-move-change", logEvent);
+  </script>
+</html>

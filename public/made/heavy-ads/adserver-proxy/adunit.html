@@ -1,80 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<title>Proxy Advertisement</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link id="favicon" rel="icon" href="data:" type="image/x-icon" />
-<meta name="Description" content="Heavy Network Advertisement" />
-<style>
-  body, html, main, iframe {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    width: 100%;
-    overflow: visible;
-  }
-  
-  iframe {
-    height: 80vh;
-  }
-  
-  header {
-    margin: 0;
-    padding: 0.2rem;
-    font-family: sans-serif;
-    background: #e1e1e1;
-    color: #777
-  }
-  
-  h1, p {
-    font-size: 0.6rem;
-    margin: 0.2rem;
-    padding: 0;
-  }
-</style>
-<header>
-  <h1>Custom content loaded below</h1>
-  <p>🚫👆 <b>Do not</b> tap or click in the frame.</p>
-  <p><em>Content will only be unloaded if it exceeds thresholds.</em></p>
-</header>
-<main></main>
-<script>
-  "use strict";
-
-  async function sendReports(reports) {
-    for (let report of reports) {
-      // Process the reports for your own logging, this demo just sends the JSON to the parent for display
-      window.parent.postMessage(JSON.stringify(report, null, 2), '/');
-      // Only use a beacon request to send reports, not a fetch or equivalent
-      // You can look at the Network Trace to see what appears in this beacon request
-      // This is purely for DevTools viewing, the demo does not make use of it
-      navigator.sendBeacon("/", report);
+  <meta charset="utf-8" />
+  <title>Proxy Advertisement</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link id="favicon" rel="icon" href="data:" type="image/x-icon" />
+  <meta name="Description" content="Heavy Network Advertisement" />
+  <style>
+    body,
+    html,
+    main,
+    iframe {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      width: 100%;
+      overflow: visible;
     }
-  }
 
-  const observer = new ReportingObserver((reports, observer) => {
-    sendReports(reports);
-  }, { buffered: true });
-  observer.observe();
+    iframe {
+      height: 80vh;
+    }
 
-  window.addEventListener('pagehide', (event) => {
-    let reports = observer.takeRecords();
-    sendReports(reports);
-  });
+    header {
+      margin: 0;
+      padding: 0.2rem;
+      font-family: sans-serif;
+      background: #e1e1e1;
+      color: #777;
+    }
 
-  // create an iframe for the add
-  const frame = document.createElement('iframe');
-  frame.setAttribute('allow', 'autoplay');
-  let iframeSrc = '/empty/adunit.html';
-  const urlParams = new URLSearchParams(window.location.search);
+    h1,
+    p {
+      font-size: 0.6rem;
+      margin: 0.2rem;
+      padding: 0;
+    }
+  </style>
+  <header>
+    <h1>Custom content loaded below</h1>
+    <p>🚫👆 <b>Do not</b> tap or click in the frame.</p>
+    <p><em>Content will only be unloaded if it exceeds thresholds.</em></p>
+  </header>
+  <main></main>
+  <script>
+    "use strict";
 
-  if (urlParams.get('site')) {
-    // or load the user's content
-    iframeSrc = urlParams.get('site');
-  }
+    async function sendReports(reports) {
+      for (let report of reports) {
+        // Process the reports for your own logging, this demo just sends the JSON to the parent for display
+        window.parent.postMessage(JSON.stringify(report, null, 2), "/");
+        // Only use a beacon request to send reports, not a fetch or equivalent
+        // You can look at the Network Trace to see what appears in this beacon request
+        // This is purely for DevTools viewing, the demo does not make use of it
+        navigator.sendBeacon("/", report);
+      }
+    }
 
-  // update the iframe URL and add it to the page
-  frame.src = iframeSrc;
-  document.querySelector('main').appendChild(frame);
-</script>
+    const observer = new ReportingObserver(
+      (reports, observer) => {
+        sendReports(reports);
+      },
+      { buffered: true },
+    );
+    observer.observe();
+
+    window.addEventListener("pagehide", (event) => {
+      let reports = observer.takeRecords();
+      sendReports(reports);
+    });
+
+    // create an iframe for the add
+    const frame = document.createElement("iframe");
+    frame.setAttribute("allow", "autoplay");
+    let iframeSrc = "/empty/adunit.html";
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get("site")) {
+      // or load the user's content
+      iframeSrc = urlParams.get("site");
+    }
+
+    // update the iframe URL and add it to the page
+    frame.src = iframeSrc;
+    document.querySelector("main").appendChild(frame);
+  </script>
+</html>

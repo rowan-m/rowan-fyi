@@ -1,72 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>"/>
-<title>👁❤😈</title>
-<style>
-  .toggle {
-    width: 50vmin;
-    margin: auto;
-    text-align: center;
-    font-family: system-ui, sans-serif;
-  }
-  
-  .emoji {
-    font-size: 50vmin;
-    transition: transform .3s cubic-bezier(0,2,.2,.4);
-    margin-top: 5vmin;
-  }
-  
-  .subtitle {
-    font-size: 10vmin;
-    margin-top: 10vmin;
-  }
-  
-  .love>.emoji {
-    transform: rotate(-5deg) translateX(-10vmin);
-  }
-  
-  .love>.emoji::before {
-    content: '🤟';
-  }
-  
-  .satan>.emoji {
-    transform: rotate(5deg);
-  }
-  
-  .satan>.emoji::before {
-    content: '🤘';
-  }
-  
-  .love>.subtitle {
-  }
-  
-  .love>.subtitle::before {
-    content: '❤';
-  }
-  
-  .satan>.subtitle {
-  }
-  
-  .satan>.subtitle::before {
-    content: '😈';
-  }
-</style>
-<link rel="stylesheet" href="./water.css">
-<div class="toggle love">
-  <div class="emoji"></div>
-  <div class="subtitle"></div>
-</div>
-<script>
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-  
-  const toggle = document.querySelector('.toggle');
-  toggle.addEventListener('click', e => {
-    toggle.classList.toggle('love');
-    toggle.classList.toggle('satan');
-  });
-</script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>"
+  />
+  <title>👁❤😈</title>
+  <style>
+    .toggle {
+      width: 50vmin;
+      margin: auto;
+      text-align: center;
+      font-family: system-ui, sans-serif;
+    }
+
+    .emoji {
+      font-size: 50vmin;
+      transition: transform 0.3s cubic-bezier(0, 2, 0.2, 0.4);
+      margin-top: 5vmin;
+    }
+
+    .subtitle {
+      font-size: 10vmin;
+      margin-top: 10vmin;
+    }
+
+    .love > .emoji {
+      transform: rotate(-5deg) translateX(-10vmin);
+    }
+
+    .love > .emoji::before {
+      content: "🤟";
+    }
+
+    .satan > .emoji {
+      transform: rotate(5deg);
+    }
+
+    .satan > .emoji::before {
+      content: "🤘";
+    }
+
+    .love > .subtitle {
+    }
+
+    .love > .subtitle::before {
+      content: "❤";
+    }
+
+    .satan > .subtitle {
+    }
+
+    .satan > .subtitle::before {
+      content: "😈";
+    }
+  </style>
+  <link rel="stylesheet" href="./water.css" />
+  <div class="toggle love">
+    <div class="emoji"></div>
+    <div class="subtitle"></div>
+  </div>
+  <script>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    const toggle = document.querySelector(".toggle");
+    toggle.addEventListener("click", (e) => {
+      toggle.classList.toggle("love");
+      toggle.classList.toggle("satan");
+    });
+  </script>
+</html>

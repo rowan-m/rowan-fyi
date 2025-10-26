@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -6,10 +6,7 @@
 
   <meta name="Description" content="Test SameSite cookie compatibility." />
   <meta name="theme-color" content="honeydew" />
-  <link
-    rel="shortcut icon"
-    href="./assets/cookie.png"
-  />
+  <link rel="shortcut icon" href="./assets/cookie.png" />
 
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@rowan_m" />
@@ -108,12 +105,17 @@
     }
   </style>
   <h1>SameSite 🍪 sandbox</h1>
-  <p>⚠ Note: This site is out of date as <a href="https://developer.google.com/privacy-sandbox/3pcd">Chrome moves towards restricting third-party cookies by default.</a></p>
-  <details>
-    <summary
-      ><b>Test your browser's SameSite cookie behaviour</b><br />
-      ↕️ Tap for more info</summary
+  <p>
+    ⚠ Note: This site is out of date as
+    <a href="https://developer.google.com/privacy-sandbox/3pcd"
+      >Chrome moves towards restricting third-party cookies by default.</a
     >
+  </p>
+  <details>
+    <summary>
+      <b>Test your browser's SameSite cookie behaviour</b><br />
+      ↕️ Tap for more info
+    </summary>
     <p>
       This page attempts to set a number of cookies and then tests if they are
       available for use in a cross-site / third-party context in your browser.
@@ -139,10 +141,10 @@
     </p>
   </details>
   <details>
-    <summary
-      ><b>Legend / Key</b><br />
-      ↕️ Tap for details</summary
-    >
+    <summary>
+      <b>Legend / Key</b><br />
+      ↕️ Tap for details
+    </summary>
     <p>
       Each row shows the method used to set the cookie, if that cookie was
       successfully set, if it's available in a cross-site / third-party context,
@@ -182,8 +184,8 @@
         wrong thing and probably shouldn't be working currently.
       </li>
       <li>
-        <strong class="valid">Compliant ✔</strong>: Cookie behaviour inline with
-        <abbr title="Incrementally Better Cookies">IBC</abbr>.
+        <strong class="valid">Compliant ✔</strong>: Cookie behaviour inline
+        with <abbr title="Incrementally Better Cookies">IBC</abbr>.
       </li>
     </ul>
   </details>
@@ -230,34 +232,34 @@
         ck00: {
           setWith: "Set-Cookie: ck00=vl00;",
           set: true,
-          crosssite: false
+          crosssite: false,
         },
         ck01: {
           setWith: "Set-Cookie: ck01=vl01; SameSite=None; Secure",
           set: true,
-          crosssite: true
+          crosssite: true,
         },
         ck02: {
           setWith: "Set-Cookie: ck02=vl02; SameSite=None",
           set: false,
-          crosssite: false
+          crosssite: false,
         },
         ck03: {
           setWith: "Set-Cookie: ck03=vl03; SameSite=InvalidValue",
           set: true,
-          crosssite: false
+          crosssite: false,
         },
         ck04: {
           setWith: "Set-Cookie: ck04=vl04; SameSite=Lax",
           set: true,
-          crosssite: false
+          crosssite: false,
         },
         ck05: {
           setWith: "Set-Cookie: ck05=vl05; SameSite=Strict",
           set: true,
-          crosssite: false
-        }
-      }
+          crosssite: false,
+        },
+      },
     };
 
     document.querySelector(".ua").textContent = navigator.userAgent;
@@ -326,7 +328,7 @@
           if (cookie === "ck01") {
             crossSiteCell.insertAdjacentHTML(
               "beforeend",
-              ' <abbr title="Third-party cookies may be blocked. Check your browser and extension settings.">ℹ️</abbr>'
+              ' <abbr title="Third-party cookies may be blocked. Check your browser and extension settings.">ℹ️</abbr>',
             );
           }
 
@@ -345,7 +347,7 @@
             if (cookie === "ck02") {
               ibcCompliantCell.insertAdjacentHTML(
                 "beforeend",
-                ' <abbr title="SameSite=None without Secure should be rejected.">ℹ️</abbr>'
+                ' <abbr title="SameSite=None without Secure should be rejected.">ℹ️</abbr>',
               );
             }
           }
@@ -356,7 +358,7 @@
         results.appendChild(resultRow);
       }
 
-      document.addEventListener("click", e => {
+      document.addEventListener("click", (e) => {
         if (e.target.nodeName === "ABBR") {
           alert(e.target.getAttribute("title"));
         }
@@ -368,7 +370,7 @@
     var crossSiteFrame = document.createElement("iframe");
     crossSiteFrame.setAttribute(
       "src",
-      "https://rowan.fyi/made/x-origin-src/samesite-sandbox-embed.html"
+      "https://rowan.fyi/made/x-origin-src/samesite-sandbox-embed.html",
     );
     document.body.appendChild(crossSiteFrame);
   </script>

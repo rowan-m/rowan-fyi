@@ -1,518 +1,578 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<title>Conway's Game of Life</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link id="favicon" rel="icon"
-  href="./assets/conways-game-of-life.jpg"
-  type="image/x-icon" />
+  <meta charset="utf-8" />
+  <title>Conway's Game of Life</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    id="favicon"
+    rel="icon"
+    href="./assets/conways-game-of-life.jpg"
+    type="image/x-icon"
+  />
 
-<meta name="Description"
-  content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!" />
+  <meta
+    name="Description"
+    content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
+  />
 
-<link rel="apple-touch-icon" sizes="180x180"
-  href="./assets/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32"
-  href="./assets/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16"
-  href="./assets/favicon-16x16.png">
-<link rel="mask-icon"
-  href="./assets/safari-pinned-tab.svg"
-  color="#c0c0c0">
-<meta name="apple-mobile-web-app-title" content="Life">
-<meta name="application-name" content="Life">
-<meta name="msapplication-TileColor" content="#c0c0c0">
-<meta name="theme-color" content="#c0c0c0">
+  <link
+    rel="apple-touch-icon"
+    sizes="180x180"
+    href="./assets/apple-touch-icon.png"
+  />
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="./assets/favicon-32x32.png"
+  />
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="16x16"
+    href="./assets/favicon-16x16.png"
+  />
+  <link rel="mask-icon" href="./assets/safari-pinned-tab.svg" color="#c0c0c0" />
+  <meta name="apple-mobile-web-app-title" content="Life" />
+  <meta name="application-name" content="Life" />
+  <meta name="msapplication-TileColor" content="#c0c0c0" />
+  <meta name="theme-color" content="#c0c0c0" />
 
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@rowan_m" />
-<meta name="twitter:title" content="Conway's Game of Life" />
-<meta name="twitter:description"
-  content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!" />
-<meta name="twitter:image"
-  content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg" />
-<meta name="twitter:image:width" content="1284" />
-<meta name="twitter:image:height" content="1514" />
-<meta name="twitter:image:alt" content="An active Game of Life screenshot" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@rowan_m" />
+  <meta name="twitter:title" content="Conway's Game of Life" />
+  <meta
+    name="twitter:description"
+    content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
+  />
+  <meta
+    name="twitter:image"
+    content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg"
+  />
+  <meta name="twitter:image:width" content="1284" />
+  <meta name="twitter:image:height" content="1514" />
+  <meta name="twitter:image:alt" content="An active Game of Life screenshot" />
 
-<meta property="og:url" content="https://rowan.fyi/made/viral-content" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Conway's Game of Life" />
-<meta property="og:description"
-  content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!" />
-<meta property="og:image"
-  content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg" />
-<meta property="og:image:width" content="1284" />
-<meta property="og:image:height" content="1514" />
+  <meta property="og:url" content="https://rowan.fyi/made/viral-content" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Conway's Game of Life" />
+  <meta
+    property="og:description"
+    content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
+  />
+  <meta
+    property="og:image"
+    content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg"
+  />
+  <meta property="og:image:width" content="1284" />
+  <meta property="og:image:height" content="1514" />
 
-<style>
-  body {
-    font-size: 0.8rem;
-    font-family: sans;
-    margin: 2vmin;
-  }
-
-  header,
-  nav,
-  footer {
-    margin: auto;
-    width: 90vmin;
-  }
-
-  main {
-    contain: layout paint;
-    user-select: none;
-    font-family: monospace;
-    margin: 2vmin auto 0 auto;
-    width: 86vmin;
-  }
-
-  h1 {
-    color: darkred;
-    font-size: 1.2rem;
-  }
-
-  h2 {
-    color: firebrick;
-    font-size: 1rem;
-  }
-
-  p {
-    padding: 0.2rem 0 0.2rem 0;
-  }
-
-  form {
-    margin: 1rem 0 1rem 0;
-  }
-
-  input {
-    padding: 0.2rem 0 0.2rem 0.5rem;
-    margin: 0.2rem;
-  }
-
-  fieldset {
-    margin-bottom: 0.4rem;
-  }
-
-  button {
-    padding: 0.3rem 0.1rem 0.3rem 0.1rem;
-    margin: 0 0.5rem 0 0;
-    font-weight: bold;
-  }
-
-  .world {
-    font-size: 2vmin;
-  }
-
-  .world>span {
-    display: inline-block;
-    width: 2.8vmin;
-    height: 2.8vmin;
-    text-align: center;
-    vertical-align: middle;
-  }
-
-  input {
-    max-width: 80vw;
-  }
-</style>
-<header>
-  <h1>Conway's Game of Life</h1>
-  <h2 class="theme">Customizable emoji version!</h2>
-  <p>👆 Tap the cells
-     💻 <a href="https://glitch.com/edit/#!/viral-content">Get the code</a>
-     👋 Say hi to Rowan on
-     🦋 <a href="https://bsky.app/profile/rowan-m.bsky.social">Bluesky</a>
-     🦣 <a href="https://mastodon.social/@rowan_m">Mastodon</a>
-     🧵 <a href="https://www.threads.com/@rowan_m">Threads</a>
-     👔 <a href="https://www.linkedin.com/in/rowanmerewood/">LinkedIn</a>
-  </p>
-</header>
-<nav>
-  <button name="playpause" value="play">▶️ Play</button>
-  <button name="reset" value="reset">🔁 Reset</button>
-  <button name="theme" value="theme">🔀 Theme</button>
-  <button name="randomise" value="randomise">🎲 Random</button>
-</nav>
-<main>
-  <div class="world"></div>
-</main>
-<footer>
-  <h2>Create your own theme!</h2>
-  <form>
-    <fieldset>
-      <legend>Select an emoji for each cell type</legend>
-      <label for="live">Live:</label>
-      <input name="live" id="live" type="text" size="1" minlength="1" maxlength="10" />
-      <label for="dead">Dead:</label>
-      <input name="dead" id="dead" type="text" size="1" minlength="1" maxlength="10" />
-      <label for="clean">Clean:</label>
-      <input name="clean" id="clean" type="text" size="1" minlength="1" maxlength="10" />
-    </fieldset>
-    <label for="theme-name">Theme name</label>
-    <input name="theme-name" id="theme-name" type="text" size="30" minlength="1" maxlength="60" />
-    <button name="share" type="button">⏫ Share theme!</button><br />
-    <label for="share-url">🔗 Share URL</label>
-    <input type="text" name="share-url" id="share-url" size="60" disabled />
-  </form>
-  <p><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Learn about the game here.</a></p>
-</footer>
-<script>
-  "use strict";
-  class Game {
-    constructor() {
-      this.pendingToggles = [];
-      this.world = [];
-      this.touched = [];
-      this.themes = [
-        ["Full Circle Remix", "🔴", "⭕", "⚪"],
-        ["Vintage edition", "⚫", "⚪", "⚪"],
-        ["COVID-19 DLC", "🤮", "😷", "😳"],
-        ["Release the Kraken!", "🐙", "🌀", "🟦"],
-        ["It's about sending a message", "🔥", "▪️", "💵"],
-        ["Heart-breaker edition", "❤️", "💔", "🖤"]
-      ];
-      this.curTheme = 0;
-      this.state = 'paused';
-      this.shareDetails = {};
+  <style>
+    body {
+      font-size: 0.8rem;
+      font-family: sans;
+      margin: 2vmin;
     }
 
-    initGame = () => {
-      this.titleText = document.querySelector(".theme");
-      this.main = document.querySelector("main");
-      this.main.addEventListener("click", this.toggleCell);
-      this.playpauseButt = document.querySelector('button[name="playpause"]');
-      this.playpauseButt.addEventListener("click", this.togglePlayPause);
-      this.resetButt = document.querySelector('button[name="reset"]');
-      this.resetButt.addEventListener("click", this.resetWorld);
-      this.themeButt = document.querySelector('button[name="theme"]');
-      this.themeButt.addEventListener("click", this.updateThemeFromShuffle);
-      this.randomButt = document.querySelector('button[name="randomise"]');
-      this.randomButt.addEventListener("click", this.randomiseWorld);
-
-      this.liveInput = document.querySelector('input[name="live"]');
-      this.liveInput.addEventListener("input", this.updateThemeFromForm);
-      this.deadInput = document.querySelector('input[name="dead"]');
-      this.deadInput.addEventListener("input", this.updateThemeFromForm);
-      this.cleanInput = document.querySelector('input[name="clean"]');
-      this.cleanInput.addEventListener("input", this.updateThemeFromForm);
-      this.themeInput = document.querySelector('input[name="theme-name"]');
-      this.themeInput.addEventListener("input", this.updateThemeFromForm);
-
-      this.shareButt = document.querySelector('button[name="share"]');
-      this.shareButt.addEventListener("click", this.shareTheme);
-      this.shareInput = document.querySelector('input[name="share-url"]');
-
-      this.resetWorld();
-      this.world[2][1] = true;
-      this.world[2][2] = true;
-      this.world[2][3] = true;
-      this.world[1][3] = true;
-      this.world[0][2] = true;
-
-      this.updateThemeFromURL();
+    header,
+    nav,
+    footer {
+      margin: auto;
+      width: 90vmin;
     }
 
-    initWorld = (width, height) => {
-      const column = [];
-
-      for (let y = 0; y < height; y++) {
-        column[y] = false;
-      }
-
-      const newWorld = [];
-
-      for (let x = 0; x < width; x++) {
-        // spread operator creates a copy of the array
-        newWorld[x] = [...column];
-      }
-
-      return newWorld;
+    main {
+      contain: layout paint;
+      user-select: none;
+      font-family: monospace;
+      margin: 2vmin auto 0 auto;
+      width: 86vmin;
     }
 
-    tick = (oldWorld) => {
-      // Any live cell with two or three neighbours survives.
-      // Any dead cell with three live neighbours becomes a live cell.
-      // All other live cells die in the next generation.
-      // Similarly, all other dead cells stay dead.
-
-      const width = oldWorld.length;
-      const height = oldWorld[0].length;
-      const newWorld = this.initWorld(width, height);
-
-      for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-          if (oldWorld[x][y] === true) {
-            this.touched[x][y] = true;
-          }
-
-          const neighbours = this.countNeighbours(x, y, oldWorld);
-
-          if (
-            oldWorld[x][y] === true &&
-            (neighbours === 2 || neighbours === 3)
-          ) {
-            newWorld[x][y] = true;
-          }
-
-          if (oldWorld[x][y] === false && neighbours === 3) {
-            newWorld[x][y] = true;
-          }
-        }
-      }
-
-      return newWorld;
+    h1 {
+      color: darkred;
+      font-size: 1.2rem;
     }
 
-    countNeighbours = (x, y, curWorld) => {
-      let neighbours = 0;
-
-      for (let nx = -1; nx <= 1; nx++) {
-        let compareX = x + nx;
-
-        if (compareX < 0) {
-          compareX = curWorld.length - 1;
-        }
-
-        if (compareX >= curWorld.length) {
-          compareX = 0;
-        }
-
-        for (let ny = -1; ny <= 1; ny++) {
-          let compareY = y + ny;
-
-          if (compareY < 0) {
-            compareY = curWorld[0].length - 1;
-          }
-
-          if (compareY >= curWorld[0].length) {
-            compareY = 0;
-          }
-
-          if (curWorld[compareX][compareY] === true) {
-            neighbours++;
-          }
-        }
-      }
-
-      if (curWorld[x][y] === true) {
-        neighbours--;
-      }
-
-      return neighbours;
+    h2 {
+      color: firebrick;
+      font-size: 1rem;
     }
 
-    render = () => {
-      const width = this.world.length;
-      const height = this.world[0].length;
-      const newContainer = document.createElement("div");
-      newContainer.classList.add("world");
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const cell = document.createElement("span");
-          cell.setAttribute("data-x", x);
-          cell.setAttribute("data-y", y);
-          cell.setAttribute("data-alive", this.world[x][y]);
-
-          let cellState = this.themes[this.curTheme][3];
-
-          if (this.world[x][y] === true) {
-            cellState = this.themes[this.curTheme][1];
-          } else if (this.touched[x][y] === true) {
-            cellState = this.themes[this.curTheme][2];
-          }
-
-          const value = document.createTextNode(cellState);
-
-          cell.appendChild(value);
-          newContainer.appendChild(cell);
-        }
-
-        newContainer.appendChild(document.createElement("br"));
-      }
-
-      const oldContainer = document.querySelector(".world");
-      const main = document.querySelector("main");
-      main.replaceChild(newContainer, oldContainer);
+    p {
+      padding: 0.2rem 0 0.2rem 0;
     }
 
-    life = () => {
-      if (this.state !== "playing") {
-        return;
-      }
-
-      window.requestAnimationFrame(this.lifecycle);
+    form {
+      margin: 1rem 0 1rem 0;
     }
 
-    lifecycle = () => {
-      this.render();
-      this.world = this.tick(this.world);
-      window.setTimeout(this.life, 500);
+    input {
+      padding: 0.2rem 0 0.2rem 0.5rem;
+      margin: 0.2rem;
     }
 
-    toggleCell = (event) => {
-      if (event.target.nodeName !== "SPAN") {
-        return;
-      }
-
-      const cell = event.target;
-      const tx = cell.getAttribute("data-x");
-      const ty = cell.getAttribute("data-y");
-      this.world[tx][ty] = !this.world[tx][ty];
-      this.render();
+    fieldset {
+      margin-bottom: 0.4rem;
     }
 
-    togglePlayPause = (event) => {
-      const action = this.playpauseButt.getAttribute("value");
-
-      if (action === "play") {
-        this.state = "playing";
-        this.life();
-        this.playpauseButt.setAttribute("value", "pause");
-        this.playpauseButt.textContent = "⏸️ Pause";
-      }
-
-      if (action === "pause") {
-        this.state = "paused";
-        this.playpauseButt.setAttribute("value", "play");
-        this.playpauseButt.textContent = "▶️ Play";
-      }
+    button {
+      padding: 0.3rem 0.1rem 0.3rem 0.1rem;
+      margin: 0 0.5rem 0 0;
+      font-weight: bold;
     }
 
-    resetWorld = () => {
-      if (this.state == "playing") {
-        this.togglePlayPause();
-      }
-
-      this.world = this.initWorld(25, 25);
-      this.touched = this.initWorld(25, 25);
-      this.render();
+    .world {
+      font-size: 2vmin;
     }
 
-    randomiseWorld = () => {
-      const randomWorld = this.initWorld(25, 25);
-      const width = randomWorld.length;
-      const height = randomWorld[0].length;
-
-      for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-          if (Math.random() > 0.75) {
-            randomWorld[x][y] = true;
-          }
-        }
-      }
-
-      if (this.state == "playing") {
-        this.togglePlayPause();
-      }
-
-      this.world = randomWorld;
-      this.touched = this.initWorld(25, 25);
-      this.render();
+    .world > span {
+      display: inline-block;
+      width: 2.8vmin;
+      height: 2.8vmin;
+      text-align: center;
+      vertical-align: middle;
     }
 
-    applyThemeToForm = () => {
-      this.titleText.textContent = this.themes[this.curTheme][0];
-      document.title = "Conway's Game of Life - " + this.themes[this.curTheme][0];
-      this.themeInput.value = this.themes[this.curTheme][0];
-      this.liveInput.value = this.themes[this.curTheme][1];
-      this.deadInput.value = this.themes[this.curTheme][2];
-      this.cleanInput.value = this.themes[this.curTheme][3];
+    input {
+      max-width: 80vw;
     }
-
-    applyThemeToPage = () => {
-      this.titleText.textContent = this.themes[this.curTheme][0];
-      document.title = "Conway's Game of Life - " + this.themes[this.curTheme][0];
-    }
-
-    applyThemeToURL = () => {
-      const updatedParams = new URLSearchParams();
-      updatedParams.set("t", this.themes[this.curTheme][0]);
-      updatedParams.set("l", this.themes[this.curTheme][1]);
-      updatedParams.set("d", this.themes[this.curTheme][2]);
-      updatedParams.set("c", this.themes[this.curTheme][3]);
-      history.replaceState(
-        null,
-        "Conway's Game of Life - " + this.themes[this.curTheme][0],
-        "?" + updatedParams.toString()
-      );
-    }
-
-    applyThemeToShareDetails = () => {
-      this.shareDetails.title = "Conway's Game of Life - " + this.themes[this.curTheme][0];
-      this.shareDetails.text = "";
-      this.shareDetails.url = window.location.href;
-      this.shareInput.value = window.location.href;
-    }
-
-    changeTheme = () => {
-      this.curTheme = this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
-      this.applyTheme();
-      this.render();
-    }
-
-    updateThemeFromForm = () => {
-      this.themes[this.curTheme][0] = this.themeInput.value || "";
-      this.themes[this.curTheme][1] = [...this.liveInput.value][0] || "";
-      this.themes[this.curTheme][2] = [...this.deadInput.value][0] || "";
-      this.themes[this.curTheme][3] = [...this.cleanInput.value][0] || "";
-      this.applyThemeToPage();
-      this.applyThemeToURL();
-      this.applyThemeToShareDetails();
-      this.render();
-    }
-
-    updateThemeFromURL = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-
-      if (urlParams.get("t")) {
-        const theme = [
-          urlParams.get("t") || "",
-          [...urlParams.get("l")][0] || "",
-          [...urlParams.get("d")][0] || "",
-          [...urlParams.get("c")][0] || ""
+  </style>
+  <header>
+    <h1>Conway's Game of Life</h1>
+    <h2 class="theme">Customizable emoji version!</h2>
+    <p>
+      👆 Tap the cells 💻
+      <a href="https://glitch.com/edit/#!/viral-content">Get the code</a> 👋 Say
+      hi to Rowan on 🦋
+      <a href="https://bsky.app/profile/rowan-m.bsky.social">Bluesky</a> 🦣
+      <a href="https://mastodon.social/@rowan_m">Mastodon</a> 🧵
+      <a href="https://www.threads.com/@rowan_m">Threads</a> 👔
+      <a href="https://www.linkedin.com/in/rowanmerewood/">LinkedIn</a>
+    </p>
+  </header>
+  <nav>
+    <button name="playpause" value="play">▶️ Play</button>
+    <button name="reset" value="reset">🔁 Reset</button>
+    <button name="theme" value="theme">🔀 Theme</button>
+    <button name="randomise" value="randomise">🎲 Random</button>
+  </nav>
+  <main>
+    <div class="world"></div>
+  </main>
+  <footer>
+    <h2>Create your own theme!</h2>
+    <form>
+      <fieldset>
+        <legend>Select an emoji for each cell type</legend>
+        <label for="live">Live:</label>
+        <input
+          name="live"
+          id="live"
+          type="text"
+          size="1"
+          minlength="1"
+          maxlength="10"
+        />
+        <label for="dead">Dead:</label>
+        <input
+          name="dead"
+          id="dead"
+          type="text"
+          size="1"
+          minlength="1"
+          maxlength="10"
+        />
+        <label for="clean">Clean:</label>
+        <input
+          name="clean"
+          id="clean"
+          type="text"
+          size="1"
+          minlength="1"
+          maxlength="10"
+        />
+      </fieldset>
+      <label for="theme-name">Theme name</label>
+      <input
+        name="theme-name"
+        id="theme-name"
+        type="text"
+        size="30"
+        minlength="1"
+        maxlength="60"
+      />
+      <button name="share" type="button">⏫ Share theme!</button><br />
+      <label for="share-url">🔗 Share URL</label>
+      <input type="text" name="share-url" id="share-url" size="60" disabled />
+    </form>
+    <p>
+      <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
+        >Learn about the game here.</a
+      >
+    </p>
+  </footer>
+  <script>
+    "use strict";
+    class Game {
+      constructor() {
+        this.pendingToggles = [];
+        this.world = [];
+        this.touched = [];
+        this.themes = [
+          ["Full Circle Remix", "🔴", "⭕", "⚪"],
+          ["Vintage edition", "⚫", "⚪", "⚪"],
+          ["COVID-19 DLC", "🤮", "😷", "😳"],
+          ["Release the Kraken!", "🐙", "🌀", "🟦"],
+          ["It's about sending a message", "🔥", "▪️", "💵"],
+          ["Heart-breaker edition", "❤️", "💔", "🖤"],
         ];
-        this.themes.unshift(theme);
+        this.curTheme = 0;
+        this.state = "paused";
+        this.shareDetails = {};
       }
 
-      this.applyThemeToURL();
-      this.applyThemeToPage();
-      this.applyThemeToForm();
-      this.applyThemeToShareDetails();
-      this.render();
+      initGame = () => {
+        this.titleText = document.querySelector(".theme");
+        this.main = document.querySelector("main");
+        this.main.addEventListener("click", this.toggleCell);
+        this.playpauseButt = document.querySelector('button[name="playpause"]');
+        this.playpauseButt.addEventListener("click", this.togglePlayPause);
+        this.resetButt = document.querySelector('button[name="reset"]');
+        this.resetButt.addEventListener("click", this.resetWorld);
+        this.themeButt = document.querySelector('button[name="theme"]');
+        this.themeButt.addEventListener("click", this.updateThemeFromShuffle);
+        this.randomButt = document.querySelector('button[name="randomise"]');
+        this.randomButt.addEventListener("click", this.randomiseWorld);
+
+        this.liveInput = document.querySelector('input[name="live"]');
+        this.liveInput.addEventListener("input", this.updateThemeFromForm);
+        this.deadInput = document.querySelector('input[name="dead"]');
+        this.deadInput.addEventListener("input", this.updateThemeFromForm);
+        this.cleanInput = document.querySelector('input[name="clean"]');
+        this.cleanInput.addEventListener("input", this.updateThemeFromForm);
+        this.themeInput = document.querySelector('input[name="theme-name"]');
+        this.themeInput.addEventListener("input", this.updateThemeFromForm);
+
+        this.shareButt = document.querySelector('button[name="share"]');
+        this.shareButt.addEventListener("click", this.shareTheme);
+        this.shareInput = document.querySelector('input[name="share-url"]');
+
+        this.resetWorld();
+        this.world[2][1] = true;
+        this.world[2][2] = true;
+        this.world[2][3] = true;
+        this.world[1][3] = true;
+        this.world[0][2] = true;
+
+        this.updateThemeFromURL();
+      };
+
+      initWorld = (width, height) => {
+        const column = [];
+
+        for (let y = 0; y < height; y++) {
+          column[y] = false;
+        }
+
+        const newWorld = [];
+
+        for (let x = 0; x < width; x++) {
+          // spread operator creates a copy of the array
+          newWorld[x] = [...column];
+        }
+
+        return newWorld;
+      };
+
+      tick = (oldWorld) => {
+        // Any live cell with two or three neighbours survives.
+        // Any dead cell with three live neighbours becomes a live cell.
+        // All other live cells die in the next generation.
+        // Similarly, all other dead cells stay dead.
+
+        const width = oldWorld.length;
+        const height = oldWorld[0].length;
+        const newWorld = this.initWorld(width, height);
+
+        for (let x = 0; x < width; x++) {
+          for (let y = 0; y < height; y++) {
+            if (oldWorld[x][y] === true) {
+              this.touched[x][y] = true;
+            }
+
+            const neighbours = this.countNeighbours(x, y, oldWorld);
+
+            if (
+              oldWorld[x][y] === true &&
+              (neighbours === 2 || neighbours === 3)
+            ) {
+              newWorld[x][y] = true;
+            }
+
+            if (oldWorld[x][y] === false && neighbours === 3) {
+              newWorld[x][y] = true;
+            }
+          }
+        }
+
+        return newWorld;
+      };
+
+      countNeighbours = (x, y, curWorld) => {
+        let neighbours = 0;
+
+        for (let nx = -1; nx <= 1; nx++) {
+          let compareX = x + nx;
+
+          if (compareX < 0) {
+            compareX = curWorld.length - 1;
+          }
+
+          if (compareX >= curWorld.length) {
+            compareX = 0;
+          }
+
+          for (let ny = -1; ny <= 1; ny++) {
+            let compareY = y + ny;
+
+            if (compareY < 0) {
+              compareY = curWorld[0].length - 1;
+            }
+
+            if (compareY >= curWorld[0].length) {
+              compareY = 0;
+            }
+
+            if (curWorld[compareX][compareY] === true) {
+              neighbours++;
+            }
+          }
+        }
+
+        if (curWorld[x][y] === true) {
+          neighbours--;
+        }
+
+        return neighbours;
+      };
+
+      render = () => {
+        const width = this.world.length;
+        const height = this.world[0].length;
+        const newContainer = document.createElement("div");
+        newContainer.classList.add("world");
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const cell = document.createElement("span");
+            cell.setAttribute("data-x", x);
+            cell.setAttribute("data-y", y);
+            cell.setAttribute("data-alive", this.world[x][y]);
+
+            let cellState = this.themes[this.curTheme][3];
+
+            if (this.world[x][y] === true) {
+              cellState = this.themes[this.curTheme][1];
+            } else if (this.touched[x][y] === true) {
+              cellState = this.themes[this.curTheme][2];
+            }
+
+            const value = document.createTextNode(cellState);
+
+            cell.appendChild(value);
+            newContainer.appendChild(cell);
+          }
+
+          newContainer.appendChild(document.createElement("br"));
+        }
+
+        const oldContainer = document.querySelector(".world");
+        const main = document.querySelector("main");
+        main.replaceChild(newContainer, oldContainer);
+      };
+
+      life = () => {
+        if (this.state !== "playing") {
+          return;
+        }
+
+        window.requestAnimationFrame(this.lifecycle);
+      };
+
+      lifecycle = () => {
+        this.render();
+        this.world = this.tick(this.world);
+        window.setTimeout(this.life, 500);
+      };
+
+      toggleCell = (event) => {
+        if (event.target.nodeName !== "SPAN") {
+          return;
+        }
+
+        const cell = event.target;
+        const tx = cell.getAttribute("data-x");
+        const ty = cell.getAttribute("data-y");
+        this.world[tx][ty] = !this.world[tx][ty];
+        this.render();
+      };
+
+      togglePlayPause = (event) => {
+        const action = this.playpauseButt.getAttribute("value");
+
+        if (action === "play") {
+          this.state = "playing";
+          this.life();
+          this.playpauseButt.setAttribute("value", "pause");
+          this.playpauseButt.textContent = "⏸️ Pause";
+        }
+
+        if (action === "pause") {
+          this.state = "paused";
+          this.playpauseButt.setAttribute("value", "play");
+          this.playpauseButt.textContent = "▶️ Play";
+        }
+      };
+
+      resetWorld = () => {
+        if (this.state == "playing") {
+          this.togglePlayPause();
+        }
+
+        this.world = this.initWorld(25, 25);
+        this.touched = this.initWorld(25, 25);
+        this.render();
+      };
+
+      randomiseWorld = () => {
+        const randomWorld = this.initWorld(25, 25);
+        const width = randomWorld.length;
+        const height = randomWorld[0].length;
+
+        for (let x = 0; x < width; x++) {
+          for (let y = 0; y < height; y++) {
+            if (Math.random() > 0.75) {
+              randomWorld[x][y] = true;
+            }
+          }
+        }
+
+        if (this.state == "playing") {
+          this.togglePlayPause();
+        }
+
+        this.world = randomWorld;
+        this.touched = this.initWorld(25, 25);
+        this.render();
+      };
+
+      applyThemeToForm = () => {
+        this.titleText.textContent = this.themes[this.curTheme][0];
+        document.title =
+          "Conway's Game of Life - " + this.themes[this.curTheme][0];
+        this.themeInput.value = this.themes[this.curTheme][0];
+        this.liveInput.value = this.themes[this.curTheme][1];
+        this.deadInput.value = this.themes[this.curTheme][2];
+        this.cleanInput.value = this.themes[this.curTheme][3];
+      };
+
+      applyThemeToPage = () => {
+        this.titleText.textContent = this.themes[this.curTheme][0];
+        document.title =
+          "Conway's Game of Life - " + this.themes[this.curTheme][0];
+      };
+
+      applyThemeToURL = () => {
+        const updatedParams = new URLSearchParams();
+        updatedParams.set("t", this.themes[this.curTheme][0]);
+        updatedParams.set("l", this.themes[this.curTheme][1]);
+        updatedParams.set("d", this.themes[this.curTheme][2]);
+        updatedParams.set("c", this.themes[this.curTheme][3]);
+        history.replaceState(
+          null,
+          "Conway's Game of Life - " + this.themes[this.curTheme][0],
+          "?" + updatedParams.toString(),
+        );
+      };
+
+      applyThemeToShareDetails = () => {
+        this.shareDetails.title =
+          "Conway's Game of Life - " + this.themes[this.curTheme][0];
+        this.shareDetails.text = "";
+        this.shareDetails.url = window.location.href;
+        this.shareInput.value = window.location.href;
+      };
+
+      changeTheme = () => {
+        this.curTheme =
+          this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
+        this.applyTheme();
+        this.render();
+      };
+
+      updateThemeFromForm = () => {
+        this.themes[this.curTheme][0] = this.themeInput.value || "";
+        this.themes[this.curTheme][1] = [...this.liveInput.value][0] || "";
+        this.themes[this.curTheme][2] = [...this.deadInput.value][0] || "";
+        this.themes[this.curTheme][3] = [...this.cleanInput.value][0] || "";
+        this.applyThemeToPage();
+        this.applyThemeToURL();
+        this.applyThemeToShareDetails();
+        this.render();
+      };
+
+      updateThemeFromURL = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.get("t")) {
+          const theme = [
+            urlParams.get("t") || "",
+            [...urlParams.get("l")][0] || "",
+            [...urlParams.get("d")][0] || "",
+            [...urlParams.get("c")][0] || "",
+          ];
+          this.themes.unshift(theme);
+        }
+
+        this.applyThemeToURL();
+        this.applyThemeToPage();
+        this.applyThemeToForm();
+        this.applyThemeToShareDetails();
+        this.render();
+      };
+
+      updateThemeFromShuffle = () => {
+        this.curTheme =
+          this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
+        this.applyThemeToPage();
+        this.applyThemeToURL();
+        this.applyThemeToForm();
+        this.applyThemeToShareDetails();
+        this.render();
+      };
+
+      shareTheme = (event) => {
+        if (this.state == "playing") {
+          this.togglePlayPause();
+        }
+
+        if (navigator.share) {
+          navigator.share(this.shareDetails);
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(location.href);
+          alert("Copied URL for sharing:\n" + location.href);
+        } else {
+          this.shareInput.select();
+          this.shareInput.setSelectionRange(0, 255);
+          document.execCommand("copy");
+          alert("Copied URL for sharing:\n" + this.shareInput.value);
+        }
+      };
     }
 
-    updateThemeFromShuffle = () => {
-      this.curTheme = this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
-      this.applyThemeToPage();
-      this.applyThemeToURL();
-      this.applyThemeToForm();
-      this.applyThemeToShareDetails();
-      this.render();
-    }
-
-    shareTheme = (event) => {
-      if (this.state == "playing") {
-        this.togglePlayPause();
-      }
-
-      if (navigator.share) {
-        navigator.share(this.shareDetails);
-      } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(location.href);
-        alert("Copied URL for sharing:\n" + location.href);
-      } else {
-        this.shareInput.select();
-        this.shareInput.setSelectionRange(0, 255);
-        document.execCommand("copy");
-        alert("Copied URL for sharing:\n" + this.shareInput.value);
-      }
-    }
-  }
-
-  const game = new Game();
-  game.initGame();
-
-</script>
+    const game = new Game();
+    game.initGame();
+  </script>
+</html>

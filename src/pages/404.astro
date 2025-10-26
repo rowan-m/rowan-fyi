@@ -1,13 +1,19 @@
 ---
-import BareLayout from 'src/layouts/BareLayout.astro';
-import Header from '@/components/Header.astro';
-
+import BareLayout from "src/layouts/BareLayout.astro";
+import Header from "@/components/Header.astro";
 ---
 
-<BareLayout title="404 Not found | rowan.fyi" description="There's no page on this URL.">
+<BareLayout
+  title="404 Not found | rowan.fyi"
+  description="There's no page on this URL."
+>
   <Header />
   <main>
     <h1>404 Not found</h1>
-    <p>There's no page on this URL. You can try checking from the <a href="/">home page</a>.</p>
-    </main>
+    <p>
+      There's no page on this URL. You can try checking from the <a href="/"
+        >home page</a
+      >.
+    </p>
+  </main>
 </BareLayout>

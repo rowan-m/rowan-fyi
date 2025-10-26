@@ -1,110 +1,163 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>">
-<link rel="stylesheet" href="./water.css">
-<title>Newton's disc</title>
-<style>
-  
-  :root {
-    --anim-dur: 1;
-  }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌈</text></svg>"
+  />
+  <link rel="stylesheet" href="./water.css" />
+  <title>Newton's disc</title>
+  <style>
+    :root {
+      --anim-dur: 1;
     }
-    to {
-      transform: rotate(360deg)
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
     }
-  }
-  
-  .disc {
-    border-radius: 50%;
-    width: 80vmin;
-    height: 80vmin;
-    animation: spin calc(var(--anim-dur)*1s) linear infinite;
-  }
-  
-  .smooth {
-    background: conic-gradient(red 0deg, orange 51.5deg, yellow 103deg, green 154.5deg, blue 205deg, indigo 256.5deg, violet 308deg, red 360deg);      
-  }
-  .stepped {
-    background: conic-gradient(red 0deg 51.5deg, orange 51.5deg 103deg, yellow 103deg 154.5deg, green 154.5deg 205deg, blue 205deg 256.5deg, indigo 256.5deg 308deg, violet 308deg 360deg); 
-  }
-  
-  main {
-    display: grid;
-    justify-content: center;
-  }
-  
-  form {
-    display: flex;
-    justify-content: space-evenly;
-    padding-top: 5vmin;  
-  }
-  
-  button {
-    font-size: 200%;
-  }
-  
-  footer {
-    text-align: center;
-    font-size: small;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-around;
-  }
-  
-  @media (prefers-reduced-motion) {
-  .disc {
-    animation: none !important;
-  }
-}
-</style>
-<h1>Newton's disc</h1>
-<main>
-  <div class="disc smooth"></div>
-</main>
-<form>
-  <button type="button" name="slower">🐢</button>
-  <button type="button" name="faster">🐇</button>
-  <button type="button" name="smooth">∿</button>
-  <button type="button" name="stepped">⎍</button>
-</form>
-<p><a href="https://en.wikipedia.org/wiki/Newton_disc">Newton's disc</a> is a fun illusion that relies on the persistence of vision. In real life, if you spin a coloured disc quickly like this, the colours will eventually blur to a white or grey. However, on a screen you run up against the limitations of the refresh rate. This is a silly little demo to illustrate that.</p>
-<p><strong>⚠ Note:</strong> best case this will give you a weird headache. Worst case, it's going to flash like a strobe light when you ramp up the speed - so be careful! 😵‍💫 Also, if you have reduced motion on I've just turned off animations completely to be safe!</p>
-  <footer><a href="https://mastodon.social/@rowan_m">🦣 @rowan_m@mastodon.social</a> <a href="https://bsky.app/profile/rowan-m.bsky.social">🟦 @rowan-m.bsky.social</a> <a href="https://twitter.com/rowan_m">🦤 @rowan_m</a> <a href="https://www.threads.com/@rowan_m">🧵 @rowan_m</a> <a href="https://glitch.com/edit/#!/newtons-disc?path=index.html">🧑‍💻 Code</a></footer>
-<script>
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-  
-  function getDur() {
-    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--anim-dur"));
-  }
-  
-  document.querySelector('button[name="slower"]').addEventListener('click', e => {
-    let d = getDur();
-    d += d/4;
-    document.documentElement.style.setProperty('--anim-dur', d.toFixed(8));
-  });
-  
-  document.querySelector('button[name="faster"]').addEventListener('click', e => {
-    let d = getDur();
-    d -= d/4;
-    document.documentElement.style.setProperty('--anim-dur', d.toFixed(8));
-  });
-  
-  document.querySelector('button[name="smooth"]').addEventListener('click', e => {
-    document.querySelector('.disc').classList.add('smooth');
-    document.querySelector('.disc').classList.remove('stepped');
-  });
-  
-  document.querySelector('button[name="stepped"]').addEventListener('click', e => {
-    document.querySelector('.disc').classList.add('stepped');
-    document.querySelector('.disc').classList.remove('smooth');
-  });
-</script>
+
+    .disc {
+      border-radius: 50%;
+      width: 80vmin;
+      height: 80vmin;
+      animation: spin calc(var(--anim-dur) * 1s) linear infinite;
+    }
+
+    .smooth {
+      background: conic-gradient(
+        red 0deg,
+        orange 51.5deg,
+        yellow 103deg,
+        green 154.5deg,
+        blue 205deg,
+        indigo 256.5deg,
+        violet 308deg,
+        red 360deg
+      );
+    }
+    .stepped {
+      background: conic-gradient(
+        red 0deg 51.5deg,
+        orange 51.5deg 103deg,
+        yellow 103deg 154.5deg,
+        green 154.5deg 205deg,
+        blue 205deg 256.5deg,
+        indigo 256.5deg 308deg,
+        violet 308deg 360deg
+      );
+    }
+
+    main {
+      display: grid;
+      justify-content: center;
+    }
+
+    form {
+      display: flex;
+      justify-content: space-evenly;
+      padding-top: 5vmin;
+    }
+
+    button {
+      font-size: 200%;
+    }
+
+    footer {
+      text-align: center;
+      font-size: small;
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-around;
+    }
+
+    @media (prefers-reduced-motion) {
+      .disc {
+        animation: none !important;
+      }
+    }
+  </style>
+  <h1>Newton's disc</h1>
+  <main>
+    <div class="disc smooth"></div>
+  </main>
+  <form>
+    <button type="button" name="slower">🐢</button>
+    <button type="button" name="faster">🐇</button>
+    <button type="button" name="smooth">∿</button>
+    <button type="button" name="stepped">⎍</button>
+  </form>
+  <p>
+    <a href="https://en.wikipedia.org/wiki/Newton_disc">Newton's disc</a> is a
+    fun illusion that relies on the persistence of vision. In real life, if you
+    spin a coloured disc quickly like this, the colours will eventually blur to
+    a white or grey. However, on a screen you run up against the limitations of
+    the refresh rate. This is a silly little demo to illustrate that.
+  </p>
+  <p>
+    <strong>⚠ Note:</strong> best case this will give you a weird headache.
+    Worst case, it's going to flash like a strobe light when you ramp up the
+    speed - so be careful! 😵‍💫 Also, if you have reduced motion on I've just
+    turned off animations completely to be safe!
+  </p>
+  <footer>
+    <a href="https://mastodon.social/@rowan_m">🦣 @rowan_m@mastodon.social</a>
+    <a href="https://bsky.app/profile/rowan-m.bsky.social"
+      >🟦 @rowan-m.bsky.social</a
+    >
+    <a href="https://twitter.com/rowan_m">🦤 @rowan_m</a>
+    <a href="https://www.threads.com/@rowan_m">🧵 @rowan_m</a>
+    <a href="https://glitch.com/edit/#!/newtons-disc?path=index.html"
+      >🧑‍💻 Code</a
+    >
+  </footer>
+  <script>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    function getDur() {
+      return parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--anim-dur",
+        ),
+      );
+    }
+
+    document
+      .querySelector('button[name="slower"]')
+      .addEventListener("click", (e) => {
+        let d = getDur();
+        d += d / 4;
+        document.documentElement.style.setProperty("--anim-dur", d.toFixed(8));
+      });
+
+    document
+      .querySelector('button[name="faster"]')
+      .addEventListener("click", (e) => {
+        let d = getDur();
+        d -= d / 4;
+        document.documentElement.style.setProperty("--anim-dur", d.toFixed(8));
+      });
+
+    document
+      .querySelector('button[name="smooth"]')
+      .addEventListener("click", (e) => {
+        document.querySelector(".disc").classList.add("smooth");
+        document.querySelector(".disc").classList.remove("stepped");
+      });
+
+    document
+      .querySelector('button[name="stepped"]')
+      .addEventListener("click", (e) => {
+        document.querySelector(".disc").classList.add("stepped");
+        document.querySelector(".disc").classList.remove("smooth");
+      });
+  </script>
+</html>

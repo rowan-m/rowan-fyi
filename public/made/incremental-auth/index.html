@@ -1,183 +1,219 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<title>Incremental auth with Google Sign-In</title>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" type="image/png" href="./assets/clipboard-32.png">
-<link rel="stylesheet" href="./style.css">
+  <title>Incremental auth with Google Sign-In</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="./assets/clipboard-32.png" />
+  <link rel="stylesheet" href="./style.css" />
 
-<main>
-  <header>
-    <h1><a href="https://rowan.fyi/made/incremental-auth/">Incremental auth with
-        Google Sign-In</a></h1>
-    <p>This demo shows a minimal sign-in that only requests a simple ID for
-      authentication and allows additionally requesting the email address
-      afterwards. Take a peek at <a
-        href="https://developers.google.com/identity/sign-in/web/incremental-auth">the
-        docs here</a>.</p>
-    <p>If things look out of date, refresh the page.</p>
-    <button class="refresh-page">♻️ Refresh page</button>
-    <h2>📋 Current user info</h2>
-    <pre class="userinfo">{
+  <main>
+    <header>
+      <h1>
+        <a href="https://rowan.fyi/made/incremental-auth/"
+          >Incremental auth with Google Sign-In</a
+        >
+      </h1>
+      <p>
+        This demo shows a minimal sign-in that only requests a simple ID for
+        authentication and allows additionally requesting the email address
+        afterwards. Take a peek at
+        <a
+          href="https://developers.google.com/identity/sign-in/web/incremental-auth"
+          >the docs here</a
+        >.
+      </p>
+      <p>If things look out of date, refresh the page.</p>
+      <button class="refresh-page">♻️ Refresh page</button>
+      <h2>📋 Current user info</h2>
+      <pre class="userinfo">
+{
  "signedIn": false,
  "grantedScopes": null,
  "profile.id": null,
  "profile.name": null,
  "profile.email": null
-}</pre>
-  </header>
-  <section class="loading">
-    <p>Loading...</p>
-  </section>
-  <section class="signed-out" style="display:none">
-    <h2>🔒 Sign-in</h2>
-    <p>This will just request the <tt>openid</tt> scope that will return an ID.
+}</pre
+      >
+    </header>
+    <section class="loading">
+      <p>Loading...</p>
+    </section>
+    <section class="signed-out" style="display: none">
+      <h2>🔒 Sign-in</h2>
+      <p>
+        This will just request the <tt>openid</tt> scope that will return an ID.
+      </p>
+      <button class="sign-in" id="sign-in-button">🔓 Sign in</button>
+    </section>
+    <section class="signed-in" style="display: none">
+      <h2>🔓 Signed-in!</h2>
+      <pre class="user-info"></pre>
+      <button class="sign-out">🔒 Sign out</button>
+      <button class="disconnect">🗑️ Disconnect</button>
+    </section>
+    <section class="email-scope" style="display: none">
+      <h3>✔️ Request email address</h3>
+      <p>This will additionally request the <tt>email</tt> scope.</p>
+      <button class="request-email">📧 Share email</button>
+    </section>
+  </main>
+  <footer>
+    <p>
+      <em
+        >This demo is all happening client-side, no data is permanently stored,
+        use the "Disconnect" button to remove the sample app connection.</em
+      >
     </p>
-    <button class="sign-in" id="sign-in-button">🔓 Sign in</button>
-  </section>
-  <section class="signed-in" style="display:none">
-    <h2>🔓 Signed-in!</h2>
-    <pre class="user-info"></pre>
-    <button class="sign-out">🔒 Sign out</button>
-    <button class="disconnect">🗑️ Disconnect</button>
-  </section>
-  <section class="email-scope" style="display:none">
-    <h3>✔️ Request email address</h3>
-    <p>This will additionally request the <tt>email</tt> scope.</p>
-    <button class="request-email">📧 Share email</button>
-  </section>
-</main>
-<footer>
-  <p>
-    <em>This demo is all happening client-side, no data is permanently stored,
-      use the "Disconnect" button to remove the sample app connection.</em>
-  </p>
-</footer>
-<div class="glitchButton" style="position:fixed;top:20px;right:20px;"></div>
-<script>
-  let auth2;
-  const loadingSection = document.querySelector('.loading');
-  const signedOutSection = document.querySelector('.signed-out');
-  const signedInSection = document.querySelector('.signed-in');
-  const userinfoBlock = document.querySelector('.userinfo');
-  const emailScope = document.querySelector('.email-scope');
-  const profileScope = document.querySelector('.profile-scope');
+  </footer>
+  <div
+    class="glitchButton"
+    style="position: fixed; top: 20px; right: 20px"
+  ></div>
+  <script>
+    let auth2;
+    const loadingSection = document.querySelector(".loading");
+    const signedOutSection = document.querySelector(".signed-out");
+    const signedInSection = document.querySelector(".signed-in");
+    const userinfoBlock = document.querySelector(".userinfo");
+    const emailScope = document.querySelector(".email-scope");
+    const profileScope = document.querySelector(".profile-scope");
 
-  console.log('Parsing…');
+    console.log("Parsing…");
 
-  function init() {
-    console.log('init()');
-    gapi.load('auth2', () => {
-      auth2 = gapi.auth2.init({
-        client_id: '458459959318-u9bmrksmcji8aoqm6p5s5bvveg98nuvp.apps.googleusercontent.com',
-        cookiepolicy: 'single_host_origin',
-        scope: 'openid',
-        fetch_basic_profile: false
+    function init() {
+      console.log("init()");
+      gapi.load("auth2", () => {
+        auth2 = gapi.auth2.init({
+          client_id:
+            "458459959318-u9bmrksmcji8aoqm6p5s5bvveg98nuvp.apps.googleusercontent.com",
+          cookiepolicy: "single_host_origin",
+          scope: "openid",
+          fetch_basic_profile: false,
+        });
+
+        auth2.isSignedIn.listen(signInChanged);
+        auth2.attachClickHandler(
+          "sign-in-button",
+          {},
+          onSignInSuccess,
+          onSignInFailure,
+        );
+
+        document
+          .querySelector(".sign-out")
+          .addEventListener("click", onSignOut);
+        document
+          .querySelector(".disconnect")
+          .addEventListener("click", onDisconnect);
+        document
+          .querySelector(".request-email")
+          .addEventListener("click", onRequestEmail);
+        document
+          .querySelector(".refresh-page")
+          .addEventListener("click", () => {
+            window.location.reload();
+          });
+
+        loadingSection.style.display = "none";
+
+        if (auth2.isSignedIn.get() === true) {
+          auth2.signIn();
+        } else {
+          signedOutSection.style.display = "block";
+        }
+
+        updateUserinfo();
       });
+    }
 
-      auth2.isSignedIn.listen(signInChanged);
-      auth2.attachClickHandler('sign-in-button', {}, onSignInSuccess, onSignInFailure);
-
-      document.querySelector('.sign-out').addEventListener('click', onSignOut);
-      document.querySelector('.disconnect').addEventListener('click', onDisconnect);
-      document.querySelector('.request-email').addEventListener('click', onRequestEmail);
-      document.querySelector('.refresh-page').addEventListener('click', () => { window.location.reload() });
-
-      loadingSection.style.display = 'none';
-
-      if (auth2.isSignedIn.get() === true) {
-        auth2.signIn();
+    function signInChanged(isSignedIn) {
+      console.log("signInChanged( isSignedIn ===", isSignedIn, ")");
+      if (isSignedIn) {
+        onSignInSuccess(auth2.currentUser.get());
       } else {
-        signedOutSection.style.display = 'block';
+        onSignOut();
+      }
+    }
+
+    function onSignInSuccess(googleUser) {
+      console.log("onSignInSuccess");
+      signedOutSection.style.display = "none";
+      signedInSection.style.display = "block";
+
+      if (googleUser.hasGrantedScopes("email") === false) {
+        emailScope.style.display = "block";
       }
 
       updateUserinfo();
-    });
-  }
-
-  function signInChanged(isSignedIn) {
-    console.log('signInChanged( isSignedIn ===', isSignedIn, ')');
-    if (isSignedIn) {
-      onSignInSuccess(auth2.currentUser.get());
-    } else {
-      onSignOut();
-    }
-  }
-
-  function onSignInSuccess(googleUser) {
-    console.log('onSignInSuccess');
-    signedOutSection.style.display = 'none';
-    signedInSection.style.display = 'block';
-
-    if (googleUser.hasGrantedScopes('email') === false) {
-      emailScope.style.display = 'block';
     }
 
-    updateUserinfo();
-  }
-
-  function onSignInFailure() {
-    console.log('onSignInFailure');
-    updateUserinfo();
-  }
-
-  function onSignOut() {
-    console.log('onSignOut');
-    signedInSection.style.display = 'none';
-    emailScope.style.display = 'none';
-    signedOutSection.style.display = 'block';
-    auth2.signOut();
-    updateUserinfo();
-  }
-
-  function onDisconnect() {
-    console.log('onDisconnect');
-    signedInSection.style.display = 'none';
-    emailScope.style.display = 'none';
-    signedOutSection.style.display = 'block';
-    auth2.disconnect();
-    updateUserinfo();
-  }
-
-  function onRequestEmail() {
-    console.log('onRequestEmail');
-    const options = new gapi.auth2.SigninOptionsBuilder({ 'scope': 'email' });
-
-    user = auth2.currentUser.get();
-    user.grant(options).then(
-      (success) => {
-        console.log('onRequestEmail:success');
-        updateUserinfo();
-      },
-      (fail) => {
-        console.log('onRequestEmail:success');
-        updateUserinfo();
-      });
-  }
-
-  function updateUserinfo() {
-    const userinfo = {};
-    const user = auth2.currentUser.get();
-    userinfo['signedIn'] = user.isSignedIn();
-    userinfo['grantedScopes'] = user.getGrantedScopes();
-
-    const profile = user.getBasicProfile();
-
-    if (user.isSignedIn() && profile) {
-      userinfo['profile.id'] = profile.getId() || null;
-      userinfo['profile.name'] = profile.getName() || null;
-      userinfo['profile.email'] = profile.getEmail() || null;
-    } else {
-      userinfo['profile.id'] = null;
-      userinfo['profile.name'] = null;
-      userinfo['profile.email'] = null;
+    function onSignInFailure() {
+      console.log("onSignInFailure");
+      updateUserinfo();
     }
 
-    console.log(userinfo);
-    userinfoBlock.textContent = JSON.stringify(userinfo, null, ' ');
-  }
+    function onSignOut() {
+      console.log("onSignOut");
+      signedInSection.style.display = "none";
+      emailScope.style.display = "none";
+      signedOutSection.style.display = "block";
+      auth2.signOut();
+      updateUserinfo();
+    }
 
-</script>
-<script src="https://apis.google.com/js/platform.js?onload=init" async defer></script>
-<script src="https://rowan.fyi/made/button/button.js" async defer></script>
+    function onDisconnect() {
+      console.log("onDisconnect");
+      signedInSection.style.display = "none";
+      emailScope.style.display = "none";
+      signedOutSection.style.display = "block";
+      auth2.disconnect();
+      updateUserinfo();
+    }
+
+    function onRequestEmail() {
+      console.log("onRequestEmail");
+      const options = new gapi.auth2.SigninOptionsBuilder({ scope: "email" });
+
+      user = auth2.currentUser.get();
+      user.grant(options).then(
+        (success) => {
+          console.log("onRequestEmail:success");
+          updateUserinfo();
+        },
+        (fail) => {
+          console.log("onRequestEmail:success");
+          updateUserinfo();
+        },
+      );
+    }
+
+    function updateUserinfo() {
+      const userinfo = {};
+      const user = auth2.currentUser.get();
+      userinfo["signedIn"] = user.isSignedIn();
+      userinfo["grantedScopes"] = user.getGrantedScopes();
+
+      const profile = user.getBasicProfile();
+
+      if (user.isSignedIn() && profile) {
+        userinfo["profile.id"] = profile.getId() || null;
+        userinfo["profile.name"] = profile.getName() || null;
+        userinfo["profile.email"] = profile.getEmail() || null;
+      } else {
+        userinfo["profile.id"] = null;
+        userinfo["profile.name"] = null;
+        userinfo["profile.email"] = null;
+      }
+
+      console.log(userinfo);
+      userinfoBlock.textContent = JSON.stringify(userinfo, null, " ");
+    }
+  </script>
+  <script
+    src="https://apis.google.com/js/platform.js?onload=init"
+    async
+    defer
+  ></script>
+  <script src="https://rowan.fyi/made/button/button.js" async defer></script>
+</html>

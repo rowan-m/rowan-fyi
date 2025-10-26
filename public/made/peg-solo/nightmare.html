@@ -1,690 +1,743 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😹</text></svg>"/>
-<link rel="manifest" href="./manifest.json">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😹</text></svg>"
+  />
+  <link rel="manifest" href="./manifest.json" />
 
-<title>Peg Solitaire</title>
-<meta name="Description" content="Play an online version of the classic game: Peg Solitaire AKA Solo Noble AKA Brainvita with bonus cat emoji." />
+  <title>Peg Solitaire</title>
+  <meta
+    name="Description"
+    content="Play an online version of the classic game: Peg Solitaire AKA Solo Noble AKA Brainvita with bonus cat emoji."
+  />
 
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@rowan_m" />
-<meta name="twitter:creator" content="@rowan_m" />
-<meta name="twitter:title" content="Play Peg Solitaire" />
-<meta name="twitter:description" content="Online version of the classic game of Peg Solitaire AKA Solo Noble AKA Brainvita all with bonus cat emoji." />
-<meta name="twitter:image" content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png" />
-<meta name="twitter:image:width" content="1919" />
-<meta name="twitter:image:height" content="920" />
-<meta name="twitter:image:alt" content="Peg solitaire game in progress with cat emoji" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@rowan_m" />
+  <meta name="twitter:creator" content="@rowan_m" />
+  <meta name="twitter:title" content="Play Peg Solitaire" />
+  <meta
+    name="twitter:description"
+    content="Online version of the classic game of Peg Solitaire AKA Solo Noble AKA Brainvita all with bonus cat emoji."
+  />
+  <meta
+    name="twitter:image"
+    content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png"
+  />
+  <meta name="twitter:image:width" content="1919" />
+  <meta name="twitter:image:height" content="920" />
+  <meta
+    name="twitter:image:alt"
+    content="Peg solitaire game in progress with cat emoji"
+  />
 
-<meta property="og:url" content="https://rowan.fyi/made/peg-solo" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Play Peg Solitaire" />
-<meta property="og:description" content="Online version of the classic game of Peg Solitaire AKA Solo Noble AKA Brainvita all with bonus cat emoji." />
-<meta property="og:image" content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png" />
-<meta property="og:image:width" content="1919" />
-<meta property="og:image:height" content="920" />
-  
-<style>
-  @keyframes happyjiggle {
-    from {
-      transform: rotate(0deg) translateY(0) scaleY(1)
-    }
+  <meta property="og:url" content="https://rowan.fyi/made/peg-solo" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Play Peg Solitaire" />
+  <meta
+    property="og:description"
+    content="Online version of the classic game of Peg Solitaire AKA Solo Noble AKA Brainvita all with bonus cat emoji."
+  />
+  <meta
+    property="og:image"
+    content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png"
+  />
+  <meta property="og:image:width" content="1919" />
+  <meta property="og:image:height" content="920" />
 
-    to {
-      transform: rotate(0deg) translateY(-.5vmin) scaleY(1.05)
-    }
-  }
+  <style>
+    @keyframes happyjiggle {
+      from {
+        transform: rotate(0deg) translateY(0) scaleY(1)
+      }
 
-  :root {
-    --dim: 7;
-    --font-size: calc(80vmin / var(--dim));
-  }
-
-  body {
-    align-content: space-between;
-    align-items: center;
-    display: flex;
-    flex-flow: column nowrap;
-    font-family: sans-serif;
-    justify-content: center;
-  }
-
-  header {
-    background: aliceblue;
-    border-radius: .5rem;
-    margin: 1vh;
-    max-width: 80vh;
-    padding: .5rem;
-    text-align: center;
-    width: 90vmin;
-  }
-
-  h1 {
-    color: steelblue;
-    font-size: 1.2rem;
-    margin: 0;
-  }
-
-  .board {
-    background: ivory;
-    border-radius: 50%;
-    border: 1.2vmin double burlywood;
-    box-shadow: 1vmin 1vmin 3vmin #00000088;
-    display: grid;
-    grid-template-columns: repeat(var(--dim), calc(80vmin / var(--dim)));
-    grid-template-rows: repeat(var(--dim), calc(80vmin / var(--dim)));
-    height: 80vmin;
-    margin: auto;
-    max-height: 77vh;
-    max-width: 77vh;
-    place-content: center;
-    place-items: center;
-    width: 80vmin;
-  }
-
-  .cell {
-    -webkit-tap-highlight-color: transparent;
-    background: 0 0;
-    border: 0;
-    color: inherit;
-    cursor: pointer;
-    font-size: var(--font-size);
-    height: 100%;
-    line-height: 100%;
-    outline: inherit;
-    padding: 0;
-    text-shadow: .3vmin .3vmin .5vmin #00000088;
-    transform-origin: center bottom;
-    transition: .1s ease-out;
-    width: 100%;
-  }
-
-  .hole {
-    text-shadow: unset;
-  }
-
-  .hole::before {
-    content: "🔹";
-  }
-
-  .hole:focus,
-  .hole:hover {
-    text-shadow: 0 0 1.2vmin #000;
-  }
-
-  .peg::before {
-    content: "🐱";
-  }
-
-  .peg.sly::before {
-    content: "😼";
-  }
-
-  .peg.happy::before {
-    content: "😽";
-  }
-
-  .peg.happier::before {
-    content: "😸";
-  }
-
-  .peg:focus,
-  .peg:hover {
-    font-size: calc(var(--font-size)*1.05);
-    text-shadow: .5vmin .5vmin .6vmin #00000088;
-  }
-
-  .peg:focus::before,
-  .peg:hover::before {
-    content: "😺";
-  }
-
-  .selected {
-    animation: happyjiggle ease-out .4s alternate infinite;
-    font-size: calc(var(--font-size)*1.1);
-    text-shadow: .7vmin .7vmin .7vmin #00000088;
-  }
-
-  .selected::before {
-    content: "😺";
-  }
-
-  .lose>.peg::before {
-    content: "😿"
-  }
-  
-  .win>.peg::before {
-    content: "😻"
-  }
-  
-  .jump,
-  .remove {
-    grid-area: 3/3;
-    z-index: -10;
-  }
-
-  .jump {
-    font-size: calc(var(--font-size)*1.15);
-    text-shadow: .9vmin .9vmin .8vmin #00000088;
-    transition: .5s ease;
-  }
-
-  .jump::before {
-    content: "😸";
-  }
-
-  .remove {
-    font-size: var(--font-size);
-    text-shadow: .9vmin .9vmin .5vmin #00000088;
-    transition: transform .75s ease-out, opacity .75s ease-in;
-  }
-
-  .remove::before {
-    content: "🙀";
-  }
-
-  nav,
-  nav button {
-    font-size: 1.2rem;
-  }
-
-  nav {
-    background: aliceblue;
-    border-radius: .5rem;
-    color: steelblue;
-    display: grid;
-    font-weight: bold;
-    grid-template-columns: 1fr 1fr 2fr 2fr;
-    margin-top: 1rem;
-    max-width: 80vh;
-    place-items: center;
-    width: 90vmin;
-  }
-
-  nav button {
-    background: ivory;
-    border-radius: 20%;
-    border: .15rem outset burlywood;
-    box-shadow: .3vmin .3vmin 1vmin #00000088;
-    padding: .5rem;
-    transition: box-shadow .1s ease;
-    user-select: none;
-  }
-
-  nav button:focus,
-  nav button:hover {
-    background: aliceblue;
-    box-shadow: .5vmin .5vmin 1.75vmin #00000088;
-  }
-
-  nav button:active {
-    box-shadow: .1vmin .1vmin .25vmin #00000088;
-    border: .15rem inset burlywood;
-  }
-
-  dialog {
-    background: ivory;
-    border-radius: 3vmin;
-    border: 1vmin double burlywood;
-    box-shadow: 1vmin 1vmin 3vmin #00000088;
-    opacity: 1;
-    padding: 0;
-  }
-
-  dialog>div {
-    color: steelblue;
-    font-size: 1rem;
-    font-weight: bold;
-    margin: auto;
-    max-width: 70vw;
-    padding: 3vh;
-  }
-
-  dialog::backdrop {
-    background: #00000088;
-  }
-
-  dialog code {
-    display: inline-block;
-    font-size: 2rem;
-    text-align: center;
-    width: 100%;
-  }
-
-  .timer {
-    font-variant-numeric: tabular-nums;
-  }
-  
-  footer {
-    margin-top: 1rem;
-    font-size: min(3vw, 0.8em);
-    color: dimgray;
-  }
-  
-  a {
-    color: slategray;
-  }
-  
-  a:active {
-    color: lightslategray
-  }
-  
-  a:visited {
-    darkslategray
-  }
-</style>
-<header>
-  <h1>Peg Solitaire / Solo Noble</h1>
-</header>
-<main>
-  <form class="board"></form>
-</main>
-<nav>
-  <button type="button" class="reset">🔁</button>
-  <button type="button" class="docs">❓</button>
-  <span class="timer">⏳ <span class="time">00:00</span></span>
-  <span class="status">😺 New</span>
-</nav>
-<dialog class="docs">
-  <div>
-    <p>Tap or click on a cat to select it.</p>
-    <p><code>🐱🐱🔹<br />👆&nbsp;&nbsp;&nbsp;&nbsp;</code></p>
-    <p>Tap on an empty space one hop left, right, up, or down from your selected cat.</p>
-    <p><code>😺🐱🔹<br />&nbsp;&nbsp;&nbsp;&nbsp;👆</code></p>
-    <p>Your selected cat hops over the middle one and removes it!</p>
-    <p><code>🔹🔹😸<br />&nbsp;&nbsp;&nbsp;&nbsp;🤌</code></p>
-    <p>To win, hop until all cats are removed except for one in the centre!</p>
-    <p><code>🔹🔹🔹<br />🔹😻🔹<br />🔹🔹🔹</code></p>
-  </div>
-</dialog>
-<dialog class="share">
-  <div>
-    
-  </div>
-</dialog>
-<footer>
-🧑‍💻 <a href="https://glitch.com/edit/#!/peg-solo?path=index.html">Code</a> by 🦣 <a href="https://mastodon.social/@rowan_m">@rowan_m@mastodon.social</a> 🦤 <a href="https://twitter.com/rowan_m">@rowan_m</a>.
-</footer>
-<script>
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-
-  class Board {
-    cells;
-    winPos;
-    el;
-    jumpEl;
-    removeEl;
-    timer;
-    timerEl;
-    static NEW = 'new';
-    static PLAYING = 'playing';
-    static LOSE = 'lose'
-    static WIN = 'win';
-    gameState;
-    stateEl;
-
-    constructor() {
-      this.handleClick = this.handleClick.bind(this);
-      this.updateTimer = this.updateTimer.bind(this);
-      this.timer = 0;
-      this.cells = new Array();
-      this.gameState = Board.NEW;
-    }
-
-    setBoard(template, winPos) {
-      document.documentElement.style.setProperty('--dim', Math.max(template.length, template[0].length));
-      this.cells = new Array();
-      template.forEach((col, x) => {
-        this.cells.push(new Array());
-        col.forEach((type, y) => {
-          if (type > 0) {
-            this.cells[x][y] = new Cell(x, y, type);
-            this.cells[x][y].addToBoard(this.el);
-          }
-        });
-      });
-      this.winPos = winPos;
-    }
-
-    reset() {
-      this.timer = 0;
-      this.gameState = Board.NEW;
-      this.timerEl.textContent = `00:00`;
-      this.stateEl.textContent = '😺 New';
-      this.el.classList.remove('win', 'lose');
-      this.cells.forEach(row => {
-        row.forEach(cell => {
-          cell.el.remove();
-        });
-      });
-    }
-
-    updateTimer() {
-      if (this.gameState === Board.PLAYING) {
-        const elapsed = Date.now() - this.timer;
-        const seconds = Math.floor(elapsed / 1000);
-        const minutes = Math.floor(seconds / 60);
-        this.timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`
-        setTimeout(this.updateTimer, 1000);
+      to {
+        transform: rotate(0deg) translateY(-.5vmin) scaleY(1.05)
       }
     }
 
-    addListener() {
-      this.el.addEventListener('click', this.handleClick);
+    :root {
+      --dim: 7;
+      --font-size: calc(80vmin / var(--dim));
     }
 
-    handleClick(ev) {
-      if (
-        ![Board.NEW, Board.PLAYING].includes(this.gameState) ||
-        !ev.target.classList.contains('cell')
-      ) {
-        return;
+    body {
+      align-content: space-between;
+      align-items: center;
+      display: flex;
+      flex-flow: column nowrap;
+      font-family: sans-serif;
+      justify-content: center;
+    }
+
+    header {
+      background: aliceblue;
+      border-radius: .5rem;
+      margin: 1vh;
+      max-width: 80vh;
+      padding: .5rem;
+      text-align: center;
+      width: 90vmin;
+    }
+
+    h1 {
+      color: steelblue;
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .board {
+      background: ivory;
+      border-radius: 50%;
+      border: 1.2vmin double burlywood;
+      box-shadow: 1vmin 1vmin 3vmin #00000088;
+      display: grid;
+      grid-template-columns: repeat(var(--dim), calc(80vmin / var(--dim)));
+      grid-template-rows: repeat(var(--dim), calc(80vmin / var(--dim)));
+      height: 80vmin;
+      margin: auto;
+      max-height: 77vh;
+      max-width: 77vh;
+      place-content: center;
+      place-items: center;
+      width: 80vmin;
+    }
+
+    .cell {
+      -webkit-tap-highlight-color: transparent;
+      background: 0 0;
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      font-size: var(--font-size);
+      height: 100%;
+      line-height: 100%;
+      outline: inherit;
+      padding: 0;
+      text-shadow: .3vmin .3vmin .5vmin #00000088;
+      transform-origin: center bottom;
+      transition: .1s ease-out;
+      width: 100%;
+    }
+
+    .hole {
+      text-shadow: unset;
+    }
+
+    .hole::before {
+      content: "🔹";
+    }
+
+    .hole:focus,
+    .hole:hover {
+      text-shadow: 0 0 1.2vmin #000;
+    }
+
+    .peg::before {
+      content: "🐱";
+    }
+
+    .peg.sly::before {
+      content: "😼";
+    }
+
+    .peg.happy::before {
+      content: "😽";
+    }
+
+    .peg.happier::before {
+      content: "😸";
+    }
+
+    .peg:focus,
+    .peg:hover {
+      font-size: calc(var(--font-size)*1.05);
+      text-shadow: .5vmin .5vmin .6vmin #00000088;
+    }
+
+    .peg:focus::before,
+    .peg:hover::before {
+      content: "😺";
+    }
+
+    .selected {
+      animation: happyjiggle ease-out .4s alternate infinite;
+      font-size: calc(var(--font-size)*1.1);
+      text-shadow: .7vmin .7vmin .7vmin #00000088;
+    }
+
+    .selected::before {
+      content: "😺";
+    }
+
+    .lose>.peg::before {
+      content: "😿"
+    }
+
+    .win>.peg::before {
+      content: "😻"
+    }
+
+    .jump,
+    .remove {
+      grid-area: 3/3;
+      z-index: -10;
+    }
+
+    .jump {
+      font-size: calc(var(--font-size)*1.15);
+      text-shadow: .9vmin .9vmin .8vmin #00000088;
+      transition: .5s ease;
+    }
+
+    .jump::before {
+      content: "😸";
+    }
+
+    .remove {
+      font-size: var(--font-size);
+      text-shadow: .9vmin .9vmin .5vmin #00000088;
+      transition: transform .75s ease-out, opacity .75s ease-in;
+    }
+
+    .remove::before {
+      content: "🙀";
+    }
+
+    nav,
+    nav button {
+      font-size: 1.2rem;
+    }
+
+    nav {
+      background: aliceblue;
+      border-radius: .5rem;
+      color: steelblue;
+      display: grid;
+      font-weight: bold;
+      grid-template-columns: 1fr 1fr 2fr 2fr;
+      margin-top: 1rem;
+      max-width: 80vh;
+      place-items: center;
+      width: 90vmin;
+    }
+
+    nav button {
+      background: ivory;
+      border-radius: 20%;
+      border: .15rem outset burlywood;
+      box-shadow: .3vmin .3vmin 1vmin #00000088;
+      padding: .5rem;
+      transition: box-shadow .1s ease;
+      user-select: none;
+    }
+
+    nav button:focus,
+    nav button:hover {
+      background: aliceblue;
+      box-shadow: .5vmin .5vmin 1.75vmin #00000088;
+    }
+
+    nav button:active {
+      box-shadow: .1vmin .1vmin .25vmin #00000088;
+      border: .15rem inset burlywood;
+    }
+
+    dialog {
+      background: ivory;
+      border-radius: 3vmin;
+      border: 1vmin double burlywood;
+      box-shadow: 1vmin 1vmin 3vmin #00000088;
+      opacity: 1;
+      padding: 0;
+    }
+
+    dialog>div {
+      color: steelblue;
+      font-size: 1rem;
+      font-weight: bold;
+      margin: auto;
+      max-width: 70vw;
+      padding: 3vh;
+    }
+
+    dialog::backdrop {
+      background: #00000088;
+    }
+
+    dialog code {
+      display: inline-block;
+      font-size: 2rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    .timer {
+      font-variant-numeric: tabular-nums;
+    }
+
+    footer {
+      margin-top: 1rem;
+      font-size: min(3vw, 0.8em);
+      color: dimgray;
+    }
+
+    a {
+      color: slategray;
+    }
+
+    a:active {
+      color: lightslategray
+    }
+
+    a:visited {
+      darkslategray
+    }
+  </style>
+  <header>
+    <h1>Peg Solitaire / Solo Noble</h1>
+  </header>
+  <main>
+    <form class="board"></form>
+  </main>
+  <nav>
+    <button type="button" class="reset">🔁</button>
+    <button type="button" class="docs">❓</button>
+    <span class="timer">⏳ <span class="time">00:00</span></span>
+    <span class="status">😺 New</span>
+  </nav>
+  <dialog class="docs">
+    <div>
+      <p>Tap or click on a cat to select it.</p>
+      <p>
+        <code>🐱🐱🔹<br />👆&nbsp;&nbsp;&nbsp;&nbsp;</code>
+      </p>
+      <p>
+        Tap on an empty space one hop left, right, up, or down from your
+        selected cat.
+      </p>
+      <p>
+        <code>😺🐱🔹<br />&nbsp;&nbsp;&nbsp;&nbsp;👆</code>
+      </p>
+      <p>Your selected cat hops over the middle one and removes it!</p>
+      <p>
+        <code>🔹🔹😸<br />&nbsp;&nbsp;&nbsp;&nbsp;🤌</code>
+      </p>
+      <p>
+        To win, hop until all cats are removed except for one in the centre!
+      </p>
+      <p>
+        <code>🔹🔹🔹<br />🔹😻🔹<br />🔹🔹🔹</code>
+      </p>
+    </div>
+  </dialog>
+  <dialog class="share">
+    <div></div>
+  </dialog>
+  <footer>
+    🧑‍💻 <a href="https://glitch.com/edit/#!/peg-solo?path=index.html">Code</a> by
+    🦣
+    <a href="https://mastodon.social/@rowan_m">@rowan_m@mastodon.social</a> 🦤
+    <a href="https://twitter.com/rowan_m">@rowan_m</a>.
+  </footer>
+  <script>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    class Board {
+      cells;
+      winPos;
+      el;
+      jumpEl;
+      removeEl;
+      timer;
+      timerEl;
+      static NEW = "new";
+      static PLAYING = "playing";
+      static LOSE = "lose";
+      static WIN = "win";
+      gameState;
+      stateEl;
+
+      constructor() {
+        this.handleClick = this.handleClick.bind(this);
+        this.updateTimer = this.updateTimer.bind(this);
+        this.timer = 0;
+        this.cells = new Array();
+        this.gameState = Board.NEW;
       }
 
-      if (this.gameState === Board.NEW) {
-        this.gameState = Board.PLAYING;
-        this.stateEl.textContent = '😼 Game on';
-        this.timer = Date.now();
-        this.updateTimer();
-      };
-
-      const cell = this.cells[ev.target.dataset.x][ev.target.dataset.y];
-
-      switch (true) {
-        case cell.type === Cell.PEG:
-          this.selectPeg(cell);
-          break;
-        case cell === this.selectedPeg:
-          this.deselectPeg(cell);
-          break;
-        case cell.type === Cell.HOLE && this.selectedPeg !== null:
-          this.jumpPeg(cell);
-          this.checkEndgame();
-          break;
-      }
-    }
-
-    jumpPossible(cell, xdir, ydir) {
-      if (
-        this.cells[cell.x+(1*xdir)] &&
-        this.cells[cell.x+(1*xdir)][cell.y+(1*ydir)] &&
-        this.cells[cell.x+(1*xdir)][cell.y+(1*ydir)].type === Cell.PEG &&
-        this.cells[cell.x+(2*xdir)] &&
-        this.cells[cell.x+(2*xdir)][cell.y+(2*ydir)] &&
-        this.cells[cell.x+(2*xdir)][cell.y+(2*ydir)].type === Cell.HOLE
-      ) {
-        return true;
-      }
-      
-      return false;
-    }
-    checkEndgame() {
-      var possibleWin = true;
-      var possibleLose = true;
-      this.cells.forEach((row, x) => {
-        row.forEach((cell, y) => {
-          if (cell.type == Cell.PEG) {
-            if (
-              this.jumpPossible(cell,  1,  0) ||
-              this.jumpPossible(cell, -1,  0) ||
-              this.jumpPossible(cell,  0,  1) ||
-              this.jumpPossible(cell,  0, -1)
-            ) {
-              possibleLose = false;
-              return;
-            }
-          }
-          
-          if (cell.type !== Cell.HOLE && !(cell.x == 3 && cell.y == 3)) {
-            possibleWin = false;
-          }
-        });
-      });
-      
-      if (possibleWin === true && this.cells[this.winPos.x][this.winPos.y].type === Cell.PEG) {
-        this.gameState = Board.WIN;
-        this.stateEl.textContent = '😻 Win!';
-        this.el.classList.add('win');
-      } else if (possibleLose === true) {
-        this.gameState = Board.LOSE;
-        this.stateEl.textContent = '😿 Lose';
-        this.el.classList.add('lose');
-      }
-    }
-
-    selectPeg(cell) {
-      if (this.selectedPeg) {
-        this.selectedPeg.deselect();
-      }
-
-      cell.select();
-      this.selectedPeg = cell;
-    }
-
-    deselectPeg(cell) {
-      cell.deselect();
-      this.selectedPeg = null;
-    }
-
-    jumpPeg(cell) {
-      switch (true) {
-        case cell.x - 2 === this.selectedPeg.x && cell.y === this.selectedPeg.y && this.cells[cell.x - 1][cell.y].type === Cell.PEG:
-          this.jump(this.selectedPeg, 2, 0);
-          cell.add();
-          this.selectedPeg.remove();
-          this.selectedPeg = null;
-          this.cells[cell.x - 1][cell.y].remove();
-          this.remove(this.cells[cell.x - 1][cell.y], -0.5, -2);
-          break;
-        case cell.x + 2 === this.selectedPeg.x && cell.y === this.selectedPeg.y && this.cells[cell.x + 1][cell.y].type === Cell.PEG:
-          this.jump(this.selectedPeg, -2, 0);
-          cell.add();
-          this.selectedPeg.remove();
-          this.selectedPeg = null;
-          this.cells[cell.x + 1][cell.y].remove();
-          this.remove(this.cells[cell.x + 1][cell.y], 0.5, -2);
-          break;
-        case cell.x === this.selectedPeg.x && cell.y - 2 === this.selectedPeg.y && this.cells[cell.x][cell.y - 1].type === Cell.PEG:
-          this.jump(this.selectedPeg, 0, 2);
-          cell.add();
-          this.selectedPeg.remove();
-          this.selectedPeg = null;
-          this.cells[cell.x][cell.y - 1].remove();
-          this.remove(this.cells[cell.x][cell.y - 1], -0.5, -2);
-          break;
-        case cell.x === this.selectedPeg.x && cell.y + 2 === this.selectedPeg.y && this.cells[cell.x][cell.y + 1].type === Cell.PEG:
-          this.jump(this.selectedPeg, 0, -2);
-          cell.add();
-          this.selectedPeg.remove();
-          this.selectedPeg = null;
-          this.cells[cell.x][cell.y + 1].remove();
-          this.remove(this.cells[cell.x][cell.y + 1], 1, -2);
-          break;
-      }
-    }
-
-    jump(cell, x, y) {
-      const el = document.createElement('div');
-      el.classList.add('cell');
-      el.classList.add('jump');
-      el.style.gridColumn = cell.x + 1;
-      el.style.gridRow = cell.y + 1;
-      el.style.zIndex = 10;
-      this.el.appendChild(el);
-      el.style.transform = `translate(${cell.el.offsetWidth * x}px, ${cell.el.offsetHeight * y}px)`;
-      setTimeout(() => { el.remove(); }, 500);
-    }
-
-    remove(cell, x, y) {
-      const el = document.createElement('div');
-      el.classList.add('cell');
-      el.classList.add('remove');
-      el.style.gridColumn = cell.x + 1;
-      el.style.gridRow = cell.y + 1;
-      el.style.zIndex = 10;
-      this.el.appendChild(el);
-      el.style.transform = `translate(${cell.el.offsetWidth * x}px, ${cell.el.offsetHeight * y}px) scale(1.5)`;
-      el.style.opacity = 0;
-      setTimeout(() => { el.remove(); }, 750);
-    }
-  }
-
-  class Cell {
-    static BOARD = 0;
-    static HOLE = 1;
-    static PEG = 2;
-    static SELECTED = 3;
-    static KEY = ['board', 'hole', 'peg', 'selected'];
-    x;
-    y;
-    type;
-    el;
-
-    constructor(x, y, type) {
-      this.x = x;
-      this.y = y;
-      this.type = type;
-    }
-
-    addToBoard(board) {
-      const el = document.createElement('button');
-      el.type = 'button';
-
-      el.style.gridColumn = this.x + 1;
-      el.style.gridRow = this.y + 1;
-      el.dataset.x = this.x;
-      el.dataset.y = this.y;
-      el.classList.add('cell');
-      el.classList.add(Cell.KEY[this.type]);
-      board.appendChild(el);
-      this.el = el;
-      this.randomAction = this.randomAction.bind(this);
-      setTimeout(this.randomAction, 2000 + Math.random() * 5000);
-    }
-
-    randomAction() {
-      var next = 5000;
-      const action = Math.random() * 10;
-      switch (true) {
-        case (action <= 7):
-          this.el.classList.remove('happy', 'happier', 'sly');
-          next = 10000 + Math.random() * 10000;
-          break;
-        case (action <= 8):
-          this.el.classList.add('happy');
-          this.el.classList.remove('happier', 'sly');
-          next = 700 + Math.random() * 500;
-          break;
-        case (action <= 9):
-          this.el.classList.add('sly');
-          this.el.classList.remove('happy', 'happier');
-          next = 700 + Math.random() * 500;
-          break;
-        case (action <= 10):
-          this.el.classList.remove('happy', 'sly');
-          this.el.classList.add('happier');
-          next = 700 + Math.random() * 500;
-          break;
-      }
-
-      setTimeout(this.randomAction, next);
-    }
-
-    select() {
-      this.type = Cell.SELECTED;
-      this.el.classList.add('selected');
-      this.el.classList.remove('peg');
-    }
-
-    deselect() {
-      this.type = Cell.PEG;
-      this.el.classList.add('peg');
-      this.el.classList.remove('selected');
-    }
-
-    add() {
-      this.type = Cell.PEG;
-      setTimeout(() => {
-        this.el.classList.add('peg');
-        this.el.classList.remove('hole');
-      }, 500);
-    }
-
-    remove() {
-      this.type = Cell.HOLE;
-      this.el.style.transform = '';
-      this.el.classList.add('hole');
-      this.el.classList.remove('peg', 'selected');
-
-    }
-  }
-
-  const template = [
-    [0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-    [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0],
-    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
-    [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
-    [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2],
-    [2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 2],
-    [2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 0, 0, 2, 2],
-    [2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 2],
-    [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2],
-    [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
-    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
-    [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0],
-    [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
-  ];
-  const winPos = {x: 6, y: 7}
-  const board = new Board();
-  board.el = document.querySelector('.board');
-  board.timerEl = document.querySelector('.time');
-  board.stateEl = document.querySelector('.status');
-  board.setBoard(template, winPos);
-  board.addListener();
-
-  document.querySelector('button.reset').addEventListener('click', () => {
-    board.reset();
-    board.setBoard(template, winPos);
-  });
-
-  const docsDialog = document.querySelector('dialog.docs');
-  document.querySelector('button.docs').addEventListener('click', () => {
-    docsDialog.showModal();
-  });
-  docsDialog.addEventListener('click', (e) => {
-    if (docsDialog === e.target) {
-      docsDialog.close();
-    }
-  });
-
-  const registerServiceWorker = async () => {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register(
-          '/made/peg-solo/sw.js',
-          {
-            scope: '/made/peg-solo/',
-          }
+      setBoard(template, winPos) {
+        document.documentElement.style.setProperty(
+          "--dim",
+          Math.max(template.length, template[0].length),
         );
-        if (registration.installing) {
-          console.log('Service worker installing');
-        } else if (registration.waiting) {
-          console.log('Service worker installed');
-        } else if (registration.active) {
-          console.log('Service worker active');
+        this.cells = new Array();
+        template.forEach((col, x) => {
+          this.cells.push(new Array());
+          col.forEach((type, y) => {
+            if (type > 0) {
+              this.cells[x][y] = new Cell(x, y, type);
+              this.cells[x][y].addToBoard(this.el);
+            }
+          });
+        });
+        this.winPos = winPos;
+      }
+
+      reset() {
+        this.timer = 0;
+        this.gameState = Board.NEW;
+        this.timerEl.textContent = `00:00`;
+        this.stateEl.textContent = "😺 New";
+        this.el.classList.remove("win", "lose");
+        this.cells.forEach((row) => {
+          row.forEach((cell) => {
+            cell.el.remove();
+          });
+        });
+      }
+
+      updateTimer() {
+        if (this.gameState === Board.PLAYING) {
+          const elapsed = Date.now() - this.timer;
+          const seconds = Math.floor(elapsed / 1000);
+          const minutes = Math.floor(seconds / 60);
+          this.timerEl.textContent = `${minutes.toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+          setTimeout(this.updateTimer, 1000);
         }
-      } catch (error) {
-        console.error(`Registration failed with ${error}`);
+      }
+
+      addListener() {
+        this.el.addEventListener("click", this.handleClick);
+      }
+
+      handleClick(ev) {
+        if (
+          ![Board.NEW, Board.PLAYING].includes(this.gameState) ||
+          !ev.target.classList.contains("cell")
+        ) {
+          return;
+        }
+
+        if (this.gameState === Board.NEW) {
+          this.gameState = Board.PLAYING;
+          this.stateEl.textContent = "😼 Game on";
+          this.timer = Date.now();
+          this.updateTimer();
+        }
+
+        const cell = this.cells[ev.target.dataset.x][ev.target.dataset.y];
+
+        switch (true) {
+          case cell.type === Cell.PEG:
+            this.selectPeg(cell);
+            break;
+          case cell === this.selectedPeg:
+            this.deselectPeg(cell);
+            break;
+          case cell.type === Cell.HOLE && this.selectedPeg !== null:
+            this.jumpPeg(cell);
+            this.checkEndgame();
+            break;
+        }
+      }
+
+      jumpPossible(cell, xdir, ydir) {
+        if (
+          this.cells[cell.x + 1 * xdir] &&
+          this.cells[cell.x + 1 * xdir][cell.y + 1 * ydir] &&
+          this.cells[cell.x + 1 * xdir][cell.y + 1 * ydir].type === Cell.PEG &&
+          this.cells[cell.x + 2 * xdir] &&
+          this.cells[cell.x + 2 * xdir][cell.y + 2 * ydir] &&
+          this.cells[cell.x + 2 * xdir][cell.y + 2 * ydir].type === Cell.HOLE
+        ) {
+          return true;
+        }
+
+        return false;
+      }
+      checkEndgame() {
+        var possibleWin = true;
+        var possibleLose = true;
+        this.cells.forEach((row, x) => {
+          row.forEach((cell, y) => {
+            if (cell.type == Cell.PEG) {
+              if (
+                this.jumpPossible(cell, 1, 0) ||
+                this.jumpPossible(cell, -1, 0) ||
+                this.jumpPossible(cell, 0, 1) ||
+                this.jumpPossible(cell, 0, -1)
+              ) {
+                possibleLose = false;
+                return;
+              }
+            }
+
+            if (cell.type !== Cell.HOLE && !(cell.x == 3 && cell.y == 3)) {
+              possibleWin = false;
+            }
+          });
+        });
+
+        if (
+          possibleWin === true &&
+          this.cells[this.winPos.x][this.winPos.y].type === Cell.PEG
+        ) {
+          this.gameState = Board.WIN;
+          this.stateEl.textContent = "😻 Win!";
+          this.el.classList.add("win");
+        } else if (possibleLose === true) {
+          this.gameState = Board.LOSE;
+          this.stateEl.textContent = "😿 Lose";
+          this.el.classList.add("lose");
+        }
+      }
+
+      selectPeg(cell) {
+        if (this.selectedPeg) {
+          this.selectedPeg.deselect();
+        }
+
+        cell.select();
+        this.selectedPeg = cell;
+      }
+
+      deselectPeg(cell) {
+        cell.deselect();
+        this.selectedPeg = null;
+      }
+
+      jumpPeg(cell) {
+        switch (true) {
+          case cell.x - 2 === this.selectedPeg.x &&
+            cell.y === this.selectedPeg.y &&
+            this.cells[cell.x - 1][cell.y].type === Cell.PEG:
+            this.jump(this.selectedPeg, 2, 0);
+            cell.add();
+            this.selectedPeg.remove();
+            this.selectedPeg = null;
+            this.cells[cell.x - 1][cell.y].remove();
+            this.remove(this.cells[cell.x - 1][cell.y], -0.5, -2);
+            break;
+          case cell.x + 2 === this.selectedPeg.x &&
+            cell.y === this.selectedPeg.y &&
+            this.cells[cell.x + 1][cell.y].type === Cell.PEG:
+            this.jump(this.selectedPeg, -2, 0);
+            cell.add();
+            this.selectedPeg.remove();
+            this.selectedPeg = null;
+            this.cells[cell.x + 1][cell.y].remove();
+            this.remove(this.cells[cell.x + 1][cell.y], 0.5, -2);
+            break;
+          case cell.x === this.selectedPeg.x &&
+            cell.y - 2 === this.selectedPeg.y &&
+            this.cells[cell.x][cell.y - 1].type === Cell.PEG:
+            this.jump(this.selectedPeg, 0, 2);
+            cell.add();
+            this.selectedPeg.remove();
+            this.selectedPeg = null;
+            this.cells[cell.x][cell.y - 1].remove();
+            this.remove(this.cells[cell.x][cell.y - 1], -0.5, -2);
+            break;
+          case cell.x === this.selectedPeg.x &&
+            cell.y + 2 === this.selectedPeg.y &&
+            this.cells[cell.x][cell.y + 1].type === Cell.PEG:
+            this.jump(this.selectedPeg, 0, -2);
+            cell.add();
+            this.selectedPeg.remove();
+            this.selectedPeg = null;
+            this.cells[cell.x][cell.y + 1].remove();
+            this.remove(this.cells[cell.x][cell.y + 1], 1, -2);
+            break;
+        }
+      }
+
+      jump(cell, x, y) {
+        const el = document.createElement("div");
+        el.classList.add("cell");
+        el.classList.add("jump");
+        el.style.gridColumn = cell.x + 1;
+        el.style.gridRow = cell.y + 1;
+        el.style.zIndex = 10;
+        this.el.appendChild(el);
+        el.style.transform = `translate(${cell.el.offsetWidth * x}px, ${cell.el.offsetHeight * y}px)`;
+        setTimeout(() => {
+          el.remove();
+        }, 500);
+      }
+
+      remove(cell, x, y) {
+        const el = document.createElement("div");
+        el.classList.add("cell");
+        el.classList.add("remove");
+        el.style.gridColumn = cell.x + 1;
+        el.style.gridRow = cell.y + 1;
+        el.style.zIndex = 10;
+        this.el.appendChild(el);
+        el.style.transform = `translate(${cell.el.offsetWidth * x}px, ${cell.el.offsetHeight * y}px) scale(1.5)`;
+        el.style.opacity = 0;
+        setTimeout(() => {
+          el.remove();
+        }, 750);
       }
     }
-  };
 
-  registerServiceWorker();
-</script>
+    class Cell {
+      static BOARD = 0;
+      static HOLE = 1;
+      static PEG = 2;
+      static SELECTED = 3;
+      static KEY = ["board", "hole", "peg", "selected"];
+      x;
+      y;
+      type;
+      el;
+
+      constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+      }
+
+      addToBoard(board) {
+        const el = document.createElement("button");
+        el.type = "button";
+
+        el.style.gridColumn = this.x + 1;
+        el.style.gridRow = this.y + 1;
+        el.dataset.x = this.x;
+        el.dataset.y = this.y;
+        el.classList.add("cell");
+        el.classList.add(Cell.KEY[this.type]);
+        board.appendChild(el);
+        this.el = el;
+        this.randomAction = this.randomAction.bind(this);
+        setTimeout(this.randomAction, 2000 + Math.random() * 5000);
+      }
+
+      randomAction() {
+        var next = 5000;
+        const action = Math.random() * 10;
+        switch (true) {
+          case action <= 7:
+            this.el.classList.remove("happy", "happier", "sly");
+            next = 10000 + Math.random() * 10000;
+            break;
+          case action <= 8:
+            this.el.classList.add("happy");
+            this.el.classList.remove("happier", "sly");
+            next = 700 + Math.random() * 500;
+            break;
+          case action <= 9:
+            this.el.classList.add("sly");
+            this.el.classList.remove("happy", "happier");
+            next = 700 + Math.random() * 500;
+            break;
+          case action <= 10:
+            this.el.classList.remove("happy", "sly");
+            this.el.classList.add("happier");
+            next = 700 + Math.random() * 500;
+            break;
+        }
+
+        setTimeout(this.randomAction, next);
+      }
+
+      select() {
+        this.type = Cell.SELECTED;
+        this.el.classList.add("selected");
+        this.el.classList.remove("peg");
+      }
+
+      deselect() {
+        this.type = Cell.PEG;
+        this.el.classList.add("peg");
+        this.el.classList.remove("selected");
+      }
+
+      add() {
+        this.type = Cell.PEG;
+        setTimeout(() => {
+          this.el.classList.add("peg");
+          this.el.classList.remove("hole");
+        }, 500);
+      }
+
+      remove() {
+        this.type = Cell.HOLE;
+        this.el.style.transform = "";
+        this.el.classList.add("hole");
+        this.el.classList.remove("peg", "selected");
+      }
+    }
+
+    const template = [
+      [0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+      [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0],
+      [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
+      [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+      [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2],
+      [2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 2],
+      [2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 0, 0, 2, 2],
+      [2, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 2, 2, 2],
+      [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2],
+      [2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0],
+      [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0],
+      [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0],
+      [0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+    ];
+    const winPos = { x: 6, y: 7 };
+    const board = new Board();
+    board.el = document.querySelector(".board");
+    board.timerEl = document.querySelector(".time");
+    board.stateEl = document.querySelector(".status");
+    board.setBoard(template, winPos);
+    board.addListener();
+
+    document.querySelector("button.reset").addEventListener("click", () => {
+      board.reset();
+      board.setBoard(template, winPos);
+    });
+
+    const docsDialog = document.querySelector("dialog.docs");
+    document.querySelector("button.docs").addEventListener("click", () => {
+      docsDialog.showModal();
+    });
+    docsDialog.addEventListener("click", (e) => {
+      if (docsDialog === e.target) {
+        docsDialog.close();
+      }
+    });
+
+    const registerServiceWorker = async () => {
+      if ("serviceWorker" in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register(
+            "/made/peg-solo/sw.js",
+            {
+              scope: "/made/peg-solo/",
+            },
+          );
+          if (registration.installing) {
+            console.log("Service worker installing");
+          } else if (registration.waiting) {
+            console.log("Service worker installed");
+          } else if (registration.active) {
+            console.log("Service worker active");
+          }
+        } catch (error) {
+          console.error(`Registration failed with ${error}`);
+        }
+      }
+    };
+
+    registerServiceWorker();
+  </script>
+</html>

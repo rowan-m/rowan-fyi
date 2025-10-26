@@ -1,10 +1,20 @@
 <!-- See public/partial/head.html for standard snippet-->
 {{> partial/head}}
 <h1>Privacy Sandbox origin trial demo</h1>
-<h2>Injecting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag with JavaScript</h2>
+<h2>
+  Injecting the <code>&lt;meta http-equiv="origin-trial" …&gt;</code> tag with
+  JavaScript
+</h2>
 <p><a href="./">↰ All demos</a></p>
-<p><a href="https://glitch.com/edit/#!/ps-origin-trial?path=public%2Fmeta.html">Code for this demo</a></p>
-<p>The top-level page includes JavaScript which injects the <code>&lt;meta http-equiv="origin-trial"…/&gt;</code> tag:
+<p>
+  <a href="https://glitch.com/edit/#!/ps-origin-trial?path=public%2Fmeta.html"
+    >Code for this demo</a
+  >
+</p>
+<p>
+  The top-level page includes JavaScript which injects the
+  <code>&lt;meta http-equiv="origin-trial"…/&gt;</code> tag:
+</p>
 <pre>
   const otMeta = document.createElement('meta');
   otMeta.httpEquiv = 'origin-trial';
@@ -13,9 +23,9 @@
 </pre>
 <p>This uses a first-party token for <code>ps-origin-trial.glitch.me</code>.</p>
 <script>
-  const otMeta = document.createElement('meta');
-  otMeta.httpEquiv = 'origin-trial';
-  otMeta.content = '{{{token_1p}}}';
+  const otMeta = document.createElement("meta");
+  otMeta.httpEquiv = "origin-trial";
+  otMeta.content = "{{{token_1p}}}";
   document.head.appendChild(otMeta);
 </script>
 <!-- See public/partial/feature-detect.html for standard snippet-->

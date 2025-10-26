@@ -1,39 +1,44 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-<title>Proxy reduced user-agent</title>
-<style>
-  body {
-    font-family: sans-serif;
-  }
-  
-  h1, h2 {
-    font-size: 1rem;
-  }
-  
-  code {
-    font-weight: bold;
-    background: oldlace;
-  }
-  
-  .did-reduce {
-    font-weight: bold;
-  }
-  
-</style>
-<h1>Proxy reduced user-agent</h1>
-<a href="./">⬆ All examples</a>
-<dl>
-  <dt>The <code>User-Agent</code> header received server-side:</dt>
-  <dd><code class="old-ua">{{oldUA}}</code></dd>
-</dl>
-<h2>Code</h2>
-<p><a href="https://glitch.com/edit/#!/reduced-ua?path=public%2Fproxied.html">Edit in Glitch</a></p>
-<script>
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-</script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <title>Proxy reduced user-agent</title>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+
+    h1,
+    h2 {
+      font-size: 1rem;
+    }
+
+    code {
+      font-weight: bold;
+      background: oldlace;
+    }
+
+    .did-reduce {
+      font-weight: bold;
+    }
+  </style>
+  <h1>Proxy reduced user-agent</h1>
+  <a href="./">⬆ All examples</a>
+  <dl>
+    <dt>The <code>User-Agent</code> header received server-side:</dt>
+    <dd><code class="old-ua">{{oldUA}}</code></dd>
+  </dl>
+  <h2>Code</h2>
+  <p>
+    <a href="https://glitch.com/edit/#!/reduced-ua?path=public%2Fproxied.html"
+      >Edit in Glitch</a
+    >
+  </p>
+  <script>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+  </script>
+</html>

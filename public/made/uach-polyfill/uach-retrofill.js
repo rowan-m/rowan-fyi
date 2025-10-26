@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 // This function's role is to enable smooth transition to the brave new world of
 // User-Agent Client Hints. If you have legacy code that relies on
 // `navigator.userAgent` and which relies on entropy that will go away by
@@ -22,29 +21,29 @@
 // as a stop gap, to enable smooth transition during that period.
 
 /**
-* @param {string[]} hints
-* @return {Promise<string|undefined>} A Promise that resolves to a string if a
-*   UA could be synthesized from client hints, otherwise undefined.
-*/
+ * @param {string[]} hints
+ * @return {Promise<string|undefined>} A Promise that resolves to a string if a
+ *   UA could be synthesized from client hints, otherwise undefined.
+ */
 async function getUserAgentUsingClientHints(hints) {
   // Helper functions for platform specific strings
-  const GetCrosSpecificString = values => {
-    let newUA = 'X11; CrOS ';
+  const GetCrosSpecificString = (values) => {
+    let newUA = "X11; CrOS ";
     // Working around the lack of bitness value.
-    if (values.architecture == 'x86') {
-      newUA += 'x86_64';
+    if (values.architecture == "x86") {
+      newUA += "x86_64";
     } else {
-      newUA += 'aarch64';
+      newUA += "aarch64";
     }
-    newUA += ' ';
+    newUA += " ";
     newUA += values.platformVersion;
     return newUA;
-  }
+  };
 
-  const GetWindowsSpecificString = values => {
-    let newUA = 'Windows NT ';
+  const GetWindowsSpecificString = (values) => {
+    let newUA = "Windows NT ";
     newUA += values.platformVersion;
-    newUA += '; ';
+    newUA += "; ";
     // Working around the lack of bitness value.
     if (values.architecture == "x86") {
       newUA += "Win64; x64";
@@ -52,42 +51,42 @@ async function getUserAgentUsingClientHints(hints) {
       newUA += "ARM";
     }
     return newUA;
-  }
+  };
 
-  const GetMacSpecificString = values => {
-    let newUA = 'Macintosh; Intel Mac OS X ';
+  const GetMacSpecificString = (values) => {
+    let newUA = "Macintosh; Intel Mac OS X ";
     newUA += values.platformVersion;
     return newUA;
-  }
+  };
 
-  const GetAndroidSpecificString = values => {
-    let newUA = 'Linux; Android ';
+  const GetAndroidSpecificString = (values) => {
+    let newUA = "Linux; Android ";
     newUA += values.platformVersion;
     if (values.model) {
-      newUA += '; ';
+      newUA += "; ";
       newUA += values.model;
     }
     return newUA;
-  }
+  };
 
   const Initialize = (values, fallback_version) => {
     if (!values.platform) {
-      values.platform = 'Windows';
+      values.platform = "Windows";
     }
     if (!values.platformVersion) {
-      values.platformVersion = '10.0';
+      values.platformVersion = "10.0";
     }
     if (!values.architecture) {
-      values.architecture = 'x86';
+      values.architecture = "x86";
     }
     if (!values.uaFullVersion) {
-      values.uaFullVersion = fallback_version + '.0.0.0';
+      values.uaFullVersion = fallback_version + ".0.0.0";
     }
     if (!values.model) {
-      values.model = '';
+      values.model = "";
     }
     return values;
-  }
+  };
 
   if (!navigator.userAgentData || Date.now() > 1640995199000) {
     return Promise.resolve();
@@ -95,13 +94,13 @@ async function getUserAgentUsingClientHints(hints) {
 
   // Verify that this is a Chromium
   let is_chromium = false;
-  let is_edge = false
+  let is_edge = false;
   let chromium_version;
-  navigator.userAgentData.brands.forEach(value => {
-    if (value.brand == 'Chromium') {
+  navigator.userAgentData.brands.forEach((value) => {
+    if (value.brand == "Chromium") {
       is_chromium = true;
       chromium_version = value.version;
-    } else if (value.brand == 'Microsoft Edge') {
+    } else if (value.brand == "Microsoft Edge") {
       is_edge = true;
     }
   });
@@ -111,57 +110,57 @@ async function getUserAgentUsingClientHints(hints) {
   }
 
   // Main logic
-  return new Promise(resolve => {
-    navigator.userAgentData.getHighEntropyValues(hints).then(values => {
+  return new Promise((resolve) => {
+    navigator.userAgentData.getHighEntropyValues(hints).then((values) => {
       values = Initialize(values, chromium_version);
-      let newUA = 'Mozilla/5.0 (';
-      if (values.platform == 'Chrome OS') {
+      let newUA = "Mozilla/5.0 (";
+      if (values.platform == "Chrome OS") {
         newUA += GetCrosSpecificString(values);
-      } else if (values.platform == 'Windows') {
+      } else if (values.platform == "Windows") {
         newUA += GetWindowsSpecificString(values);
         // TODO: 'Mac OS X' can be removed in the near future
         // See Issue #13
-      } else if (['macOS', 'Mac OS X'].includes(values.platform)) {
+      } else if (["macOS", "Mac OS X"].includes(values.platform)) {
         newUA += GetMacSpecificString(values);
-      } else if (values.platform == 'Android') {
+      } else if (values.platform == "Android") {
         newUA += GetAndroidSpecificString(values);
       } else {
-        newUA += 'X11; Linux x86_64';
+        newUA += "X11; Linux x86_64";
       }
-      newUA += ') AppleWebKit/537.36 (KHTML, like Gecko) Chrome/';
+      newUA += ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/";
       newUA += values.uaFullVersion;
       if (navigator.userAgentData.mobile) {
-        newUA += ' Mobile';
+        newUA += " Mobile";
       }
-      newUA += ' Safari/537.36';
+      newUA += " Safari/537.36";
 
       if (is_edge) {
-        newUA += ' Edg/';
+        newUA += " Edg/";
         // Note: The full version Edge includes is not the same as the equivalent Chrome full version
         newUA += values.uaFullVersion;
       }
 
       resolve(newUA);
-    })
-  })
+    });
+  });
 }
 
 /**
-* @param {string[]} hints
-* @return {Promise<string|undefined>} A Promise that resolves on overriding the
-*   navigator.userAgent string.
-*/
+ * @param {string[]} hints
+ * @return {Promise<string|undefined>} A Promise that resolves on overriding the
+ *   navigator.userAgent string.
+ */
 async function overrideUserAgentUsingClientHints(hints) {
-  return new Promise(resolve => {
-    getUserAgentUsingClientHints(hints).then(newUA => {
+  return new Promise((resolve) => {
+    getUserAgentUsingClientHints(hints).then((newUA) => {
       // Got a new UA value. Now override `navigator.userAgent`.
-      Object.defineProperty(navigator, 'userAgent', {
+      Object.defineProperty(navigator, "userAgent", {
         value: newUA,
         writable: false,
-        configurable: true
+        configurable: true,
       });
       resolve();
-    })
+    });
   });
 }
 

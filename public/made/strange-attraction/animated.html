@@ -1,436 +1,502 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>➰</text></svg>"/>
-<title>Strange Attraction</title>
-<style>
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-    color: whitesmoke;
-    background: #222;
-    font-family: sans-serif;
-    font-size: 0.8rem;
-  }
-  
-  header {
-    padding: 0.4rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0.2);
-  }
-  
-  h1 {
-    font-weight: 100;
-    font-size: 0.8rem;
-  }
-  
-  a {
-    color: palegoldenrod;
-  }
-  
-  main {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    user-select: none;
-    touch-action: none;
-    z-index: -10;
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: space-around;
-    align-items: center;
-  }
-
-  canvas {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    z-index: -30;
-  }
-  
-  nav {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-  
-  form, nav>section {
-    position: relative;
-    padding: 0.4rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-evenly;
-    align-items: center;
-    align-content: center;
-    font-size: 1rem;
-  }
-  
-  nav>section {
-    font-size: .8rem;
-  }
-  
-  input {
-    width: 10ch;
-  }
-  
-  input[type="range"] {
-    width: 40vmin;
-  }
-  
-  button {
-    padding: 0.6rem;
-    margin: 0.6rem;
-    user-select: none;
-  }
-</style>
-<header>
-  <h1>Strange Attraction</h1>
-  <section>Iterations: <span class="iterations">0</span></section>
-  <section>
-    <a href="https://glitch.com/edit/#!/strange-attraction">🧑‍💻 Code</a>
-  </section>
-</header>
-<main>
-  <canvas class="strange-canvas"></canvas>
-</main>
-<nav>
-  <form>
-    <label>a: <input type="number" name="a" step=".01"></label>
-    <label>b: <input type="number" name="b" step=".01"></label>
-    <label>c: <input type="number" name="c" step=".01"></label>
-    <label>d: <input type="number" name="d" step=".01"></label>
-    <button type="button" class="saveimage">💾</button>
-    <button type="button" class="toggle-pp">⏸️</button>
-    <button type="button" class="shuffle">🔀</button>
-    <label>↔ <input type="range" name="xOff" min="-500" max="500" value="0" step="25"></label>
-    <label>↕ <input type="range" name="yOff" min="-500" max="500" value="0" step="25"></label>
-    <label>🔎 <input type="range" name="zoom" min="-1" max="3" value="0" step=".1"></label>
-  </form>
-  <section>
-    <a href="https://twitter.com/rowan_m">🦤 @rowan_m</a>
-    <a href="https://mastodon.social/@rowan_m">🦣 @rowan_m@mastodon.social</a>
-  </section>
-</nav>
-<script>
-  'use strict';
-  
-  if (location.protocol !== 'https:') {
-    location.replace(`https:${location.href.substring(location.protocol.length)}`);
-  }
-  
-  document.querySelector('.saveimage').addEventListener('click', e => {
-    const d = new Date();
-    const timestamp = '' + d.getFullYear() + d.getMonth() + d.getDay() + d.getHours() + d.getMinutes() + d.getSeconds();
-    // e.target.download = `strange-attraction-${timestamp}.png`;
-    // e.target.href = document.querySelector('canvas').toDataURL('image/png').replace('image/png', 'image/octet-stream');
-    
-    const tmpA = document.createElement('a');
-    tmpA.href = document.querySelector('canvas').toDataURL('image/png').replace('image/png', 'image/octet-stream');
-    tmpA.target = '_blank';
-    tmpA.download = `strange-attraction-${timestamp}.png`;
-    tmpA.click();
-  });
-  
-  class StrangeCanvas {
-    constructor(cvs) {
-      this.tick = this.tick.bind(this);
-      this.handleResize = this.handleResize.bind(this);
-      this.handleChange = this.handleChange.bind(this);
-      this.togglePP = this.togglePP.bind(this);
-      this.play = this.play.bind(this);
-      this.pause = this.pause.bind(this);
-      this.shuffle = this.shuffle.bind(this);
-      
-      this.xOff = 0;
-      this.yOff = 0;
-      this.zoom = 0;
-      
-      this.a = 1.15; // 1.24;
-      this.b = 1.77; // -1.25;
-      this.c = -1.60; // -1.81;
-      this.d = -0.31; // -1.91;
-      
-      this.anim = { a: 0, b: 0, c: 0, d: 0, delta: 0};
-      
-      this.hueoffset = 0;
-      this.iterations = 0;
-      
-      this.updateFromUrl();
-      this.updateHistory();
-      this.updateInputs();
-
-      // Clifford or de Jong
-      // this.max = Math.max(1 + Math.abs(this.c), 1 + Math.abs(this.d));
-      // Whatevs
-      this.max = 1 + Math.abs(this.c) + Math.abs(this.d);
-      this.maxDist = Math.hypot(this.max * 2, this.max * 2);
-      
-      this.cvs = cvs;
-      this.ctx = this.cvs.getContext('2d');
-      
-      this.handleResize(null);
-      window.addEventListener('resize', this.handleResize, {passive: true});
-      
-      this.inputs = {
-        a: document.querySelector('input[name="a"]'),
-        b: document.querySelector('input[name="b"]'),
-        c: document.querySelector('input[name="c"]'),
-        d: document.querySelector('input[name="d"]'),
-        xOff: document.querySelector('input[name="xOff"]'),
-        yOff: document.querySelector('input[name="yOff"]'),
-        zoom: document.querySelector('input[name="zoom"]'),
-      };
-
-      for (const [param, input] of Object.entries(this.inputs)) {
-        input.addEventListener('change', this.handleChange);
-      }
-      
-      this.iterationDisp = document.querySelector('.iterations');
-      
-      this.state = 'playing';
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>➰</text></svg>"
+  />
+  <title>Strange Attraction</title>
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    handleResize(e) {
-      this.w = this.cvs.getBoundingClientRect().width;
-      this.h = this.cvs.getBoundingClientRect().height;
-      this.cvs.width = Math.floor(this.w * window.devicePixelRatio);
-      this.cvs.height = Math.floor(this.h * window.devicePixelRatio);
-      
-      this.scale = Math.min(this.w, this.h) / ((this.max - this.zoom) * 3);
-      this.p0 = {x: 0, y: 0};
-      this.p1 = {x: 0, y: 0};
-      this.iterations = 0;
-      this.anim = { a: 0, b: 0, c: 0, d: 0, delta: 0};
-      this.distFactor = 0;
+    body {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      color: whitesmoke;
+      background: #222;
+      font-family: sans-serif;
+      font-size: 0.8rem;
+    }
 
-      this.initCtx();
+    header {
+      padding: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(0, 0, 0, 0.2);
     }
-    
-    initCtx() {
-      this.ctx.globalCompositeOperation = 'source-over';
-      this.ctx.globalAlpha = 1;
-      this.ctx.translate(0, 0);
-      this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-      this.ctx.fillStyle = 'hsl(0deg, 0%, 20%)';
-      this.ctx.translate(Math.floor(this.w/2 + this.xOff), Math.floor(this.h/2 + this.yOff));
-      this.ctx.fillRect(-Math.floor(this.w/2 + this.xOff), -Math.floor(this.h/2 + this.yOff), this.w, this.h);
-      this.ctx.globalCompositeOperation = 'screen';
-      this.ctx.globalAlpha = .3;
+
+    h1 {
+      font-weight: 100;
+      font-size: 0.8rem;
     }
-    
-    updateFromUrl() {
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.forEach(function (value, key) {
-        switch (key) {
-          case 'a':
-            this.a = parseFloat(value);
-            break;
-          case 'b':
-            this.b = parseFloat(value);
-            break;
-          case 'c':
-            this.c= parseFloat(value);
-            break;
-          case 'd':
-            this.d = parseFloat(value);
-            break;
-          case 'ho':
-            this.hueoffset = parseFloat(value);
-            break;
-          case 'x':
-            this.xOff = parseFloat(value);
-            break;
-          case 'y':
-            this.yOff = parseFloat(value);
-            break;
-          case 'z':
-            this.zoom = parseFloat(value);
-            break;
-        }
-      }, this);
+
+    a {
+      color: palegoldenrod;
     }
-    
-    async updateHistory() {
-      history.replaceState(null, 'Strange Attraction',
-        `?a=${this.a}&b=${this.b}&c=${this.c}&d=${this.d}&ho=${this.hueoffset}&x=${this.xOff}&y=${this.yOff}&z=${this.zoom}`
+
+    main {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      user-select: none;
+      touch-action: none;
+      z-index: -10;
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    canvas {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: -30;
+    }
+
+    nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    form,
+    nav > section {
+      position: relative;
+      padding: 0.4rem;
+      background-color: rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-evenly;
+      align-items: center;
+      align-content: center;
+      font-size: 1rem;
+    }
+
+    nav > section {
+      font-size: 0.8rem;
+    }
+
+    input {
+      width: 10ch;
+    }
+
+    input[type="range"] {
+      width: 40vmin;
+    }
+
+    button {
+      padding: 0.6rem;
+      margin: 0.6rem;
+      user-select: none;
+    }
+  </style>
+  <header>
+    <h1>Strange Attraction</h1>
+    <section>Iterations: <span class="iterations">0</span></section>
+    <section>
+      <a href="https://glitch.com/edit/#!/strange-attraction">🧑‍💻 Code</a>
+    </section>
+  </header>
+  <main>
+    <canvas class="strange-canvas"></canvas>
+  </main>
+  <nav>
+    <form>
+      <label>a: <input type="number" name="a" step=".01" /></label>
+      <label>b: <input type="number" name="b" step=".01" /></label>
+      <label>c: <input type="number" name="c" step=".01" /></label>
+      <label>d: <input type="number" name="d" step=".01" /></label>
+      <button type="button" class="saveimage">💾</button>
+      <button type="button" class="toggle-pp">⏸️</button>
+      <button type="button" class="shuffle">🔀</button>
+      <label
+        >↔
+        <input
+          type="range"
+          name="xOff"
+          min="-500"
+          max="500"
+          value="0"
+          step="25"
+      /></label>
+      <label
+        >↕
+        <input
+          type="range"
+          name="yOff"
+          min="-500"
+          max="500"
+          value="0"
+          step="25"
+      /></label>
+      <label
+        >🔎
+        <input type="range" name="zoom" min="-1" max="3" value="0" step=".1"
+      /></label>
+    </form>
+    <section>
+      <a href="https://twitter.com/rowan_m">🦤 @rowan_m</a>
+      <a href="https://mastodon.social/@rowan_m">🦣 @rowan_m@mastodon.social</a>
+    </section>
+  </nav>
+  <script>
+    "use strict";
+
+    if (location.protocol !== "https:") {
+      location.replace(
+        `https:${location.href.substring(location.protocol.length)}`,
       );
     }
-    
-    async updateInputs() {
-      document.querySelector('input[name="a"]').value = this.a;
-      document.querySelector('input[name="b"]').value = this.b;
-      document.querySelector('input[name="c"]').value = this.c;
-      document.querySelector('input[name="d"]').value = this.d;
-      document.querySelector('input[name="xOff"]').value = this.xOff;
-      document.querySelector('input[name="yOff"]').value = this.yOff;
-      document.querySelector('input[name="zoom"]').value = this.zoom;
-    }
-    
-    handleChange(e) {
-      let val = parseFloat(e.target.value);
-      
-      switch (e.target.name) {
-        case 'a':
-          this.a = (isNaN(val)) ? 0 : val;
-          break;
-        case 'b':
-          this.b = (isNaN(val)) ? 0 : val;
-          break;
-        case 'c':
-          this.c = (isNaN(val)) ? 0 : val;
-          break;
-        case 'd':
-          this.d = (isNaN(val)) ? 0 : val;
-          break;
-        case 'xOff':
-          this.xOff = (isNaN(val)) ? 0 : val;
-          break;
-        case 'yOff':
-          this.yOff = (isNaN(val)) ? 0 : val;
-          break;
-        case 'zoom':
-          this.zoom = (isNaN(val)) ? 0 : val;
-          break;
-      }
-      
-      // Clifford or de Jong
-      // this.max = Math.max(1 + Math.abs(this.c), 1 + Math.abs(this.d));
-      // Whatevs
-      this.max = 1 + Math.abs(this.c) + Math.abs(this.d);
-      this.maxDist = Math.hypot(this.max * 2, this.max * 2);
-      
-      this.updateHistory();
-      this.handleResize();
-    }
-    
-    update(t) {
-      
-      // Clifford attractor
-      // const x = Math.sin(this.a * this.p0.y) + this.c * Math.cos(this.a * this.p0.x);
-      // const y = Math.sin(this.b * this.p0.x) + this.d * Math.cos(this.b * this.p0.y);
-      
-      // de Jong attractor
-      // const x = Math.sin(this.a * this.p0.y) - this.c * Math.cos(this.b * this.p0.x);
-      // const y = Math.sin(this.c * this.p0.x) + this.d * Math.cos(this.d * this.p0.y);
-      
-      // Whatevs attractor
-      const x = Math.sin(this.anim.a * this.p0.y) + this.anim.c * Math.cos(this.anim.a * this.p0.x) + this.anim.d * Math.cos(this.p0.x);
-      const y = Math.sin(this.anim.b * this.p0.x) + this.anim.d * Math.cos(this.anim.b * this.p0.y) + this.anim.c * Math.cos(this.p0.y);
-      
-      const xd = this.p0.x - x;
-      const yd = this.p0.y - y;
-      this.dist = Math.hypot(xd, yd);
-      
-      const a = Math.atan2(xd, yd);
-      const dx = this.dist * Math.sin(a);
-      const dy = this.dist * Math.cos(a);
-      const tmpx = this.p0.x;
-      const tmpy = this.p0.y;
-      
-      this.p0.x = this.p1.x;
-      this.p0.y = this.p1.y;
-      this.p1.x = tmpx - dx;
-      this.p1.y = tmpy - dy;
 
-      this.iterations++;
-    }
-    
-    render(t) {
-      const distFactor = this.dist / this.maxDist;
-      this.distFactor += (distFactor - this.distFactor) * .8
-      const hue = (this.distFactor * 720 + this.hueoffset + this.anim.delta*100) % 360;
-      this.ctx.fillStyle = `hsl(${hue}deg, 100%, 30%)`;
-      this.dotSize = 1;
-      this.ctx.beginPath();
-      this.ctx.arc(this.p1.x*this.scale, this.p1.y*this.scale, this.dotSize, 0, 2 * Math.PI);
-      this.ctx.fill();
-    }
-    
-    advance(t) {
-      this.anim.delta+= 0.001;
-      this.anim.a = Math.sin(this.a + this.anim.delta) * 2.5;
-      this.anim.b = Math.sin(this.b + this.anim.delta) * 2.5;
-      this.anim.c = Math.sin(this.c + this.anim.delta) * 2.5;
-      this.anim.d = Math.sin(this.d + this.anim.delta) * 2.5;
-      
-      this.ctx.globalCompositeOperation = 'multiply';
-      this.ctx.globalAlpha = .01;
-      this.ctx.fillStyle = `hsl(0deg, 0%, 10%)`;
-      this.ctx.fillRect(-Math.floor(this.w/2 + this.xOff), -Math.floor(this.h/2 + this.yOff), this.w, this.h);
-      this.ctx.globalCompositeOperation = 'screen';
-      this.ctx.globalAlpha = .3;
-    }
-    
-    tick(t) {
-      while(performance.now() - t < 8) {
-        this.update(t);
-        this.render(t);
+    document.querySelector(".saveimage").addEventListener("click", (e) => {
+      const d = new Date();
+      const timestamp =
+        "" +
+        d.getFullYear() +
+        d.getMonth() +
+        d.getDay() +
+        d.getHours() +
+        d.getMinutes() +
+        d.getSeconds();
+      // e.target.download = `strange-attraction-${timestamp}.png`;
+      // e.target.href = document.querySelector('canvas').toDataURL('image/png').replace('image/png', 'image/octet-stream');
+
+      const tmpA = document.createElement("a");
+      tmpA.href = document
+        .querySelector("canvas")
+        .toDataURL("image/png")
+        .replace("image/png", "image/octet-stream");
+      tmpA.target = "_blank";
+      tmpA.download = `strange-attraction-${timestamp}.png`;
+      tmpA.click();
+    });
+
+    class StrangeCanvas {
+      constructor(cvs) {
+        this.tick = this.tick.bind(this);
+        this.handleResize = this.handleResize.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.togglePP = this.togglePP.bind(this);
+        this.play = this.play.bind(this);
+        this.pause = this.pause.bind(this);
+        this.shuffle = this.shuffle.bind(this);
+
+        this.xOff = 0;
+        this.yOff = 0;
+        this.zoom = 0;
+
+        this.a = 1.15; // 1.24;
+        this.b = 1.77; // -1.25;
+        this.c = -1.6; // -1.81;
+        this.d = -0.31; // -1.91;
+
+        this.anim = { a: 0, b: 0, c: 0, d: 0, delta: 0 };
+
+        this.hueoffset = 0;
+        this.iterations = 0;
+
+        this.updateFromUrl();
+        this.updateHistory();
+        this.updateInputs();
+
+        // Clifford or de Jong
+        // this.max = Math.max(1 + Math.abs(this.c), 1 + Math.abs(this.d));
+        // Whatevs
+        this.max = 1 + Math.abs(this.c) + Math.abs(this.d);
+        this.maxDist = Math.hypot(this.max * 2, this.max * 2);
+
+        this.cvs = cvs;
+        this.ctx = this.cvs.getContext("2d");
+
+        this.handleResize(null);
+        window.addEventListener("resize", this.handleResize, { passive: true });
+
+        this.inputs = {
+          a: document.querySelector('input[name="a"]'),
+          b: document.querySelector('input[name="b"]'),
+          c: document.querySelector('input[name="c"]'),
+          d: document.querySelector('input[name="d"]'),
+          xOff: document.querySelector('input[name="xOff"]'),
+          yOff: document.querySelector('input[name="yOff"]'),
+          zoom: document.querySelector('input[name="zoom"]'),
+        };
+
+        for (const [param, input] of Object.entries(this.inputs)) {
+          input.addEventListener("change", this.handleChange);
+        }
+
+        this.iterationDisp = document.querySelector(".iterations");
+
+        this.state = "playing";
       }
-      
-      this.iterationDisp.textContent = this.iterations;
-      this.advance(t);
-      
-      if (this.state === 'playing') {
+
+      handleResize(e) {
+        this.w = this.cvs.getBoundingClientRect().width;
+        this.h = this.cvs.getBoundingClientRect().height;
+        this.cvs.width = Math.floor(this.w * window.devicePixelRatio);
+        this.cvs.height = Math.floor(this.h * window.devicePixelRatio);
+
+        this.scale = Math.min(this.w, this.h) / ((this.max - this.zoom) * 3);
+        this.p0 = { x: 0, y: 0 };
+        this.p1 = { x: 0, y: 0 };
+        this.iterations = 0;
+        this.anim = { a: 0, b: 0, c: 0, d: 0, delta: 0 };
+        this.distFactor = 0;
+
+        this.initCtx();
+      }
+
+      initCtx() {
+        this.ctx.globalCompositeOperation = "source-over";
+        this.ctx.globalAlpha = 1;
+        this.ctx.translate(0, 0);
+        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        this.ctx.fillStyle = "hsl(0deg, 0%, 20%)";
+        this.ctx.translate(
+          Math.floor(this.w / 2 + this.xOff),
+          Math.floor(this.h / 2 + this.yOff),
+        );
+        this.ctx.fillRect(
+          -Math.floor(this.w / 2 + this.xOff),
+          -Math.floor(this.h / 2 + this.yOff),
+          this.w,
+          this.h,
+        );
+        this.ctx.globalCompositeOperation = "screen";
+        this.ctx.globalAlpha = 0.3;
+      }
+
+      updateFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach(function (value, key) {
+          switch (key) {
+            case "a":
+              this.a = parseFloat(value);
+              break;
+            case "b":
+              this.b = parseFloat(value);
+              break;
+            case "c":
+              this.c = parseFloat(value);
+              break;
+            case "d":
+              this.d = parseFloat(value);
+              break;
+            case "ho":
+              this.hueoffset = parseFloat(value);
+              break;
+            case "x":
+              this.xOff = parseFloat(value);
+              break;
+            case "y":
+              this.yOff = parseFloat(value);
+              break;
+            case "z":
+              this.zoom = parseFloat(value);
+              break;
+          }
+        }, this);
+      }
+
+      async updateHistory() {
+        history.replaceState(
+          null,
+          "Strange Attraction",
+          `?a=${this.a}&b=${this.b}&c=${this.c}&d=${this.d}&ho=${this.hueoffset}&x=${this.xOff}&y=${this.yOff}&z=${this.zoom}`,
+        );
+      }
+
+      async updateInputs() {
+        document.querySelector('input[name="a"]').value = this.a;
+        document.querySelector('input[name="b"]').value = this.b;
+        document.querySelector('input[name="c"]').value = this.c;
+        document.querySelector('input[name="d"]').value = this.d;
+        document.querySelector('input[name="xOff"]').value = this.xOff;
+        document.querySelector('input[name="yOff"]').value = this.yOff;
+        document.querySelector('input[name="zoom"]').value = this.zoom;
+      }
+
+      handleChange(e) {
+        let val = parseFloat(e.target.value);
+
+        switch (e.target.name) {
+          case "a":
+            this.a = isNaN(val) ? 0 : val;
+            break;
+          case "b":
+            this.b = isNaN(val) ? 0 : val;
+            break;
+          case "c":
+            this.c = isNaN(val) ? 0 : val;
+            break;
+          case "d":
+            this.d = isNaN(val) ? 0 : val;
+            break;
+          case "xOff":
+            this.xOff = isNaN(val) ? 0 : val;
+            break;
+          case "yOff":
+            this.yOff = isNaN(val) ? 0 : val;
+            break;
+          case "zoom":
+            this.zoom = isNaN(val) ? 0 : val;
+            break;
+        }
+
+        // Clifford or de Jong
+        // this.max = Math.max(1 + Math.abs(this.c), 1 + Math.abs(this.d));
+        // Whatevs
+        this.max = 1 + Math.abs(this.c) + Math.abs(this.d);
+        this.maxDist = Math.hypot(this.max * 2, this.max * 2);
+
+        this.updateHistory();
+        this.handleResize();
+      }
+
+      update(t) {
+        // Clifford attractor
+        // const x = Math.sin(this.a * this.p0.y) + this.c * Math.cos(this.a * this.p0.x);
+        // const y = Math.sin(this.b * this.p0.x) + this.d * Math.cos(this.b * this.p0.y);
+
+        // de Jong attractor
+        // const x = Math.sin(this.a * this.p0.y) - this.c * Math.cos(this.b * this.p0.x);
+        // const y = Math.sin(this.c * this.p0.x) + this.d * Math.cos(this.d * this.p0.y);
+
+        // Whatevs attractor
+        const x =
+          Math.sin(this.anim.a * this.p0.y) +
+          this.anim.c * Math.cos(this.anim.a * this.p0.x) +
+          this.anim.d * Math.cos(this.p0.x);
+        const y =
+          Math.sin(this.anim.b * this.p0.x) +
+          this.anim.d * Math.cos(this.anim.b * this.p0.y) +
+          this.anim.c * Math.cos(this.p0.y);
+
+        const xd = this.p0.x - x;
+        const yd = this.p0.y - y;
+        this.dist = Math.hypot(xd, yd);
+
+        const a = Math.atan2(xd, yd);
+        const dx = this.dist * Math.sin(a);
+        const dy = this.dist * Math.cos(a);
+        const tmpx = this.p0.x;
+        const tmpy = this.p0.y;
+
+        this.p0.x = this.p1.x;
+        this.p0.y = this.p1.y;
+        this.p1.x = tmpx - dx;
+        this.p1.y = tmpy - dy;
+
+        this.iterations++;
+      }
+
+      render(t) {
+        const distFactor = this.dist / this.maxDist;
+        this.distFactor += (distFactor - this.distFactor) * 0.8;
+        const hue =
+          (this.distFactor * 720 + this.hueoffset + this.anim.delta * 100) %
+          360;
+        this.ctx.fillStyle = `hsl(${hue}deg, 100%, 30%)`;
+        this.dotSize = 1;
+        this.ctx.beginPath();
+        this.ctx.arc(
+          this.p1.x * this.scale,
+          this.p1.y * this.scale,
+          this.dotSize,
+          0,
+          2 * Math.PI,
+        );
+        this.ctx.fill();
+      }
+
+      advance(t) {
+        this.anim.delta += 0.001;
+        this.anim.a = Math.sin(this.a + this.anim.delta) * 2.5;
+        this.anim.b = Math.sin(this.b + this.anim.delta) * 2.5;
+        this.anim.c = Math.sin(this.c + this.anim.delta) * 2.5;
+        this.anim.d = Math.sin(this.d + this.anim.delta) * 2.5;
+
+        this.ctx.globalCompositeOperation = "multiply";
+        this.ctx.globalAlpha = 0.01;
+        this.ctx.fillStyle = `hsl(0deg, 0%, 10%)`;
+        this.ctx.fillRect(
+          -Math.floor(this.w / 2 + this.xOff),
+          -Math.floor(this.h / 2 + this.yOff),
+          this.w,
+          this.h,
+        );
+        this.ctx.globalCompositeOperation = "screen";
+        this.ctx.globalAlpha = 0.3;
+      }
+
+      tick(t) {
+        while (performance.now() - t < 8) {
+          this.update(t);
+          this.render(t);
+        }
+
+        this.iterationDisp.textContent = this.iterations;
+        this.advance(t);
+
+        if (this.state === "playing") {
+          window.requestAnimationFrame(this.tick);
+        }
+      }
+
+      play() {
+        this.state = "playing";
         window.requestAnimationFrame(this.tick);
       }
-    }
-    
-    play() {
-      this.state = 'playing';
-      window.requestAnimationFrame(this.tick);
-    }
-    
-    pause() {
-      this.state = 'paused';
-    }
-    
-    togglePP() {
-      if (this.state === 'playing') {
-        this.pause()
-      } else {
-        this.play();
+
+      pause() {
+        this.state = "paused";
+      }
+
+      togglePP() {
+        if (this.state === "playing") {
+          this.pause();
+        } else {
+          this.play();
+        }
+      }
+
+      shuffle() {
+        this.a = Math.random() * 5 - 2.5;
+        this.b = Math.random() * 5 - 2.5;
+        this.c = Math.random() * 5 - 2.5;
+        this.d = Math.random() * 5 - 2.5;
+        this.xOff = 0;
+        this.yOff = 0;
+        this.zoom = 0;
+        // Clifford or de Jong
+        // this.max = Math.max(1 + Math.abs(this.c), 1 + Math.abs(this.d));
+        // Whatevs
+        this.max = 1 + Math.abs(this.c) + Math.abs(this.d);
+        this.maxDist = Math.hypot(this.max * 2, this.max * 2);
+        this.updateInputs();
+        this.updateHistory();
+        this.handleResize();
       }
     }
-    
-    shuffle() {
-      this.a = Math.random() * 5 - 2.5;
-      this.b = Math.random() * 5 - 2.5;
-      this.c = Math.random() * 5 - 2.5;
-      this.d = Math.random() * 5 - 2.5;
-      this.xOff = 0;
-      this.yOff = 0;
-      this.zoom = 0;
-      // Clifford or de Jong
-      // this.max = Math.max(1 + Math.abs(this.c), 1 + Math.abs(this.d));
-      // Whatevs
-      this.max = 1 + Math.abs(this.c) + Math.abs(this.d);
-      this.maxDist = Math.hypot(this.max * 2, this.max * 2);
-      this.updateInputs();
-      this.updateHistory();
-      this.handleResize();
-    }
-  }
-  
-  const cvs = document.querySelector('.strange-canvas');
-  const sc = new StrangeCanvas(cvs);
-  sc.play();
-  document.querySelector('.toggle-pp').addEventListener('click', e => {
-    sc.togglePP();
-    e.target.textContent = (sc.state === 'playing') ? '⏸️' : '▶️';
-  });
-  document.querySelector('.shuffle').addEventListener('click', e => {
-    sc.shuffle();
-  });
-</script>
+
+    const cvs = document.querySelector(".strange-canvas");
+    const sc = new StrangeCanvas(cvs);
+    sc.play();
+    document.querySelector(".toggle-pp").addEventListener("click", (e) => {
+      sc.togglePP();
+      e.target.textContent = sc.state === "playing" ? "⏸️" : "▶️";
+    });
+    document.querySelector(".shuffle").addEventListener("click", (e) => {
+      sc.shuffle();
+    });
+  </script>
+</html>

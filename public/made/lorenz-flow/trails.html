@@ -1,123 +1,153 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐚</text></svg>">
-<title>Strange attractions</title>
-<style>
-  body {
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐚</text></svg>"
+  />
+  <title>Strange attractions</title>
+  <style>
+    body {
       margin: 0;
       padding: 0;
       font-family: sans-serif;
       background: #010110;
       color: oldlace;
-  }
-  
-  h1 {
-    font-size: 1rem;
-    font-weight: normal;
-    margin: 0;
-    padding: 0 1rem 0 1rem;
-  }
-  
-  main {
-    width: 100vw;
-    height: 90vh;
-  }
-  
-  canvas.viz {
-    width: 100%;
-    height: 100%;
-  }
-</style>
-<h1>Strange attractions</h1>
-<main><canvas class="viz"></canvas></main>
-<script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
-      "three/nodes": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/nodes/Nodes.js"
     }
-  }
-</script>
-<script type="module">
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-  
-  import * as THREE from 'three';
-  import WebGPU from 'three/addons/capabilities/WebGPU.js';
-  import WebGL from 'three/addons/capabilities/WebGL.js';
-  import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
-  import { vec3, vec4, storage, tslFn, instanceIndex, add, sub, mul, div, abs, cos, sin, atan2, loop } from 'three/nodes';
-  import StorageBufferAttribute from 'three/addons/renderers/common/StorageBufferAttribute.js';
-  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-  if ( WebGPU.isAvailable() === false && WebGL.isWebGL2Available() === false ) {
-    document.body.appendChild( WebGPU.getErrorMessage() );
-    throw new Error( 'No WebGPU or WebGL2 support' );
-  }
-  
-  const canvas = document.querySelector('canvas.viz');
-  let w = canvas.offsetWidth;
-  let h = canvas.offsetHeight;
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera( 75, w / h, 0.1, 1000 );
-  const renderer = new WebGPURenderer({ canvas: canvas, antialias: true });
-  renderer.setPixelRatio( window.devicePixelRatio );
+    h1 {
+      font-size: 1rem;
+      font-weight: normal;
+      margin: 0;
+      padding: 0 1rem 0 1rem;
+    }
 
-  function resize() {
-    w = canvas.offsetWidth;
-    h = canvas.offsetHeight;
-    canvas.width = w;
-    canvas.height = h;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h, false);
-  }
+    main {
+      width: 100vw;
+      height: 90vh;
+    }
 
-  resize();
-  window.addEventListener('resize', resize);
+    canvas.viz {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <h1>Strange attractions</h1>
+  <main><canvas class="viz"></canvas></main>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/",
+        "three/nodes": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/nodes/Nodes.js"
+      }
+    }
+  </script>
+  <script type="module">
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
 
-  const numPoints = 10;
-  const tailSegments = 3;
-  
-  const pointsBufferAttribute = storage(new StorageBufferAttribute(numPoints, 3), 'vec3', numPoints);
-  const tracerBufferAttribute = storage(new StorageBufferAttribute(numPoints * tailSegments * 2, 3), 'vec3', numPoints * tailSegments * 2);
-  const colorsBufferAttribute = storage(new StorageBufferAttribute(numPoints * tailSegments * 2, 3), 'vec3', numPoints * tailSegments * 2);
-  
-  const computeShaderFn = tslFn( () => {
-    // TODO
-  });
-  computeNode = computeShaderFn().compute( numPoints );
-  computeNode.onInit = ( { renderer } ) => {
-    const precomputeShaderNode = tslFn( () => {
-      const x = mul(sin(instanceIndex), 10);
-      const y = mul(cos(instanceIndex), 10);
-      const z = mul(sin(instanceIndex), 10);
-      const point = pointsBufferAttribute(instanceIndex);
-      
-    } );
-    renderer.compute( precomputeShaderNode().compute( numPoints ) );
-  };
-  
-  const material = new THREE.LineBasicMaterial( { vertexColors: true } );
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', pointsStorageBufferAttribute);
-  geometry.setAttribute('color', colorsStorageBufferAttribute);
-  const tracers = new THREE.LineSegments(geometry, material);
-  scene.add(tracers);
+    import * as THREE from "three";
+    import WebGPU from "three/addons/capabilities/WebGPU.js";
+    import WebGL from "three/addons/capabilities/WebGL.js";
+    import WebGPURenderer from "three/addons/renderers/webgpu/WebGPURenderer.js";
+    import {
+      vec3,
+      vec4,
+      storage,
+      tslFn,
+      instanceIndex,
+      add,
+      sub,
+      mul,
+      div,
+      abs,
+      cos,
+      sin,
+      atan2,
+      loop,
+    } from "three/nodes";
+    import StorageBufferAttribute from "three/addons/renderers/common/StorageBufferAttribute.js";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-  camera.position.z = 70;
-  const controls = new OrbitControls(camera, renderer.domElement);
+    if (WebGPU.isAvailable() === false && WebGL.isWebGL2Available() === false) {
+      document.body.appendChild(WebGPU.getErrorMessage());
+      throw new Error("No WebGPU or WebGL2 support");
+    }
 
-  async function animate() {
-    if ( computeUpdate ) await renderer.computeAsync( computeUpdate );
-    renderer.render( scene, camera );
-  }
+    const canvas = document.querySelector("canvas.viz");
+    let w = canvas.offsetWidth;
+    let h = canvas.offsetHeight;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+    const renderer = new WebGPURenderer({ canvas: canvas, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
 
-  renderer.setAnimationLoop( animate );
-</script>
+    function resize() {
+      w = canvas.offsetWidth;
+      h = canvas.offsetHeight;
+      canvas.width = w;
+      canvas.height = h;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const numPoints = 10;
+    const tailSegments = 3;
+
+    const pointsBufferAttribute = storage(
+      new StorageBufferAttribute(numPoints, 3),
+      "vec3",
+      numPoints,
+    );
+    const tracerBufferAttribute = storage(
+      new StorageBufferAttribute(numPoints * tailSegments * 2, 3),
+      "vec3",
+      numPoints * tailSegments * 2,
+    );
+    const colorsBufferAttribute = storage(
+      new StorageBufferAttribute(numPoints * tailSegments * 2, 3),
+      "vec3",
+      numPoints * tailSegments * 2,
+    );
+
+    const computeShaderFn = tslFn(() => {
+      // TODO
+    });
+    computeNode = computeShaderFn().compute(numPoints);
+    computeNode.onInit = ({ renderer }) => {
+      const precomputeShaderNode = tslFn(() => {
+        const x = mul(sin(instanceIndex), 10);
+        const y = mul(cos(instanceIndex), 10);
+        const z = mul(sin(instanceIndex), 10);
+        const point = pointsBufferAttribute(instanceIndex);
+      });
+      renderer.compute(precomputeShaderNode().compute(numPoints));
+    };
+
+    const material = new THREE.LineBasicMaterial({ vertexColors: true });
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", pointsStorageBufferAttribute);
+    geometry.setAttribute("color", colorsStorageBufferAttribute);
+    const tracers = new THREE.LineSegments(geometry, material);
+    scene.add(tracers);
+
+    camera.position.z = 70;
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    async function animate() {
+      if (computeUpdate) await renderer.computeAsync(computeUpdate);
+      renderer.render(scene, camera);
+    }
+
+    renderer.setAnimationLoop(animate);
+  </script>
+</html>

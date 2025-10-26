@@ -1,92 +1,125 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💿</text></svg>"/>
-<title>YoU WoULdN'T sTeAL a LoGo</title>
-<meta name="Description" content="YoU WoULdN'T sTeAL a LoGo" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💿</text></svg>"
+  />
+  <title>YoU WoULdN'T sTeAL a LoGo</title>
+  <meta name="Description" content="YoU WoULdN'T sTeAL a LoGo" />
 
-<meta name="twitter:card" content="player" />
-<meta name="twitter:title" content="💿" />
-<meta name="twitter:site" content="@rowan_m" />
-<meta name="twitter:creator" content="@rowan_m" />
-<meta name="twitter:description" content="YoU WoULdN'T sTeAL a LoGo" />
-<meta name="twitter:player" content="https://rowan.fyi/made/you-wouldnt-steal-a-logo/old-school.html" />
-<meta name="twitter:player:width" content="480" />
-<meta name="twitter:player:height" content="480" />
-<meta name="twitter:image" content="./assets/logo-background.png" />
-  
-<style>
-  :root {
-    --scale: 6;
-    --logo-size: calc(var(--scale) * 1vmin);
-    --logo-width: calc(var(--scale) * 5vmin);
-    --logo-height: calc(var(--scale) * 3vmin);
-    --vh: 1vh;
-  }
+  <meta name="twitter:card" content="player" />
+  <meta name="twitter:title" content="💿" />
+  <meta name="twitter:site" content="@rowan_m" />
+  <meta name="twitter:creator" content="@rowan_m" />
+  <meta name="twitter:description" content="YoU WoULdN'T sTeAL a LoGo" />
+  <meta
+    name="twitter:player"
+    content="https://rowan.fyi/made/you-wouldnt-steal-a-logo/old-school.html"
+  />
+  <meta name="twitter:player:width" content="480" />
+  <meta name="twitter:player:height" content="480" />
+  <meta name="twitter:image" content="./assets/logo-background.png" />
 
-  body {
-    background:
-      radial-gradient(circle, rgba(128,128,128,.2) 0%, rgba(0,0,0,.1) 100%),
-      black;
-    margin: 0;
-    overflow: hidden;
-    height: 100vh;
-    height: calc(var(--vh) * 100);
-  }
-
-  .logo-box {
-    height: 100%;
-  }
-  
-  .logo {
-    width: var(--logo-width);
-    height: var(--logo-height);
-  }
-</style>
-<marquee class="logo-box" direction="down" behavior="alternate">
-  <marquee behavior="alternate">
-    <svg class="logo" xmlns="http://www.w3.org/2000/svg" version="1.1" viewbox="0 0 500 300">
-      <path d="M469.9 212.1h-14.7l-.4 2.2h6.2l-2.2 17.3h2.6l2.3-17.3h5.7zm10.2 12.8-3.1-12.8h-1.8l-6.7 19.5h2.2l5.4-15.1 3.1 15.1 8-15.1v15.1h2.6v-19.5h-2.6zM76.2 282.1 59 249.7H44.3l27.1 49.7h8.4l27.5-49.7H92.2zm64.8-6.7v24h13.3v-49.7H141zm144 24h36.8V291h-23v-13.3h21.7v-8.5h-21.7v-11h23v-8.5H285zm187-111.3c0-18.6-105.6-33.7-236-33.7S0 169.5 0 188.1s105.7 33.7 236 33.7 236-15 236-33.7zm-298.7.5c0-6.2 24.2-11.1 54.1-11.1s54 5 54 11-24.1 11.1-54 11.1-54-5-54-11zm219 60.9c-19.3 0-35 11.1-35 24.8s15.7 24.8 35 24.8 35-11 35-24.8c0-13.7-15.7-24.8-35-24.8zm0 40.6c-11.5 0-20.8-7-20.8-15.8 0-8.7 9.3-15.7 20.8-15.7s20.8 7 20.8 15.7-9.3 15.8-20.8 15.8zm-177.5-40.4h-21v49.7h21s33.4 0 33.4-24.6-33.4-25-33.4-25zm-7 41.2v-32.7s26.2-1.7 26.2 16.5c0 18.1-26.1 16.2-26.1 16.2zM192 54.3a78 78 0 0 0-4-26.2h1.7L234.5 154l110-126h59.3S450 26.8 450 56.5s-38.4 41.2-63 41.2h-10.6l13.8-59.4h-48.3l-20.4 86.4h65.8c63 0 112.8-34.6 112.8-70.4C500 1.3 418.9.6 418.9.6h-102l-64.7 81.6L227 .6H43l-6.7 27.5h61.5c8.7.2 44 2.4 44 28.4 0 29.7-38.4 41.2-62.9 41.2H68.3L82 38.3H33.7l-20.4 86.4h65.8c63 0 112.8-34.6 112.8-70.4z" />
-    </svg>
-  </marquee>
-</marquee>
-<script>
-  'use strict';
-  // Always use HTTPS
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-
-  // Hack to deal with vh going offscreen
-  document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-  window.addEventListener('resize', () => {
-    document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-  });
-  
-  // Select a random color for the logo
-  const colors = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple', 'magenta'];
-  var current = Math.floor(Math.random() * (colors.length - 1));
-  const logo = document.querySelector('.logo>path');
-  logo.style.fill = colors[current];
-  
-  function updateColor() {
-    const next = Math.floor(Math.random() * (colors.length - 1));
-    current = (current === next) ? (next + 1) % (colors.length - 1) : next;
-    logo.style.fill = colors[current];
-  }
-  
-  if ('onbounce' in document.querySelector('.logo-box')) {
-    // Change the logo color on each bounce (only works in Firefox)
-    document.querySelectorAll('marquee').forEach(mq => {
-      mq.addEventListener('bounce', updateColor);
-    });
-  } else {
-    // Just change the color randomly every few seconds
-    function timeoutColor() {
-      updateColor();
-      setTimeout(timeoutColor, Math.random() * 3000 + 3000);
+  <style>
+    :root {
+      --scale: 6;
+      --logo-size: calc(var(--scale) * 1vmin);
+      --logo-width: calc(var(--scale) * 5vmin);
+      --logo-height: calc(var(--scale) * 3vmin);
+      --vh: 1vh;
     }
-    timeoutColor();
-  }
-</script>
+
+    body {
+      background:
+        radial-gradient(
+          circle,
+          rgba(128, 128, 128, 0.2) 0%,
+          rgba(0, 0, 0, 0.1) 100%
+        ),
+        black;
+      margin: 0;
+      overflow: hidden;
+      height: 100vh;
+      height: calc(var(--vh) * 100);
+    }
+
+    .logo-box {
+      height: 100%;
+    }
+
+    .logo {
+      width: var(--logo-width);
+      height: var(--logo-height);
+    }
+  </style>
+  <marquee class="logo-box" direction="down" behavior="alternate">
+    <marquee behavior="alternate">
+      <svg
+        class="logo"
+        xmlns="http://www.w3.org/2000/svg"
+        version="1.1"
+        viewbox="0 0 500 300"
+      >
+        <path
+          d="M469.9 212.1h-14.7l-.4 2.2h6.2l-2.2 17.3h2.6l2.3-17.3h5.7zm10.2 12.8-3.1-12.8h-1.8l-6.7 19.5h2.2l5.4-15.1 3.1 15.1 8-15.1v15.1h2.6v-19.5h-2.6zM76.2 282.1 59 249.7H44.3l27.1 49.7h8.4l27.5-49.7H92.2zm64.8-6.7v24h13.3v-49.7H141zm144 24h36.8V291h-23v-13.3h21.7v-8.5h-21.7v-11h23v-8.5H285zm187-111.3c0-18.6-105.6-33.7-236-33.7S0 169.5 0 188.1s105.7 33.7 236 33.7 236-15 236-33.7zm-298.7.5c0-6.2 24.2-11.1 54.1-11.1s54 5 54 11-24.1 11.1-54 11.1-54-5-54-11zm219 60.9c-19.3 0-35 11.1-35 24.8s15.7 24.8 35 24.8 35-11 35-24.8c0-13.7-15.7-24.8-35-24.8zm0 40.6c-11.5 0-20.8-7-20.8-15.8 0-8.7 9.3-15.7 20.8-15.7s20.8 7 20.8 15.7-9.3 15.8-20.8 15.8zm-177.5-40.4h-21v49.7h21s33.4 0 33.4-24.6-33.4-25-33.4-25zm-7 41.2v-32.7s26.2-1.7 26.2 16.5c0 18.1-26.1 16.2-26.1 16.2zM192 54.3a78 78 0 0 0-4-26.2h1.7L234.5 154l110-126h59.3S450 26.8 450 56.5s-38.4 41.2-63 41.2h-10.6l13.8-59.4h-48.3l-20.4 86.4h65.8c63 0 112.8-34.6 112.8-70.4C500 1.3 418.9.6 418.9.6h-102l-64.7 81.6L227 .6H43l-6.7 27.5h61.5c8.7.2 44 2.4 44 28.4 0 29.7-38.4 41.2-62.9 41.2H68.3L82 38.3H33.7l-20.4 86.4h65.8c63 0 112.8-34.6 112.8-70.4z"
+        />
+      </svg>
+    </marquee>
+  </marquee>
+  <script>
+    "use strict";
+    // Always use HTTPS
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    // Hack to deal with vh going offscreen
+    document.documentElement.style.setProperty(
+      "--vh",
+      `${window.innerHeight * 0.01}px`,
+    );
+    window.addEventListener("resize", () => {
+      document.documentElement.style.setProperty(
+        "--vh",
+        `${window.innerHeight * 0.01}px`,
+      );
+    });
+
+    // Select a random color for the logo
+    const colors = [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple",
+      "magenta",
+    ];
+    var current = Math.floor(Math.random() * (colors.length - 1));
+    const logo = document.querySelector(".logo>path");
+    logo.style.fill = colors[current];
+
+    function updateColor() {
+      const next = Math.floor(Math.random() * (colors.length - 1));
+      current = current === next ? (next + 1) % (colors.length - 1) : next;
+      logo.style.fill = colors[current];
+    }
+
+    if ("onbounce" in document.querySelector(".logo-box")) {
+      // Change the logo color on each bounce (only works in Firefox)
+      document.querySelectorAll("marquee").forEach((mq) => {
+        mq.addEventListener("bounce", updateColor);
+      });
+    } else {
+      // Just change the color randomly every few seconds
+      function timeoutColor() {
+        updateColor();
+        setTimeout(timeoutColor, Math.random() * 3000 + 3000);
+      }
+      timeoutColor();
+    }
+  </script>
+</html>

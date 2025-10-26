@@ -1,13 +1,13 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
+import { defineConfig } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://rowan.fyi',
-  trailingSlash: 'ignore',
+  site: "https://rowan.fyi",
+  trailingSlash: "ignore",
   build: {
-    format: 'directory',
+    format: "directory",
   },
   integrations: [sitemap()],
 });

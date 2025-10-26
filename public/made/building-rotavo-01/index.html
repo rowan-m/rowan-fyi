@@ -13,57 +13,60 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<title>Building Rotavo</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="shortcut icon" href="https://rotavo-pwa.firebaseapp.com/favicon.ico">
+  <meta charset="utf-8" />
+  <title>Building Rotavo</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="shortcut icon"
+    href="https://rotavo-pwa.firebaseapp.com/favicon.ico"
+  />
 
-<style>
-  body {
-    font-family: sans-serif;
-    background: #f2e880;
-    margin-top: 20vh;
-    margin-left: calc(50vw - 5rem);
-  }
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2e880;
+      margin-top: 20vh;
+      margin-left: calc(50vw - 5rem);
+    }
 
-  input-knob::part(container) {
-    display: block;
-    background: #cadbbc;
-    border: 1rem dashed #356211;
-    box-shadow: 0.3rem 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
-    width: 8rem;
-    height: 8rem;
-  }
+    input-knob::part(container) {
+      display: block;
+      background: #cadbbc;
+      border: 1rem dashed #356211;
+      box-shadow: 0.3rem 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
+      width: 8rem;
+      height: 8rem;
+    }
 
-  input-knob.fallback {
-    display: block;
-  }
+    input-knob.fallback {
+      display: block;
+    }
 
-  input-knob.fallback>span.fallback {
-    display: block;
-    background: #cadbbc;
-    border: 1rem dashed #356211;
-    box-shadow: 0.3rem 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
-    width: 8rem;
-    height: 8rem;
-  }
+    input-knob.fallback > span.fallback {
+      display: block;
+      background: #cadbbc;
+      border: 1rem dashed #356211;
+      box-shadow: 0.3rem 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
+      width: 8rem;
+      height: 8rem;
+    }
 
-  input {
-    margin-top: 4rem;
-    width: 10rem;
-  }
-</style>
-  
-<input-knob value="2.5"></input-knob>
-<input type="range" name="angle" min="0" max="6.28" step="0.1" value="1">
+    input {
+      margin-top: 4rem;
+      width: 10rem;
+    }
+  </style>
 
-<script src="https://unpkg.com/@webcomponents/webcomponentsjs"></script>
-<script>
-  const template = document.createElement('template');
-  template.innerHTML = `
+  <input-knob value="2.5"></input-knob>
+  <input type="range" name="angle" min="0" max="6.28" step="0.1" value="1" />
+
+  <script src="https://unpkg.com/@webcomponents/webcomponentsjs"></script>
+  <script>
+    const template = document.createElement("template");
+    template.innerHTML = `
       <style>
         #container {
           display: inline-block;
@@ -74,68 +77,71 @@
       <div id="container" part="container">
         <slot></slot>
       </div>`;
-  
-  window.ShadyCSS && ShadyCSS.prepareTemplate(template, 'input-knob');
 
-  class InputKnob extends HTMLElement {
-    constructor() {
-      super();
-      
-      window.ShadyCSS && ShadyCSS.styleElement(this);
-      this.attachShadow({ mode: 'open' });
-      this.shadowRoot.appendChild(template.content.cloneNode(true));
-      this._container = this.shadowRoot.getElementById('container');
-      this._fallback = null;
-    }
+    window.ShadyCSS && ShadyCSS.prepareTemplate(template, "input-knob");
 
-    static get observedAttributes() {
-      return ['value'];
-    }
+    class InputKnob extends HTMLElement {
+      constructor() {
+        super();
 
-    get value() {
-      return this.hasAttribute('value') ? this.getAttribute('value') : 0;
-    }
+        window.ShadyCSS && ShadyCSS.styleElement(this);
+        this.attachShadow({ mode: "open" });
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        this._container = this.shadowRoot.getElementById("container");
+        this._fallback = null;
+      }
 
-    set value(value) {
-      this.setAttribute('value', value);
-    }
+      static get observedAttributes() {
+        return ["value"];
+      }
 
-    attributeChangedCallback(attrName, oldVal, newVal) {
-      this._drawState();
-    }
+      get value() {
+        return this.hasAttribute("value") ? this.getAttribute("value") : 0;
+      }
 
-    connectedCallback() {
-      if (!this._container.part) {
-        this._fallback = document.createElement('span');
-        this._fallback.style.setProperty('--angle', `${this.value}rad`);
-        this._fallback.style.setProperty('transform', `rotate(var(--angle))`);
-        
-        while (this.childNodes.length > 0) {
-          this._fallback.appendChild(this.childNodes[0]);
+      set value(value) {
+        this.setAttribute("value", value);
+      }
+
+      attributeChangedCallback(attrName, oldVal, newVal) {
+        this._drawState();
+      }
+
+      connectedCallback() {
+        if (!this._container.part) {
+          this._fallback = document.createElement("span");
+          this._fallback.style.setProperty("--angle", `${this.value}rad`);
+          this._fallback.style.setProperty("transform", `rotate(var(--angle))`);
+
+          while (this.childNodes.length > 0) {
+            this._fallback.appendChild(this.childNodes[0]);
+          }
+
+          this._fallback.classList.add("fallback");
+          this.classList.add("fallback");
+          this.append(this._fallback);
         }
-        
-        this._fallback.classList.add('fallback');
-        this.classList.add('fallback');
-        this.append(this._fallback);
+
+        this._drawState();
       }
 
-      this._drawState();
-    }
+      _drawState() {
+        let target = this._container;
 
-    _drawState() {
-      let target = this._container;
-      
-      if (this._fallback !== null) {
+        if (this._fallback !== null) {
           target = this._fallback;
+        }
+
+        target.style.setProperty("--angle", `${this.value}rad`);
       }
-      
-      target.style.setProperty('--angle', `${this.value}rad`);
     }
-  }
 
-  window.customElements.define('input-knob', InputKnob);
+    window.customElements.define("input-knob", InputKnob);
 
-  const knob = document.querySelector('input-knob');
-  const slider = document.querySelector('input[type=range]');
-  slider.addEventListener('input', () => { knob.value = slider.value });
-</script>
+    const knob = document.querySelector("input-knob");
+    const slider = document.querySelector("input[type=range]");
+    slider.addEventListener("input", () => {
+      knob.value = slider.value;
+    });
+  </script>
+</html>

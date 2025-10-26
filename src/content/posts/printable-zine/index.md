@@ -15,8 +15,8 @@ on ➡️ [**`zine-machine.glitch.me`**](https://rowan.fyi/made/zine-machine)
 
 We're going to need two key bits of functionality to make this happen:
 
- - [Print Stylesheets](http://bit.ly/rachel-on-print)
- - [CSS Grid](https://bit.ly/rachel-on-grids)
+- [Print Stylesheets](http://bit.ly/rachel-on-print)
+- [CSS Grid](https://bit.ly/rachel-on-grids)
 
 ## 🏗️ HTML structure
 
@@ -34,6 +34,7 @@ Let's see how we build this up. Step one is a nice, simple, semantic layout for 
   <footer class="zine-page page-8"></footer>
 </main>
 ```
+
 You can style that for the screen however you want, the important bit is that we're going to wrap the styles that are just for screen display in a [media query](https://developer.mozilla.org/en-US/docs/Web/CSS/@media):
 
 ```css
@@ -50,7 +51,7 @@ You can style that for the screen however you want, the important bit is that we
     border-left: 4px solid #741b47;
     border-bottom: 4px solid #741b47;
   }
-  
+
   .zine-page {
     margin-top: 10px;
   }
@@ -85,7 +86,7 @@ To be honest, it's going to be a bit hit or miss as to whether or not the combin
 
 ## 🔲 CSS Grid
 
-Next up, let's create our grid. We've got our `.zine` container which holds each `.zine-page`. 
+Next up, let's create our grid. We've got our `.zine` container which holds each `.zine-page`.
 
 ```css
 .zine {
@@ -122,14 +123,17 @@ Now we're getting somewhere! Let's take a look at the print preview for the page
 That's progress, but we need to flip a few of those pages upside down. That's easy enough with a CSS [`transform`](https://developer.mozilla.org/en-US/docs/Web/CSS/transform):
 
 ```css
-.page-5, .page-4, .page-3, .page-2 {
+.page-5,
+.page-4,
+.page-3,
+.page-2 {
   transform: rotate(180deg);
 }
 ```
 
 ![A basic grid print layout for 8 pages with the correct rotation](https://dev-to-uploads.s3.amazonaws.com/i/l5l1brvglcu6ocp910bz.png)
 
-That's our layout done! Well, almost... when you print it out you need to fold along the edges of the page. You can do this just by folding in half, but let's pop some guidelines in just to make it clear. Now, we *could* go in an but the relevant individual `border` definitions on the edges of each `.zine-page` but frankly that's a lot of work and it's doubly confusing to remember that `border-top` will actually be at the bottom of the rotated pages. So, we're just going to use the simple trick of settings a background colour for our grid, and put gaps between our white pages so that the grid shows through. Simple!
+That's our layout done! Well, almost... when you print it out you need to fold along the edges of the page. You can do this just by folding in half, but let's pop some guidelines in just to make it clear. Now, we _could_ go in an but the relevant individual `border` definitions on the edges of each `.zine-page` but frankly that's a lot of work and it's doubly confusing to remember that `border-top` will actually be at the bottom of the rotated pages. So, we're just going to use the simple trick of settings a background colour for our grid, and put gaps between our white pages so that the grid shows through. Simple!
 
 ```css
 .zine {
@@ -150,12 +154,15 @@ I've made that gap a bit bigger for the screenshot, but there we go!
 There's one slight tweak to the `transform` though:
 
 ```css
-.page-5, .page-4, .page-3, .page-2 {
+.page-5,
+.page-4,
+.page-3,
+.page-2 {
   transform: rotate(180deg) translateX(-0.25px);
 }
 ```
 
-For some reason, the pages don't seem to rotate around their *exact* centre, which means that when the border is visible is doesn't exactly line up either. If like me, that ever so slight but niggling obvious misalignment keeps you lying awake at night then that little bump over from the `translateX` will fix it.
+For some reason, the pages don't seem to rotate around their _exact_ centre, which means that when the border is visible is doesn't exactly line up either. If like me, that ever so slight but niggling obvious misalignment keeps you lying awake at night then that little bump over from the `translateX` will fix it.
 
 ![A basic grid print layout for 8 pages with the correct rotation and border between](https://dev-to-uploads.s3.amazonaws.com/i/qc2mbbc547y27b6ah2ek.png)
 
@@ -163,7 +170,7 @@ That's it! There are plenty of cool things to still do with different content fo
 
 ```css
 @media print {
-  a::after{
+  a::after {
     content: " (" attr(href) ") ";
   }
 }

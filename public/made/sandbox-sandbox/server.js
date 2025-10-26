@@ -1,7 +1,10 @@
-const express = require('express');
+const express = require("express");
 const cp = require("cookie-parser");
 
-const TRUSTED_ORIGINS = ['https://rowan.fyi/made/first-party-sets', 'https://rowan.fyi/made/related-website-sets'];
+const TRUSTED_ORIGINS = [
+  "https://rowan.fyi/made/first-party-sets",
+  "https://rowan.fyi/made/related-website-sets",
+];
 
 const app = express();
 app.use(cp());
@@ -11,22 +14,21 @@ app.use(cp());
  * Personal preference is just to "upgrade" existing HTML files with templated variables
  * Enable the view cache after the demo is published
  */
-const mustacheExpress = require('mustache-express');
-app.engine('html', mustacheExpress());
-app.set('view engine', 'html');
-app.set('views', __dirname + '/public');
-
+const mustacheExpress = require("mustache-express");
+app.engine("html", mustacheExpress());
+app.set("view engine", "html");
+app.set("views", __dirname + "/public");
 
 /*
  * Glitch appears to run in "development" mode, but this is useful if you're moving the code elsewhere
  * Could also enable by default when the code is stable for performance
  */
-if (app.get('env') === 'production') {
-  app.set('view cache', true);
+if (app.get("env") === "production") {
+  app.set("view cache", true);
 }
 
 // Allow server to run correctly behind a proxy
-app.enable('trust proxy');
+app.enable("trust proxy");
 
 /*
  * Redirect requests to HTTPS by default and set the HSTS header.
@@ -34,13 +36,16 @@ app.enable('trust proxy');
  */
 app.use(function (req, res, next) {
   // Allow http://localhost
-  if (req.secure === false && req.hostname === 'localhost') {
+  if (req.secure === false && req.hostname === "localhost") {
     return next();
   }
 
   // Set the HSTS header if we're already on HTTPS
   if (req.secure) {
-    res.set('Strict-Transport-Security', 'max-age=63072000; inlcudeSubdomains; preload');
+    res.set(
+      "Strict-Transport-Security",
+      "max-age=63072000; inlcudeSubdomains; preload",
+    );
     // res.set('Content-Security-Policy',
     //         `script-src https: 'unsafe-inline'; ` +
     //         `object-src 'none'; ` +
@@ -57,7 +62,7 @@ app.use(function (req, res, next) {
   }
 
   // Otherwise redirect to HTTPS
-  res.redirect(301, 'https://' + req.headers.host + req.url);
+  res.redirect(301, "https://" + req.headers.host + req.url);
 });
 
 // TODO - if you need any server-side routes, add them here
@@ -66,29 +71,23 @@ app.use(function (req, res, next) {
 // });
 
 // By default, fall back to serving from the `public` directory
-app.use(express.static('public'));
+app.use(express.static("public"));
 
-app.get('/set-3pc.json', (req, res) => {
-  const origin = req.get('origin');
+app.get("/set-3pc.json", (req, res) => {
+  const origin = req.get("origin");
   if (TRUSTED_ORIGINS.includes(origin)) {
-    res.set(
-      "Access-Control-Allow-Origin",
-      origin,
-    );
+    res.set("Access-Control-Allow-Origin", origin);
     res.set("Access-Control-Allow-Credentials", "true");
   }
   const timestamp = Date.now();
-  res.cookie('3pc', timestamp, {sameSite: 'none', secure: true});
+  res.cookie("3pc", timestamp, { sameSite: "none", secure: true });
   res.json(req.cookies);
 });
 
-app.get('/get-3pc.json', (req, res) => {
-  const origin = req.get('origin');
+app.get("/get-3pc.json", (req, res) => {
+  const origin = req.get("origin");
   if (TRUSTED_ORIGINS.includes(origin)) {
-    res.set(
-      "Access-Control-Allow-Origin",
-      origin,
-    );
+    res.set("Access-Control-Allow-Origin", origin);
     res.set("Access-Control-Allow-Credentials", "true");
   }
   res.json(req.cookies);
@@ -98,15 +97,18 @@ app.get('/get-3pc.json', (req, res) => {
  * Glitch appears to run in "development" mode, but this is useful if you're moving the code elsewhere
  * Could also enable by default when the code is stable for performance
  */
-app.use(express.static('public', { maxAge: '1s' }));
-if (app.get('env') === 'production') {
-  app.use(express.static('public', { maxAge: '1d' }));
+app.use(express.static("public", { maxAge: "1s" }));
+if (app.get("env") === "production") {
+  app.use(express.static("public", { maxAge: "1d" }));
 }
 
 const listener = app.listen(process.env.PORT, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
+  console.log("Your app is listening on port " + listener.address().port);
 
-  if (app.get('env') === 'development') {
-    console.log('If you are running locally, try http://localhost:' + listener.address().port);
+  if (app.get("env") === "development") {
+    console.log(
+      "If you are running locally, try http://localhost:" +
+        listener.address().port,
+    );
   }
 });

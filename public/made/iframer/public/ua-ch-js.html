@@ -1,25 +1,45 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:;base64,iVBORw0KGgo=" />
-<title>UA-CH JS x-origin iframe</title>
-<style>
-  iframe {
-    width: 100%;
-    height: 35rem;
-  }
-</style>
-<h1>UA-CH JS x-origin iframe</h1>
-<p>This demo shows the use of the <code>navigator.userAgentData</code> JavaScript API within a cross-origin <code>iframe</code>.</p>
-<p>Specifically, the JavaScript API is <strong>NOT</strong> affected by setting Permissions Policy headers.
-  These will prevent the browser sending the <code>Sec-CH-UA</code> headers, but the information can still be accessed in JavaScript.</p>
-<p>This top-level page response sends the following headers:</p>
-<pre>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <title>UA-CH JS x-origin iframe</title>
+  <style>
+    iframe {
+      width: 100%;
+      height: 35rem;
+    }
+  </style>
+  <h1>UA-CH JS x-origin iframe</h1>
+  <p>
+    This demo shows the use of the
+    <code>navigator.userAgentData</code> JavaScript API within a cross-origin
+    <code>iframe</code>.
+  </p>
+  <p>
+    Specifically, the JavaScript API is <strong>NOT</strong> affected by setting
+    Permissions Policy headers. These will prevent the browser sending the
+    <code>Sec-CH-UA</code> headers, but the information can still be accessed in
+    JavaScript.
+  </p>
+  <p>This top-level page response sends the following headers:</p>
+  <pre>
 Permissions-Policy: ch-ua=(), ch-ua-platform=(), ch-ua-platform-version=(), ch-ua-full-version=(self "https://rowan.fyi/made/user-agent-client-hints")
 Accept-CH: Sec-CH-UA-Full-Version
-</pre>
-<p>This is explicitly disallowing the default <code>Sec-CH-UA</code> and <code>Sec-CH-UA-Platform</code> hints while
-  allowing and requesting the additional <code>Sec-CH-UA-Full-Version</code> hint. Use of the hint is also delegated to the cross-origin site.</p>
-<p>Open up DevTools in Chrome and you can verify that the request for the <code>iframe</code> does not include the default headers and does include the full version.</p>
-<iframe src="https://rowan.fyi/made/user-agent-client-hints/iframed-js.html"></iframe>
+</pre
+  >
+  <p>
+    This is explicitly disallowing the default <code>Sec-CH-UA</code> and
+    <code>Sec-CH-UA-Platform</code> hints while allowing and requesting the
+    additional <code>Sec-CH-UA-Full-Version</code> hint. Use of the hint is also
+    delegated to the cross-origin site.
+  </p>
+  <p>
+    Open up DevTools in Chrome and you can verify that the request for the
+    <code>iframe</code> does not include the default headers and does include
+    the full version.
+  </p>
+  <iframe
+    src="https://rowan.fyi/made/user-agent-client-hints/iframed-js.html"
+  ></iframe>
+</html>

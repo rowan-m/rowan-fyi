@@ -43,7 +43,7 @@ background-repeat: repeat-x;
 Then we animate the text from fully off the right side of the screen to fully off the left.
 
 ```css
-.lcd-text>span {
+.lcd-text > span {
   animation: marquee 10s steps(20, end) infinite;
 }
 
@@ -72,10 +72,10 @@ for (var i = 0; i < bufferSize; i++) {
   var white = Math.random() * 2 - 1;
   b0 = 0.99886 * b0 + white * 0.0555179;
   b1 = 0.99332 * b1 + white * 0.0750759;
-  b2 = 0.96900 * b2 + white * 0.1538520;
-  b3 = 0.86650 * b3 + white * 0.3104856;
-  b4 = 0.55000 * b4 + white * 0.5329522;
-  b5 = -0.7616 * b5 - white * 0.0168980;
+  b2 = 0.969 * b2 + white * 0.153852;
+  b3 = 0.8665 * b3 + white * 0.3104856;
+  b4 = 0.55 * b4 + white * 0.5329522;
+  b5 = -0.7616 * b5 - white * 0.016898;
   output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
   output[i] *= 0.11; // (roughly) compensate for gain
   b6 = white * 0.115926;
@@ -130,7 +130,7 @@ Get the true experience of returning to the office by sitting in traffic for as 
 - [G_M_D_THREE](https://freesound.org/people/G_M_D_THREE/sounds/513527/)
 - [hyderpotter](https://freesound.org/people/hyderpotter/sounds/268809/)
 - [iainmccurdy](https://freesound.org/people/iainmccurdy/sounds/643125/)
-- [jorgens_](https://freesound.org/people/jorgens_/sounds/770985/)
+- [jorgens\_](https://freesound.org/people/jorgens_/sounds/770985/)
 - [keweldog](https://freesound.org/people/keweldog/sounds/182474/)
 - [LaurenPonder](https://freesound.org/people/LaurenPonder/sounds/635681/)
 - [Robinhood76](https://freesound.org/people/Robinhood76/sounds/106785/)

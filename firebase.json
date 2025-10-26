@@ -1,12 +1,7 @@
 {
   "hosting": {
     "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**",
-      "tmp"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "tmp"],
     "headers": [
       {
         "source": "**",

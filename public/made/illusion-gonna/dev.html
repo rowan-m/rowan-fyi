@@ -1,284 +1,307 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-<!-- <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>"/> -->
-<title>Many circles</title>
-<style>
-  :root {
-    --factor: 2;
-    --outer-radius: 40vmin;
-    --inner-radius: calc(var(--outer-radius) / var(--factor));
-    --anim-base-dur: 8s;
-    --border: .4vmin dashed;
-    --index: 1;
-  }
-  
-  * {
-    box-sizing: border-box;
-  }  
-  
-  body {
-    background: darkslategray;  
-    display: grid;
-    place-items: center;
-    font-family: sans-serif;
-    color: silver;
-  }
-  
-  a {
-    color: silver;
-  }
-  
-  a:visited {
-    color: gray;
-  }
-  
-  .tracks, .squares, .circles {
-    transition: opacity 1s ease;
-  }
-  
-  .hide {
-    opacity: 0;
-  }
-  
-  .circles .circle {
-    border: var(--border) goldenrod;
-  }
-  
-  main {
-    display: grid;
-    place-items: center;
-  }
-  
-  @keyframes rotate {
-    to {
-      transform: rotate(1turn);
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <!-- <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>"/> -->
+  <title>Many circles</title>
+  <style>
+    :root {
+      --factor: 2;
+      --outer-radius: 40vmin;
+      --inner-radius: calc(var(--outer-radius) / var(--factor));
+      --anim-base-dur: 8s;
+      --border: 0.4vmin dashed;
+      --index: 1;
     }
-  }
-  
-  .outer {
-    width: calc(var(--outer-radius) * 2 + 4vmin);
-    height: calc(var(--outer-radius) * 2 + 4vmin);
-    border-radius: 50%;
-    border: var(--border) darkseagreen;
-    position: relative;
-    overflow: hidden;
-  }
 
-  .circles, .squares, .tracks, .points {
-    top: 2vmin;
-    left: 2vmin;
-    width: calc(var(--outer-radius) * 2);
-    height: calc(var(--outer-radius) * 2);
-    position: absolute;
-  }
-  
-  .shared>.spoke {
-    position: absolute;
-    animation: var(--anim-base-dur) linear infinite rotate;
-  }
-  
-  .shared>.spoke:nth-child(1) {
-    transform-origin: center bottom;
-    left: calc(var(--outer-radius) / 2);
-    right: calc(var(--outer-radius) / 2);
-    top: 0;
-    bottom: var(--outer-radius);
-  }
-  
-  .shared>.spoke:nth-child(2) {
-    transform-origin: left center;
-    left: var(--outer-radius);
-    right: 0;
-    top: calc(var(--outer-radius) / 2);
-    bottom: calc(var(--outer-radius) / 2);
-  }
-  
-  .shared>.spoke:nth-child(3) {
-    transform-origin: center top;
-    left: calc(var(--outer-radius) / 2);
-    right: calc(var(--outer-radius) / 2);
-    top: var(--outer-radius);
-    bottom: 0;
-  }
-  
-  .shared>.spoke:nth-child(4) {
-    transform-origin: right center;
-    left: 0;
-    right: var(--outer-radius);
-    top: calc(var(--outer-radius) / 2);
-    bottom: calc(var(--outer-radius) / 2);
-  }
-  
-  .circle {
-    width: calc(var(--inner-radius) * 2);
-    height: calc(var(--inner-radius) * 2);
-    border-radius: 50%;
-    display: grid;
-    align-items: start;
-    justify-items: center;
-    animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite reverse rotate;
-  }
-  
-  .point::before {
-    top: -1vmin;
-    left: -1.25vmin;
-    position: absolute;
-    font-size: 3.5vmin;
-    width: 3.5vmin;
-    height: 3.5vmin;
-    text-shadow: 0 0 1vmin #00000088;
-    animation: calc(var(--anim-base-dur)) linear infinite rotate;
-  }
-  
-  .point {
-    position: absolute;
-    transform-origin: center bottom;
-    height: calc(var(--inner-radius));
-  }
-  
-  .circle>.point {
-    transform: rotate(calc(1turn / 3 * var(--index)));
-  }
-    
-  .squares>.spoke {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    display: grid;
-    align-items: start;
-    justify-items: center;
-    transform: rotate(calc(1turn / 3 * var(--index)));
-  }
-  
-  .spoke>.offset {
-    width: calc(var(--inner-radius) * 2);
-    height: calc(var(--inner-radius) * 2);
-    display: grid;
-    place-items: center;
-    transform-origin: center bottom;
-    animation: var(--anim-base-dur) linear infinite reverse rotate;
-  }
-  
-  .squares>.spoke>.offset>.offset {
-    transform: rotate(calc(15deg + (var(--index) - 1) * 60 ));
-  }
-  
-  .square {
-    width: calc(var(--inner-radius) * 1.4142);
-    height: calc(var(--inner-radius) * 1.4142);
-    animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite rotate;
-    border: var(--border) lightsteelblue;
-  }
-  
-  .track {
-    position: absolute;
-    left: 50%;
-    right: 50%;
-    top: 0;
-    bottom: 0;
-    border-left: var(--border) teal;
-    transform: rotate(calc(1turn/24 * var(--index)));
-  }
-  
-  nav {
-    margin: 1rem;
-  }
-  
-  button {
-    padding: .5rem;
-    margin: .5rem;
-    font-size: 3vmin;
-  }
-</style>
-<!-- <h1>Many circles</h1> -->
-<main>
-  <div class="outer">
-    <div class="tracks border hide">
-      <div class="track" style="--index: 1"></div>
-      <div class="track" style="--index: 2"></div>
-      <div class="track" style="--index: 3"></div>
-      <div class="track" style="--index: 4"></div>
-      <div class="track" style="--index: 5"></div>
-      <div class="track" style="--index: 6"></div>
-      <div class="track" style="--index: 7"></div>
-      <div class="track" style="--index: 8"></div>
-      <div class="track" style="--index: 9"></div>
-      <div class="track" style="--index: 10"></div>
-      <div class="track" style="--index: 11"></div>
-      <div class="track" style="--index: 12"></div>
-    </div>
-    <div class="squares border hide">
-      <div class="spoke" style="--index: 1">
-        <div class="offset"><div class="offset"><div class="square"></div></div></div>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: darkslategray;
+      display: grid;
+      place-items: center;
+      font-family: sans-serif;
+      color: silver;
+    }
+
+    a {
+      color: silver;
+    }
+
+    a:visited {
+      color: gray;
+    }
+
+    .tracks,
+    .squares,
+    .circles {
+      transition: opacity 1s ease;
+    }
+
+    .hide {
+      opacity: 0;
+    }
+
+    .circles .circle {
+      border: var(--border) goldenrod;
+    }
+
+    main {
+      display: grid;
+      place-items: center;
+    }
+
+    @keyframes rotate {
+      to {
+        transform: rotate(1turn);
+      }
+    }
+
+    .outer {
+      width: calc(var(--outer-radius) * 2 + 4vmin);
+      height: calc(var(--outer-radius) * 2 + 4vmin);
+      border-radius: 50%;
+      border: var(--border) darkseagreen;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .circles,
+    .squares,
+    .tracks,
+    .points {
+      top: 2vmin;
+      left: 2vmin;
+      width: calc(var(--outer-radius) * 2);
+      height: calc(var(--outer-radius) * 2);
+      position: absolute;
+    }
+
+    .shared > .spoke {
+      position: absolute;
+      animation: var(--anim-base-dur) linear infinite rotate;
+    }
+
+    .shared > .spoke:nth-child(1) {
+      transform-origin: center bottom;
+      left: calc(var(--outer-radius) / 2);
+      right: calc(var(--outer-radius) / 2);
+      top: 0;
+      bottom: var(--outer-radius);
+    }
+
+    .shared > .spoke:nth-child(2) {
+      transform-origin: left center;
+      left: var(--outer-radius);
+      right: 0;
+      top: calc(var(--outer-radius) / 2);
+      bottom: calc(var(--outer-radius) / 2);
+    }
+
+    .shared > .spoke:nth-child(3) {
+      transform-origin: center top;
+      left: calc(var(--outer-radius) / 2);
+      right: calc(var(--outer-radius) / 2);
+      top: var(--outer-radius);
+      bottom: 0;
+    }
+
+    .shared > .spoke:nth-child(4) {
+      transform-origin: right center;
+      left: 0;
+      right: var(--outer-radius);
+      top: calc(var(--outer-radius) / 2);
+      bottom: calc(var(--outer-radius) / 2);
+    }
+
+    .circle {
+      width: calc(var(--inner-radius) * 2);
+      height: calc(var(--inner-radius) * 2);
+      border-radius: 50%;
+      display: grid;
+      align-items: start;
+      justify-items: center;
+      animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite
+        reverse rotate;
+    }
+
+    .point::before {
+      top: -1vmin;
+      left: -1.25vmin;
+      position: absolute;
+      font-size: 3.5vmin;
+      width: 3.5vmin;
+      height: 3.5vmin;
+      text-shadow: 0 0 1vmin #00000088;
+      animation: calc(var(--anim-base-dur)) linear infinite rotate;
+    }
+
+    .point {
+      position: absolute;
+      transform-origin: center bottom;
+      height: calc(var(--inner-radius));
+    }
+
+    .circle > .point {
+      transform: rotate(calc(1turn / 3 * var(--index)));
+    }
+
+    .squares > .spoke {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      display: grid;
+      align-items: start;
+      justify-items: center;
+      transform: rotate(calc(1turn / 3 * var(--index)));
+    }
+
+    .spoke > .offset {
+      width: calc(var(--inner-radius) * 2);
+      height: calc(var(--inner-radius) * 2);
+      display: grid;
+      place-items: center;
+      transform-origin: center bottom;
+      animation: var(--anim-base-dur) linear infinite reverse rotate;
+    }
+
+    .squares > .spoke > .offset > .offset {
+      transform: rotate(calc(15deg + (var(--index) - 1) * 60));
+    }
+
+    .square {
+      width: calc(var(--inner-radius) * 1.4142);
+      height: calc(var(--inner-radius) * 1.4142);
+      animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite
+        rotate;
+      border: var(--border) lightsteelblue;
+    }
+
+    .track {
+      position: absolute;
+      left: 50%;
+      right: 50%;
+      top: 0;
+      bottom: 0;
+      border-left: var(--border) teal;
+      transform: rotate(calc(1turn / 24 * var(--index)));
+    }
+
+    nav {
+      margin: 1rem;
+    }
+
+    button {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      font-size: 3vmin;
+    }
+  </style>
+  <!-- <h1>Many circles</h1> -->
+  <main>
+    <div class="outer">
+      <div class="tracks border hide">
+        <div class="track" style="--index: 1"></div>
+        <div class="track" style="--index: 2"></div>
+        <div class="track" style="--index: 3"></div>
+        <div class="track" style="--index: 4"></div>
+        <div class="track" style="--index: 5"></div>
+        <div class="track" style="--index: 6"></div>
+        <div class="track" style="--index: 7"></div>
+        <div class="track" style="--index: 8"></div>
+        <div class="track" style="--index: 9"></div>
+        <div class="track" style="--index: 10"></div>
+        <div class="track" style="--index: 11"></div>
+        <div class="track" style="--index: 12"></div>
       </div>
-      <div class="spoke" style="--index: 2">
-        <div class="offset"><div class="offset"><div class="square"></div></div></div>
-      </div>
-      <div class="spoke" style="--index: 3">
-        <div class="offset"><div class="offset"><div class="square"></div></div></div>
-      </div>
-    </div>
-    <div class="circles shared border hide">
-      <div class="spoke"><div class="circle"></div></div>
-      <div class="spoke"><div class="circle"></div></div>
-      <div class="spoke"><div class="circle"></div></div>
-      <div class="spoke"><div class="circle"></div></div>
-    </div>
-    <div class="points shared">
-      <div class="spoke">
-        <div class="circle">
-          <div class="point" style="--index: 1">🟠</div>
-          <div class="point" style="--index: 2">🟧</div>
-          <div class="point" style="--index: 3">🧡</div>
+      <div class="squares border hide">
+        <div class="spoke" style="--index: 1">
+          <div class="offset">
+            <div class="offset"><div class="square"></div></div>
+          </div>
+        </div>
+        <div class="spoke" style="--index: 2">
+          <div class="offset">
+            <div class="offset"><div class="square"></div></div>
+          </div>
+        </div>
+        <div class="spoke" style="--index: 3">
+          <div class="offset">
+            <div class="offset"><div class="square"></div></div>
+          </div>
         </div>
       </div>
-      <div class="spoke">
-        <div class="circle">
-          <div class="point" style="--index: 1">🟣</div>
-          <div class="point" style="--index: 2">🟪</div>
-          <div class="point" style="--index: 3">💜</div>
-        </div>
+      <div class="circles shared border hide">
+        <div class="spoke"><div class="circle"></div></div>
+        <div class="spoke"><div class="circle"></div></div>
+        <div class="spoke"><div class="circle"></div></div>
+        <div class="spoke"><div class="circle"></div></div>
       </div>
-      <div class="spoke">
-        <div class="circle">
-          <div class="point" style="--index: 1">🟢</div>
-          <div class="point" style="--index: 2">🟩</div>
-          <div class="point" style="--index: 3">💚</div>
+      <div class="points shared">
+        <div class="spoke">
+          <div class="circle">
+            <div class="point" style="--index: 1">🟠</div>
+            <div class="point" style="--index: 2">🟧</div>
+            <div class="point" style="--index: 3">🧡</div>
+          </div>
         </div>
-      </div>
-      <div class="spoke">
-        <div class="circle">
-          <div class="point" style="--index: 1">🔵</div>
-          <div class="point" style="--index: 2">🟦</div>
-          <div class="point" style="--index: 3">💙</div>
+        <div class="spoke">
+          <div class="circle">
+            <div class="point" style="--index: 1">🟣</div>
+            <div class="point" style="--index: 2">🟪</div>
+            <div class="point" style="--index: 3">💜</div>
+          </div>
+        </div>
+        <div class="spoke">
+          <div class="circle">
+            <div class="point" style="--index: 1">🟢</div>
+            <div class="point" style="--index: 2">🟩</div>
+            <div class="point" style="--index: 3">💚</div>
+          </div>
+        </div>
+        <div class="spoke">
+          <div class="circle">
+            <div class="point" style="--index: 1">🔵</div>
+            <div class="point" style="--index: 2">🟦</div>
+            <div class="point" style="--index: 3">💙</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  
-</main>
-<nav>
-  <button class="tracks-butt">📏 Tracks</button>
-  <button class="circles-butt">⭕ Circles</button>
-  <button class="squares-butt">🔲 Squares</button>
-</nav>
-<footer>🧑‍💻 <a href="https://glitch.com/edit/#!/illusion-gonna?path=index.html">Code</a> 🐦 <a href="https://twitter.com/rowan_m">@rowan_m</a></footer>
-<script>
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-  
-  document.querySelector('button.tracks-butt').addEventListener('click', () => {
-    document.querySelector('.tracks').classList.toggle('hide');
-  });
-  document.querySelector('button.circles-butt').addEventListener('click', () => {
-    document.querySelector('.circles').classList.toggle('hide');
-  });
-  document.querySelector('button.squares-butt').addEventListener('click', () => {
-    document.querySelector('.squares').classList.toggle('hide');
-  });
-</script>
+  </main>
+  <nav>
+    <button class="tracks-butt">📏 Tracks</button>
+    <button class="circles-butt">⭕ Circles</button>
+    <button class="squares-butt">🔲 Squares</button>
+  </nav>
+  <footer>
+    🧑‍💻
+    <a href="https://glitch.com/edit/#!/illusion-gonna?path=index.html">Code</a>
+    🐦 <a href="https://twitter.com/rowan_m">@rowan_m</a>
+  </footer>
+  <script>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    document
+      .querySelector("button.tracks-butt")
+      .addEventListener("click", () => {
+        document.querySelector(".tracks").classList.toggle("hide");
+      });
+    document
+      .querySelector("button.circles-butt")
+      .addEventListener("click", () => {
+        document.querySelector(".circles").classList.toggle("hide");
+      });
+    document
+      .querySelector("button.squares-butt")
+      .addEventListener("click", () => {
+        document.querySelector(".squares").classList.toggle("hide");
+      });
+  </script>
+</html>

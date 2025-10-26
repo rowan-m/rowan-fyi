@@ -1,146 +1,164 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐚</text></svg>">
-<title>Strange attractions</title>
-<style>
-  body {
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐚</text></svg>"
+  />
+  <title>Strange attractions</title>
+  <style>
+    body {
       margin: 0;
       padding: 0;
       font-family: sans-serif;
       background: #010110;
       color: oldlace;
-  }
-  
-  h1 {
-    font-size: 1rem;
-    font-weight: normal;
-    margin: 0;
-    padding: 0 1rem 0 1rem;
-  }
-  
-  a, a:active, a:hover, a:visited {
-    color: oldlace;
-  }
-  
-  header {
-    display: flex;
-    gap: 2rem;
-    flex-flow: row wrap;
-  }
-  
-  main {
-    width: 100vw;
-    height: 90vh;
-  }
-  
-  canvas.viz {
-    width: 100%;
-    height: 100%;
-  }
-</style>
-<header>
-  <h1>Strange attractions</h1>
-  <a href="https://rowan.fyi/lorenz-attractor">👋 From rowan.fyi</a>
-</header>
-<main><canvas class="viz"></canvas></main>
-<script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
     }
-  }
-</script>
-<script type="module">
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-  
-  import * as THREE from 'three';
-  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-  const canvas = document.querySelector('canvas.viz');
-  let w = canvas.offsetWidth;
-  let h = canvas.offsetHeight;
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera( 75, w / h, 0.1, 1000 );
-  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-  renderer.setPixelRatio( window.devicePixelRatio );
-  
-  function resize() {
-    w = canvas.offsetWidth;
-    h = canvas.offsetHeight;
-    canvas.width = w;
-    canvas.height = h;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h, false);
-  }
-
-  resize();
-  window.addEventListener('resize', resize);
-  
-  const material = new THREE.LineBasicMaterial( { vertexColors: true } );
-
-  const maxTracers = 300;
-  const maxSegments = 10;
-  const tracers = [];
-
-  for (let i = 0; i < maxTracers; i++) {
-    
-    const x = Math.random() * 20 - 10;
-    const y = Math.random() * 20 - 10;
-    const z = Math.random() * 20 - 10;
-    const segments = [];
-    const colors = [];
-    
-    for (let j = 0; j < maxSegments*3; j++) {
-      segments.push(x, y, z);
-      colors.push(0, 0, 0);
+    h1 {
+      font-size: 1rem;
+      font-weight: normal;
+      margin: 0;
+      padding: 0 1rem 0 1rem;
     }
-    
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(segments, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    const tracer = new THREE.LineSegments(geometry, material);
-    tracers.push(tracer);
-    scene.add(tracer);
-    
-  }
-  
-  camera.position.z = 100;
-  
-  const controls = new OrbitControls(camera, renderer.domElement);
-  
-  function animate() {
-    tracers.forEach((tracer) => {
-      const x = tracer.geometry.getAttribute('position').getX(0);
-      const y = tracer.geometry.getAttribute('position').getY(0);
-      const z = tracer.geometry.getAttribute('position').getZ(0);
-      const dx = 10 * (y - x);
-      const dy = x * (28 - z) - y;
-      const dz = x*y - (8/3) * z;
-      
-      const segments = tracer.geometry.getAttribute('position').array;
-      segments.set(segments.subarray(0, -3), 3);
-      segments.set([x + .005*dx, y + .005*dy, z + .005*dz]);
-      
-      const colors = tracer.geometry.getAttribute('color').array;
-      colors.set(colors.subarray(0, -3), 3);
-      colors.set([Math.abs(Math.atan2(dx, dy) / (Math.PI * 2)), Math.abs(Math.atan2(dy, dz) / (Math.PI * 2)), Math.abs(Math.atan2(dz, dx) / (Math.PI * 2))]);
-      
-      tracer.geometry.getAttribute('position').copyArray(segments);
-      tracer.geometry.getAttribute('position').needsUpdate = true;
-      tracer.geometry.getAttribute('color').copyArray(colors);
-      tracer.geometry.getAttribute('color').needsUpdate = true;
+
+    a,
+    a:active,
+    a:hover,
+    a:visited {
+      color: oldlace;
+    }
+
+    header {
+      display: flex;
+      gap: 2rem;
+      flex-flow: row wrap;
+    }
+
+    main {
+      width: 100vw;
+      height: 90vh;
+    }
+
+    canvas.viz {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <header>
+    <h1>Strange attractions</h1>
+    <a href="https://rowan.fyi/lorenz-attractor">👋 From rowan.fyi</a>
+  </header>
+  <main><canvas class="viz"></canvas></main>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+    const canvas = document.querySelector("canvas.viz");
+    let w = canvas.offsetWidth;
+    let h = canvas.offsetHeight;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
     });
-    
-    renderer.render( scene, camera );
-  }
-  
-  renderer.setAnimationLoop( animate );
-</script>
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    function resize() {
+      w = canvas.offsetWidth;
+      h = canvas.offsetHeight;
+      canvas.width = w;
+      canvas.height = h;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    const material = new THREE.LineBasicMaterial({ vertexColors: true });
+
+    const maxTracers = 300;
+    const maxSegments = 10;
+    const tracers = [];
+
+    for (let i = 0; i < maxTracers; i++) {
+      const x = Math.random() * 20 - 10;
+      const y = Math.random() * 20 - 10;
+      const z = Math.random() * 20 - 10;
+      const segments = [];
+      const colors = [];
+
+      for (let j = 0; j < maxSegments * 3; j++) {
+        segments.push(x, y, z);
+        colors.push(0, 0, 0);
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(segments, 3),
+      );
+      geometry.setAttribute(
+        "color",
+        new THREE.Float32BufferAttribute(colors, 3),
+      );
+      const tracer = new THREE.LineSegments(geometry, material);
+      tracers.push(tracer);
+      scene.add(tracer);
+    }
+
+    camera.position.z = 100;
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    function animate() {
+      tracers.forEach((tracer) => {
+        const x = tracer.geometry.getAttribute("position").getX(0);
+        const y = tracer.geometry.getAttribute("position").getY(0);
+        const z = tracer.geometry.getAttribute("position").getZ(0);
+        const dx = 10 * (y - x);
+        const dy = x * (28 - z) - y;
+        const dz = x * y - (8 / 3) * z;
+
+        const segments = tracer.geometry.getAttribute("position").array;
+        segments.set(segments.subarray(0, -3), 3);
+        segments.set([x + 0.005 * dx, y + 0.005 * dy, z + 0.005 * dz]);
+
+        const colors = tracer.geometry.getAttribute("color").array;
+        colors.set(colors.subarray(0, -3), 3);
+        colors.set([
+          Math.abs(Math.atan2(dx, dy) / (Math.PI * 2)),
+          Math.abs(Math.atan2(dy, dz) / (Math.PI * 2)),
+          Math.abs(Math.atan2(dz, dx) / (Math.PI * 2)),
+        ]);
+
+        tracer.geometry.getAttribute("position").copyArray(segments);
+        tracer.geometry.getAttribute("position").needsUpdate = true;
+        tracer.geometry.getAttribute("color").copyArray(colors);
+        tracer.geometry.getAttribute("color").needsUpdate = true;
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    renderer.setAnimationLoop(animate);
+  </script>
+</html>

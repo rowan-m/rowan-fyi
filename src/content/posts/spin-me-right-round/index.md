@@ -1,5 +1,5 @@
 ---
-title: 'Building Rotavo part 1: You spin me right r⟳und'
+title: "Building Rotavo part 1: You spin me right r⟳und"
 pubDate: 2019-07-08
 description: How to build a touch-sensitive rotating knob web component.
 image: 0xs99uvmp539mke9v2pm.png
@@ -12,17 +12,17 @@ None of the cool kids are into skeuomorphism any more, but that doesn’t mean t
 
 ## Contents
 
-  * [🎛️ Sliders, tapes, and dials](#sliders-tapes-and-dials)
-  * [⚛️ A basic Custom Element](#a-basic-custom-element)
-  * [👻 Enter the Shadow DOM](#enter-the-shadow-dom)
-  * [🚧 Browser support](#browser-support)
-  * [🤝 Handle touch](#handle-touch)
-  * [👆 Pointer Events and default behaviour](#pointer-events-and-default-behaviour)
-  * [📐 Touching trigonometry](#touching-trigonometry)
-  * [🔄 A touching demo](#a-touching-demo)
-  * [🚧 Oh wait… browser support](#oh-wait-browser-support)
-  * [🖌️ Painting and performance](#painting-and-performance)
-  * [🏆 Bonus content](#bonus-content)
+- [🎛️ Sliders, tapes, and dials](#sliders-tapes-and-dials)
+- [⚛️ A basic Custom Element](#a-basic-custom-element)
+- [👻 Enter the Shadow DOM](#enter-the-shadow-dom)
+- [🚧 Browser support](#browser-support)
+- [🤝 Handle touch](#handle-touch)
+- [👆 Pointer Events and default behaviour](#pointer-events-and-default-behaviour)
+- [📐 Touching trigonometry](#touching-trigonometry)
+- [🔄 A touching demo](#a-touching-demo)
+- [🚧 Oh wait… browser support](#oh-wait-browser-support)
+- [🖌️ Painting and performance](#painting-and-performance)
+- [🏆 Bonus content](#bonus-content)
 
 ## 🎛️ Sliders, tapes, and dials
 
@@ -59,7 +59,7 @@ We're going to start simple: an element with a single `value` attribute. A Custo
 For convenience, we're going to map the attribute on the HTML element to the JavaScript class as well so that we can do things like this:
 
 ```javascript
-const knob = document.querySelector('input-knob');
+const knob = document.querySelector("input-knob");
 knob.value = 2;
 ```
 
@@ -75,16 +75,16 @@ class InputKnob extends HTMLElement {
 
   // Watch for changes on the 'value' attribute
   static get observedAttributes() {
-    return ['value'];
+    return ["value"];
   }
 
   // Map the JavaScript property to the HTML attribute
   get value() {
-    return this.hasAttribute('value') ? this.getAttribute('value') : 0;
+    return this.hasAttribute("value") ? this.getAttribute("value") : 0;
   }
 
   set value(value) {
-    this.setAttribute('value', value);
+    this.setAttribute("value", value);
   }
 
   // Respond to any changes to the observed attributes
@@ -94,7 +94,7 @@ class InputKnob extends HTMLElement {
 }
 
 // Map the class to an element name and make it available to the page!
-window.customElements.define('input-knob', InputKnob);
+window.customElements.define("input-knob", InputKnob);
 ```
 
 Now, if you load that up in the browser you will see… nothing. Nothing on the page and nothing in the console. Nothing is displaying, but also - nothing is explicitly broken. We've successfully attached a new element in the page, but all we've created is an empty element. So, it's working in the same way that adding an empty `<span>` to a page "works". Conveniently though, our new `<input-knob>` element can be styled just like anything else on the page - let's make things a bit more obvious.
@@ -164,7 +164,7 @@ input-knob::part(container) {
 Back to our element, now we know what structure we want it's time to drop that in a template our element can use. We'll define that just outside the `InputKnob` class:
 
 ```javascript
-const template = document.createElement('template');
+const template = document.createElement("template");
 template.innerHTML = `
   <style>
     #container {
@@ -183,9 +183,9 @@ Next we want to add a shadow root to our element and clone that template into it
 class InputKnob extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-    this._container = this.shadowRoot.getElementById('container');
+    this._container = this.shadowRoot.getElementById("container");
   } // ✂️ rest of the class omitted
 }
 ```
@@ -222,10 +222,12 @@ Ok, ok - you're underwhelmed, I should give you something interactive. Let's bri
 <input-knob value="2.5"></input-knob>
 <input type="range" name="angle" min="0" max="6.28" step="0.1" value="1" />
 <script>
-  const knob = document.querySelector('input-knob');
-  const slider = document.querySelector('input[type=range]');
+  const knob = document.querySelector("input-knob");
+  const slider = document.querySelector("input[type=range]");
   // Just take the value from the slider and set it straight on the knob
-  slider.addEventListener('input', () => { knob.value = slider.value; });
+  slider.addEventListener("input", () => {
+    knob.value = slider.value;
+  });
 </script>
 ```
 
@@ -249,12 +251,12 @@ Don't get lulled into a false sense of security - it gets dirty now. I couldn't 
 // connectedCallback()
 if (!this._container.part) {
   // create a <span>
-  const wrapper = document.createElement('span');
+  const wrapper = document.createElement("span");
   // move this element's child nodes into it
   wrapper.append(...this.childNodes);
   // add the classes
-  wrapper.classList.add('fallback');
-  this.classList.add('fallback');
+  wrapper.classList.add("fallback");
+  this.classList.add("fallback");
   // and add the wrapper into this element
   this.append(wrapper);
 }
@@ -267,7 +269,7 @@ input-knob.fallback {
   display: block;
 }
 
-input-knob.fallback>span.fallback {
+input-knob.fallback > span.fallback {
   display: block;
   background: #cadbbc;
   border: 1rem dashed #356211;
@@ -306,23 +308,25 @@ class InputKnob extends HTMLElement {
 
   connectedCallback() {
     // Listen for pointerdown events when the element is connected to the page
-    this.addEventListener('pointerdown', this._onPointerdown);
+    this.addEventListener("pointerdown", this._onPointerdown);
   }
 
   disconnectedCallback() {
     // And stop listening if the element is removed
-    this.removeEventListener('pointerdown', this._onPointerdown);
+    this.removeEventListener("pointerdown", this._onPointerdown);
   }
 
   _onPointerdown(e) {
     e.preventDefault();
     // A long press can bring up the context menu, we want to disable that when
     // the user is controlling the element
-    window.oncontextmenu = () => { return false; };
+    window.oncontextmenu = () => {
+      return false;
+    };
     // Only add listeners for the other events once interaction has started
-    this.addEventListener('pointermove', this._onPointermove);
-    this.addEventListener('pointerup', this._onPointerup);
-    this.addEventListener('pointercancel', this._onPointerup);
+    this.addEventListener("pointermove", this._onPointermove);
+    this.addEventListener("pointerup", this._onPointerup);
+    this.addEventListener("pointercancel", this._onPointerup);
   }
 
   _onPointermove(e) {
@@ -338,9 +342,9 @@ class InputKnob extends HTMLElement {
     // Release the pointer we captured earlier
     this.releasePointerCapture(e.pointerId);
     // Remove all our listeners
-    this.removeEventListener('pointermove', this._onPointermove);
-    this.removeEventListener('pointerup', this._onPointerup);
-    this.removeEventListener('pointercancel', this._onPointerup);
+    this.removeEventListener("pointermove", this._onPointermove);
+    this.removeEventListener("pointerup", this._onPointerup);
+    this.removeEventListener("pointercancel", this._onPointerup);
   }
 }
 ```
@@ -399,7 +403,7 @@ Next we need the starting angle of the touch away from a zero rotation. We can v
 // _onPointerdown(e)
 this._initialTouchAngle = Math.atan2(
   this._touchY - this._centerY,
-  this._touchX - this._centerX
+  this._touchX - this._centerX,
 );
 ```
 
@@ -419,11 +423,11 @@ this._touchX = e.clientX;
 this._touchY = e.clientY;
 this._angle =
   // initial rotation of the element
-  this._initialAngle
+  this._initialAngle -
   // subtract the starting touch angle
-  - this._initialTouchAngle
+  this._initialTouchAngle +
   // add the current touch angle
-  + Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
+  Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
 // Normalise value back into a 2π range
 this._angle = (this._angle + TWO_PI) % TWO_PI;
 // Done, update the value!
@@ -478,11 +482,11 @@ We also need to hook up the new listeners if we can't use Pointer Events:
 
 ```javascript
 // connectedCallback()
-if ('PointerEvent' in window) {
-  this.addEventListener('pointerdown', this._onPointerdown);
+if ("PointerEvent" in window) {
+  this.addEventListener("pointerdown", this._onPointerdown);
 } else {
-  this.addEventListener('touchstart', this._onTouchstart);
-  this.addEventListener('mousedown', this._onMousedown);
+  this.addEventListener("touchstart", this._onTouchstart);
+  this.addEventListener("mousedown", this._onMousedown);
 }
 ```
 
@@ -490,11 +494,11 @@ And clean up when we're done:
 
 ```javascript
 // disconnectedCallback
-if ('PointerEvent' in window) {
-  this.removeEventListener('pointerdown', this._onPointerdown);
+if ("PointerEvent" in window) {
+  this.removeEventListener("pointerdown", this._onPointerdown);
 } else {
-  this.removeEventListener('touchstart', this._onTouchstart);
-  this.removeEventListener('mousedown', this._onMousedown);
+  this.removeEventListener("touchstart", this._onTouchstart);
+  this.removeEventListener("mousedown", this._onMousedown);
 }
 ```
 

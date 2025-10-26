@@ -1,428 +1,512 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍪</text></svg>">
-<title>Cookie recipes</title>
-<style>
-  * {
-    box-sizing: border-box;
-    white-space: nowrap;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍪</text></svg>"
+  />
+  <title>Cookie recipes</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      white-space: nowrap;
+    }
 
-  body {
-    font-family: sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: wheat;
-  }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: wheat;
+    }
 
-  header {
-    background-color: wheat;
-    color: black;
-    border-bottom: 2px solid chocolate;
-    display: flex;
-    align-items: center;
-  }
+    header {
+      background-color: wheat;
+      color: black;
+      border-bottom: 2px solid chocolate;
+      display: flex;
+      align-items: center;
+    }
 
-  h1 {
-    margin: 0;
-    padding: 4px 8px 4px 8px;
-    font-weight: 100;
-    font-size: 16px;
-  }
+    h1 {
+      margin: 0;
+      padding: 4px 8px 4px 8px;
+      font-weight: 100;
+      font-size: 16px;
+    }
 
-  h2 {
-    margin: 0;
-    padding: 4px 8px 4px 8px;
-    font-weight: 100;
-    font-size: 16px;
-    background-color: linen;
-  }
+    h2 {
+      margin: 0;
+      padding: 4px 8px 4px 8px;
+      font-weight: 100;
+      font-size: 16px;
+      background-color: linen;
+    }
 
-  .cookie-mix,
-  .ingredients {
-    background-color: snow;
-    border-bottom: 2px solid linen;
-  }
+    .cookie-mix,
+    .ingredients {
+      background-color: snow;
+      border-bottom: 2px solid linen;
+    }
 
-  .cookie-attributes,
-  .cookie-attributes input[type="text"],
-  .cookie-attributes input[type="number"],
-  .cookie-attributes select,
-  button.action {
-    font-family: monospace;
-    font-size: 20px;
-    font-weight: normal;
-  }
+    .cookie-attributes,
+    .cookie-attributes input[type="text"],
+    .cookie-attributes input[type="number"],
+    .cookie-attributes select,
+    button.action {
+      font-family: monospace;
+      font-size: 20px;
+      font-weight: normal;
+    }
 
-  .assignment input[type="text"],
-  .assignment input[type="number"] {
-    max-width: 24vw;
-  }
+    .assignment input[type="text"],
+    .assignment input[type="number"] {
+      max-width: 24vw;
+    }
 
-  .cookie-attributes {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: start;
-    margin: 8px;
-  }
+    .cookie-attributes {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      justify-content: start;
+      margin: 8px;
+    }
 
-  .cookie-attributes>div {
-    display: flex;
-    align-items: baseline;
-  }
+    .cookie-attributes > div {
+      display: flex;
+      align-items: baseline;
+    }
 
-  .cookie-attributes>.set {
-    margin: 1px 0 0 0;
-    padding: 4px;
-  }
+    .cookie-attributes > .set {
+      margin: 1px 0 0 0;
+      padding: 4px;
+    }
 
-  .set {
-    /* transition when becoming set, i.e. appearing */
-    transition: opacity 1000ms ease-out, transform 1000ms ease-out, background-color 3000ms ease-out;
-    background-color: snow;
-    opacity: 1;
-    width: auto;
-    height: auto;
-    visibility: visible;
-  }
+    .set {
+      /* transition when becoming set, i.e. appearing */
+      transition:
+        opacity 1000ms ease-out,
+        transform 1000ms ease-out,
+        background-color 3000ms ease-out;
+      background-color: snow;
+      opacity: 1;
+      width: auto;
+      height: auto;
+      visibility: visible;
+    }
 
-  .unset {
-    opacity: .01;
-    width: 0;
-    height: 0;
-    visibility: hidden;
-  }
+    .unset {
+      opacity: 0.01;
+      width: 0;
+      height: 0;
+      visibility: hidden;
+    }
 
-  .cookie-mix .unset {
-    transform: translateY(10px);
-    background-color: lightgreen;
-  }
+    .cookie-mix .unset {
+      transform: translateY(10px);
+      background-color: lightgreen;
+    }
 
-  .ingredients .unset {
-    transform: translateY(-10px);
-    background-color: lightcoral;
-  }
+    .ingredients .unset {
+      transform: translateY(-10px);
+      background-color: lightcoral;
+    }
 
+    .cookie-attributes input[type="text"],
+    .cookie-attributes input[type="number"],
+    .cookie-attributes select {
+      display: inline-block;
+      margin: 0 1px 0 0;
+      width: 20ch;
+      background: linen;
+      border: 2px dashed wheat;
+    }
 
-  .cookie-attributes input[type="text"],
-  .cookie-attributes input[type="number"],
-  .cookie-attributes select {
-    display: inline-block;
-    margin: 0 1px 0 0;
-    width: 20ch;
-    background: linen;
-    border: 2px dashed wheat;
-  }
+    .cookie-attributes input[type="text"]:focus,
+    .cookie-attributes input[type="number"]:focus,
+    select {
+      border: 2px solid wheat;
+      outline: 0;
+    }
 
-  .cookie-attributes input[type="text"]:focus,
-  .cookie-attributes input[type="number"]:focus,
-  select {
-    border: 2px solid wheat;
-    outline: 0;
-  }
+    .cookie-attributes select {
+      width: 11ch;
+    }
 
-  .cookie-attributes select {
-    width: 11ch;
-  }
+    button.action {
+      display: inline-block;
+      user-select: none;
+      font-weight: 900;
+      margin: 0 8px 0 0;
+      padding: 2px;
+      border: 0;
+      border-radius: 5%;
+      border: 2px solid wheat;
+      color: chocolate;
+      background-color: linen;
+      outline: 0;
+      box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, 0.2);
+    }
 
-  button.action {
-    display: inline-block;
-    user-select: none;
-    font-weight: 900;
-    margin: 0 8px 0 0;
-    padding: 2px;
-    border: 0;
-    border-radius: 5%;
-    border: 2px solid wheat;
-    color: chocolate;
-    background-color: linen;
-    outline: 0;
-    box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .2);
-  }
+    button.action:hover,
+    button.action:focus {
+      box-shadow: none;
+    }
 
-  button.action:hover,
-  button.action:focus {
-    box-shadow: none;
-  }
-
-  button.action:active {
-    transform: scale(0.9);
-  }
-</style>
-<header>
-  <h1>Cookie 🍪 recipes</h1>
-</header>
-<main>
-  <section class="cookie-mix">
-    <h2>Cookie mix</h2>
-    <form class="cookie-attributes">
-      <div><code>Set-Cookie:</code></div>
-      <div class="assignment set"><span class="prefix">
-          <button class="action" type="submit" name="toggle-prefix">-</button><select name="prefix">
+    button.action:active {
+      transform: scale(0.9);
+    }
+  </style>
+  <header>
+    <h1>Cookie 🍪 recipes</h1>
+  </header>
+  <main>
+    <section class="cookie-mix">
+      <h2>Cookie mix</h2>
+      <form class="cookie-attributes">
+        <div><code>Set-Cookie:</code></div>
+        <div class="assignment set">
+          <span class="prefix">
+            <button class="action" type="submit" name="toggle-prefix">-</button
+            ><select name="prefix">
+              <option value="__Host-">__Host-</option>
+              <option value="__Secure-">__Secure-</option>
+            </select>
+          </span>
+          <input type="text" name="name" value="ckname" /><code>=</code
+          ><input type="text" name="value" value="ckvalue" /><code>;</code>
+        </div>
+        <div class="secure">
+          <button class="action" type="submit" name="toggle-secure">-</button
+          ><code>Secure</code><code>;</code>
+        </div>
+        <div class="domain">
+          <button class="action" type="submit" name="toggle-domain">-</button
+          ><code>Domain</code><code>=</code
+          ><input type="text" name="domain" value="localhost" /><code>;</code>
+        </div>
+        <div class="path">
+          <button class="action" type="submit" name="toggle-path">-</button
+          ><code>Path</code><code>=</code
+          ><input type="text" name="path" value="/" /><code>;</code>
+        </div>
+        <div class="httponly">
+          <button class="action" type="submit" name="toggle-httponly">-</button
+          ><code>HttpOnly</code><code>;</code>
+        </div>
+        <div class="samesite">
+          <button class="action" type="submit" name="toggle-samesite">-</button
+          ><code>SameSite</code><code>=</code>
+          <select name="samesite">
+            <option value="Lax">Lax</option>
+            <option value="Strict">Strict</option>
+            <option value="None">None</option>
+          </select>
+          <code>;</code>
+        </div>
+        <div class="maxage">
+          <button class="action" type="submit" name="toggle-maxage">-</button
+          ><code>Max-Age</code><code>=</code
+          ><input type="number" name="maxage" min="0" value="604800" /><code
+            >;</code
+          >
+        </div>
+        <div class="expires">
+          <button class="action" type="submit" name="toggle-expires">-</button
+          ><code>Expires</code><code>=</code
+          ><input
+            type="text"
+            name="expires"
+            value="Tue, 02 Apr 2024 23:06:42 GMT"
+          /><code>;</code>
+        </div>
+      </form>
+    </section>
+    <section class="ingredients">
+      <h2>Available ingredients</h2>
+      <form class="cookie-attributes">
+        <div class="prefix">
+          <button class="action" type="submit" name="toggle-prefix">+</button
+          ><select name="prefix">
             <option value="__Host-">__Host-</option>
             <option value="__Secure-">__Secure-</option>
           </select>
-        </span>
-        <input type="text" name="name" value="ckname"><code>=</code><input type="text" name="value" value="ckvalue"><code>;</code>
-      </div>
-      <div class="secure"><button class="action" type="submit" name="toggle-secure">-</button><code>Secure</code><code>;</code></div>
-      <div class="domain"><button class="action" type="submit" name="toggle-domain">-</button><code>Domain</code><code>=</code><input type="text" name="domain" value="localhost"><code>;</code></div>
-      <div class="path"><button class="action" type="submit" name="toggle-path">-</button><code>Path</code><code>=</code><input type="text" name="path" value="/"><code>;</code></div>
-      <div class="httponly"><button class="action" type="submit" name="toggle-httponly">-</button><code>HttpOnly</code><code>;</code></div>
-      <div class="samesite"><button class="action" type="submit" name="toggle-samesite">-</button><code>SameSite</code><code>=</code>
-        <select name="samesite">
-          <option value="Lax">Lax</option>
-          <option value="Strict">Strict</option>
-          <option value="None">None</option>
-        </select>
-        <code>;</code>
-      </div>
-      <div class="maxage"><button class="action" type="submit" name="toggle-maxage">-</button><code>Max-Age</code><code>=</code><input type="number" name="maxage" min="0" value="604800"><code>;</code></div>
-      <div class="expires"><button class="action" type="submit" name="toggle-expires">-</button><code>Expires</code><code>=</code><input type="text" name="expires" value="Tue, 02 Apr 2024 23:06:42 GMT"><code>;</code></div>
-    </form>
-  </section>
-  <section class="ingredients">
-    <h2>Available ingredients</h2>
-    <form class="cookie-attributes">
-      <div class="prefix"><button class="action" type="submit" name="toggle-prefix">+</button><select name="prefix">
-          <option value="__Host-">__Host-</option>
-          <option value="__Secure-">__Secure-</option>
-        </select>
-      </div>
-      <div class="secure"><button class="action" type="submit" name="toggle-secure">+</button><code>Secure</code><code>;</code></div>
-      <div class="domain"><button class="action" type="submit" name="toggle-domain">+</button><code>Domain</code><code>=</code><input type="text" name="domain" value="localhost"><code>;</code></div>
-      <div class="path"><button class="action" type="submit" name="toggle-path">+</button><code>Path</code><code>=</code><input type="text" name="path" value="/"><code>;</code></div>
-      <div class="httponly"><button class="action" type="submit" name="toggle-httponly">+</button><code>HttpOnly</code><code>;</code></div>
-      <div class="samesite"><button class="action" type="submit" name="toggle-samesite">+</button><code>SameSite</code><code>=</code>
-        <select name="samesite">
-          <option value="Lax">Lax</option>
-          <option value="Strict">Strict</option>
-          <option value="None">None</option>
-        </select>
-        <code>;</code>
-      </div>
-      <div class="maxage"><button class="action" type="submit" name="toggle-maxage">+</button><code>Max-Age</code><code>=</code><input type="number" name="maxage" min="0" value="604800"><code>;</code></div>
-      <div class="expires"><button class="action" type="submit" name="toggle-expires">+</button><code>Expires</code><code>=</code><input type="text" name="expires" value="Mon, 01 Apr 2024 12:34:56 GMT"><code>;</code></div>
-    </form>
-  </section>
-</main>
-<script>
-  'use strict';
+        </div>
+        <div class="secure">
+          <button class="action" type="submit" name="toggle-secure">+</button
+          ><code>Secure</code><code>;</code>
+        </div>
+        <div class="domain">
+          <button class="action" type="submit" name="toggle-domain">+</button
+          ><code>Domain</code><code>=</code
+          ><input type="text" name="domain" value="localhost" /><code>;</code>
+        </div>
+        <div class="path">
+          <button class="action" type="submit" name="toggle-path">+</button
+          ><code>Path</code><code>=</code
+          ><input type="text" name="path" value="/" /><code>;</code>
+        </div>
+        <div class="httponly">
+          <button class="action" type="submit" name="toggle-httponly">+</button
+          ><code>HttpOnly</code><code>;</code>
+        </div>
+        <div class="samesite">
+          <button class="action" type="submit" name="toggle-samesite">+</button
+          ><code>SameSite</code><code>=</code>
+          <select name="samesite">
+            <option value="Lax">Lax</option>
+            <option value="Strict">Strict</option>
+            <option value="None">None</option>
+          </select>
+          <code>;</code>
+        </div>
+        <div class="maxage">
+          <button class="action" type="submit" name="toggle-maxage">+</button
+          ><code>Max-Age</code><code>=</code
+          ><input type="number" name="maxage" min="0" value="604800" /><code
+            >;</code
+          >
+        </div>
+        <div class="expires">
+          <button class="action" type="submit" name="toggle-expires">+</button
+          ><code>Expires</code><code>=</code
+          ><input
+            type="text"
+            name="expires"
+            value="Mon, 01 Apr 2024 12:34:56 GMT"
+          /><code>;</code>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script>
+    "use strict";
 
-  class CookieAttr {
-    constructor(name, value, enabled) {
-      this.name = name;
-      this.value = value;
-      this.enabled = enabled;
-    }
-  }
-
-  class Cookie {
-    constructor(config) {
-      if (config) {
-        this.config = config;
-      } else {
-        this.config = {
-          prefix: new CookieAttr('prefix', '__Host-', false),
-          name: new CookieAttr('name', 'ckname', true),
-          value: new CookieAttr('value', 'ckvalue', true),
-          secure: new CookieAttr('Secure', 'Secure', false),
-          domain: new CookieAttr('Domain', '', false),
-          path: new CookieAttr('Path', '/', false),
-          httponly: new CookieAttr('HttpOnly', 'HttpOnly', false),
-          samesite: new CookieAttr('SameSite', 'Lax', false),
-          maxage: new CookieAttr('Max-Age', '604800', false),
-          expires: new CookieAttr('Expires', new Date(Date.now() + 604800).toUTCString(), false),
-        };
+    class CookieAttr {
+      constructor(name, value, enabled) {
+        this.name = name;
+        this.value = value;
+        this.enabled = enabled;
       }
     }
 
-    getAttr(name) {
-      return this.config[name].value;
-    }
+    class Cookie {
+      constructor(config) {
+        if (config) {
+          this.config = config;
+        } else {
+          this.config = {
+            prefix: new CookieAttr("prefix", "__Host-", false),
+            name: new CookieAttr("name", "ckname", true),
+            value: new CookieAttr("value", "ckvalue", true),
+            secure: new CookieAttr("Secure", "Secure", false),
+            domain: new CookieAttr("Domain", "", false),
+            path: new CookieAttr("Path", "/", false),
+            httponly: new CookieAttr("HttpOnly", "HttpOnly", false),
+            samesite: new CookieAttr("SameSite", "Lax", false),
+            maxage: new CookieAttr("Max-Age", "604800", false),
+            expires: new CookieAttr(
+              "Expires",
+              new Date(Date.now() + 604800).toUTCString(),
+              false,
+            ),
+          };
+        }
+      }
 
-    setAttr(name, value) {
-      this.config[name].value = value;
+      getAttr(name) {
+        return this.config[name].value;
+      }
 
-      if (this.config[name].enabled) {
+      setAttr(name, value) {
+        this.config[name].value = value;
+
+        if (this.config[name].enabled) {
+          this.validEnabled(name);
+        } else {
+          this.validDisabled(name);
+        }
+      }
+
+      enableAttr(name) {
+        this.config[name].enabled = true;
         this.validEnabled(name);
-      } else {
+      }
+
+      validEnabled(name) {
+        switch (name) {
+          case "prefix":
+            if (this.config.prefix.value === "__Host-") {
+              this.config.secure.value = "Secure";
+              this.config.secure.enabled = true;
+              this.config.path.value = "/";
+              this.config.path.enabled = true;
+              this.config.domain.enabled = false;
+            } else if (this.config.prefix.value === "__Secure-") {
+              this.config.secure.value = "Secure";
+              this.config.secure.enabled = true;
+            }
+            break;
+
+          case "samesite":
+            if (this.config.samesite.value === "None") {
+              this.config.secure.value = "Secure";
+              this.config.secure.enabled = true;
+            }
+            break;
+
+          case "path":
+            if (
+              this.config.path.value != "/" &&
+              this.config.prefix.value === "__Host-"
+            ) {
+              this.config.prefix.enabled = false;
+            }
+            break;
+
+          case "domain":
+            if (this.config.prefix.value === "__Host-") {
+              this.config.prefix.enabled = false;
+            }
+            break;
+
+          default:
+            break;
+        }
+      }
+
+      disableAttr(name) {
+        this.config[name].enabled = false;
         this.validDisabled(name);
       }
-    }
 
-    enableAttr(name) {
-      this.config[name].enabled = true;
-      this.validEnabled(name);
-    }
-
-    validEnabled(name) {
-      switch (name) {
-        case 'prefix':
-          if (this.config.prefix.value === '__Host-') {
-            this.config.secure.value = 'Secure';
-            this.config.secure.enabled = true;
-            this.config.path.value = '/';
-            this.config.path.enabled = true;
-            this.config.domain.enabled = false;
-          } else if (this.config.prefix.value === '__Secure-') {
-            this.config.secure.value = 'Secure';
-            this.config.secure.enabled = true;
-          }
-          break;
-
-        case 'samesite':
-          if (this.config.samesite.value === 'None') {
-            this.config.secure.value = 'Secure';
-            this.config.secure.enabled = true;
-          }
-          break;
-
-        case 'path':
-          if (this.config.path.value != '/' && this.config.prefix.value === '__Host-') {
+      validDisabled(name) {
+        switch (name) {
+          case "secure":
             this.config.prefix.enabled = false;
-          }
-          break;
 
-        case 'domain':
-          if (this.config.prefix.value === '__Host-') {
-            this.config.prefix.enabled = false;
-          }
-          break;
+            if (this.config.samesite.value === "None") {
+              this.config.samesite.enabled = false;
+            }
+            break;
 
-        default:
-          break;
-      }
-    }
+          case "path":
+            if (this.config.prefix.value === "__Host-") {
+              this.config.prefix.enabled = false;
+            }
+            break;
 
-    disableAttr(name) {
-      this.config[name].enabled = false;
-      this.validDisabled(name);
-    }
-
-    validDisabled(name) {
-      switch (name) {
-        case 'secure':
-          this.config.prefix.enabled = false;
-
-          if (this.config.samesite.value === 'None') {
-            this.config.samesite.enabled = false;
-          }
-          break;
-
-        case 'path':
-          if (this.config.prefix.value === '__Host-') {
-            this.config.prefix.enabled = false;
-          }
-          break;
-
-        default:
-          break;
-      }
-    }
-
-    toggleAttr(name) {
-      if (this.config[name].enabled) {
-        this.disableAttr(name);
-      } else {
-        this.enableAttr(name);
-      }
-    }
-  }
-
-  class CookieForm {
-    constructor(cookie, form, matchSet) {
-      this.cookie = cookie;
-      this.form = form;
-      this.enabledClass = (matchSet) ? 'set' : 'unset';
-      this.disabledClass = (matchSet) ? 'unset' : 'set';
-
-      this.setAttr = this.setAttr.bind(this);
-      this.toggleAttr = this.toggleAttr.bind(this);
-    }
-
-    addListeners() {
-      this.form.addEventListener('input', e => {
-        this.setAttr(e.target.name, e.target.value);
-      });
-      this.form.addEventListener('submit', e => {
-        e.preventDefault();
-        this.toggleAttr(e.target.name.substring('toggle-'.length));
-      });
-    }
-
-    setAttr(name, value) {
-      this.cookie.setAttr(name, value);
-    }
-
-    toggleAttr(name) {
-      this.cookie.toggleAttr(name);
-    }
-
-    updateFromCookie() {
-      for (const [attrName, cookieAttr] of Object.entries(this.cookie.config)) {
-        const attrEl = this.form.querySelector('.' + attrName);
-
-        if (attrEl) {
-          if (cookieAttr.enabled) {
-            attrEl.classList.add(this.enabledClass);
-            attrEl.classList.remove(this.disabledClass);
-          } else {
-            attrEl.classList.remove(this.enabledClass);
-            attrEl.classList.add(this.disabledClass);
-          }
+          default:
+            break;
         }
+      }
 
-        const valEl = this.form.querySelector(`[name="${attrName}"]`);
-
-        if (valEl) {
-          valEl.value = cookieAttr.value;
+      toggleAttr(name) {
+        if (this.config[name].enabled) {
+          this.disableAttr(name);
+        } else {
+          this.enableAttr(name);
         }
       }
     }
-  }
 
-  const cookie = new Cookie();
-  cookie.setAttr('prefix', '__Host-');
-  cookie.enableAttr('prefix');
-  cookie.enableAttr('httponly');
-  cookie.setAttr('samesite', 'Lax');
-  cookie.enableAttr('samesite');
+    class CookieForm {
+      constructor(cookie, form, matchSet) {
+        this.cookie = cookie;
+        this.form = form;
+        this.enabledClass = matchSet ? "set" : "unset";
+        this.disabledClass = matchSet ? "unset" : "set";
 
-  const addedAttrFormEl = document.querySelector('.cookie-mix .cookie-attributes');
-  const addedAttrForm = new CookieForm(cookie, addedAttrFormEl, true);
-  const availAttrFormEl = document.querySelector('.ingredients .cookie-attributes');
-  const availAttrForm = new CookieForm(cookie, availAttrFormEl, false);
+        this.setAttr = this.setAttr.bind(this);
+        this.toggleAttr = this.toggleAttr.bind(this);
+      }
 
-  addedAttrForm.updateFromCookie();
-  availAttrForm.updateFromCookie();
+      addListeners() {
+        this.form.addEventListener("input", (e) => {
+          this.setAttr(e.target.name, e.target.value);
+        });
+        this.form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          this.toggleAttr(e.target.name.substring("toggle-".length));
+        });
+      }
 
-  addedAttrFormEl.addEventListener('input', e => {
-    addedAttrForm.setAttr(e.target.name, e.target.value);
+      setAttr(name, value) {
+        this.cookie.setAttr(name, value);
+      }
+
+      toggleAttr(name) {
+        this.cookie.toggleAttr(name);
+      }
+
+      updateFromCookie() {
+        for (const [attrName, cookieAttr] of Object.entries(
+          this.cookie.config,
+        )) {
+          const attrEl = this.form.querySelector("." + attrName);
+
+          if (attrEl) {
+            if (cookieAttr.enabled) {
+              attrEl.classList.add(this.enabledClass);
+              attrEl.classList.remove(this.disabledClass);
+            } else {
+              attrEl.classList.remove(this.enabledClass);
+              attrEl.classList.add(this.disabledClass);
+            }
+          }
+
+          const valEl = this.form.querySelector(`[name="${attrName}"]`);
+
+          if (valEl) {
+            valEl.value = cookieAttr.value;
+          }
+        }
+      }
+    }
+
+    const cookie = new Cookie();
+    cookie.setAttr("prefix", "__Host-");
+    cookie.enableAttr("prefix");
+    cookie.enableAttr("httponly");
+    cookie.setAttr("samesite", "Lax");
+    cookie.enableAttr("samesite");
+
+    const addedAttrFormEl = document.querySelector(
+      ".cookie-mix .cookie-attributes",
+    );
+    const addedAttrForm = new CookieForm(cookie, addedAttrFormEl, true);
+    const availAttrFormEl = document.querySelector(
+      ".ingredients .cookie-attributes",
+    );
+    const availAttrForm = new CookieForm(cookie, availAttrFormEl, false);
+
     addedAttrForm.updateFromCookie();
     availAttrForm.updateFromCookie();
-  });
 
-  addedAttrFormEl.addEventListener('submit', e => {
-    e.preventDefault();
-    addedAttrForm.toggleAttr(e.submitter.name.substring('toggle-'.length));
-    addedAttrForm.updateFromCookie();
-    availAttrForm.updateFromCookie();
-  });
+    addedAttrFormEl.addEventListener("input", (e) => {
+      addedAttrForm.setAttr(e.target.name, e.target.value);
+      addedAttrForm.updateFromCookie();
+      availAttrForm.updateFromCookie();
+    });
 
-  availAttrFormEl.addEventListener('input', e => {
-    availAttrForm.setAttr(e.target.name, e.target.value);
-    availAttrForm.updateFromCookie();
-    addedAttrForm.updateFromCookie();
-  });
+    addedAttrFormEl.addEventListener("submit", (e) => {
+      e.preventDefault();
+      addedAttrForm.toggleAttr(e.submitter.name.substring("toggle-".length));
+      addedAttrForm.updateFromCookie();
+      availAttrForm.updateFromCookie();
+    });
 
-  availAttrFormEl.addEventListener('submit', e => {
-    e.preventDefault();
-    availAttrForm.toggleAttr(e.submitter.name.substring('toggle-'.length));
-    availAttrForm.updateFromCookie();
-    addedAttrForm.updateFromCookie();
-  });
-</script>
+    availAttrFormEl.addEventListener("input", (e) => {
+      availAttrForm.setAttr(e.target.name, e.target.value);
+      availAttrForm.updateFromCookie();
+      addedAttrForm.updateFromCookie();
+    });
+
+    availAttrFormEl.addEventListener("submit", (e) => {
+      e.preventDefault();
+      availAttrForm.toggleAttr(e.submitter.name.substring("toggle-".length));
+      availAttrForm.updateFromCookie();
+      addedAttrForm.updateFromCookie();
+    });
+  </script>
+</html>

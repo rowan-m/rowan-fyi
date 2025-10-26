@@ -1,52 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-<title>User-Agent Client Hints</title>
-<style>
-  pre.input {
-    color: hsl(300, 24%, 40%);
-    font-style: italic;
-    font-weight: 400;
-    padding-bottom: 0;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <title>User-Agent Client Hints</title>
+  <style>
+    pre.input {
+      color: hsl(300, 24%, 40%);
+      font-style: italic;
+      font-weight: 400;
+      padding-bottom: 0;
+    }
 
-  pre.input::before {
-    content: "> ";
-    color: hsl(300, 24%, 70%);
-  }
-</style>
+    pre.input::before {
+      content: "> ";
+      color: hsl(300, 24%, 70%);
+    }
+  </style>
   <pre class="input">console.log(navigator.userAgentData.brands);</pre>
   <pre class="brands" disabled>[…]</pre>
   <pre class="input">console.log(navigator.userAgentData.mobile);</pre>
   <pre class="mobile" disabled>[…]</pre>
   <pre class="input">console.log(navigator.userAgentData.platform);</pre>
   <pre class="platform" disabled>[…]</pre>
-  <pre class="input">navigator.userAgentData
+  <pre class="input">
+navigator.userAgentData
 .getHighEntropyValues(["architecture", "bitness", "model", "platform", "platformVersion", "uaFullVersion", "fullVersionList"])
-.then(ua =&gt; { console.log(ua) });</pre>
+.then(ua =&gt; { console.log(ua) });</pre
+  >
   <pre class="high-entropy" disabled></pre>
   <pre class="input">console.log(navigator.userAgent);</pre>
   <pre class="user-agent" disabled>[…]</pre>
-<script>
-  'use strict';
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-    location.protocol = 'https:';
-  }
-  const brandsText = document.querySelector('.brands');
-  brandsText.textContent = JSON.stringify(navigator.userAgentData.brands, null, '  ');
-  const platform = document.querySelector('.platform');
-  platform.textContent = navigator.userAgentData.platform;
-  const mobileText = document.querySelector('.mobile');
-  mobileText.textContent = (navigator.userAgentData.mobile) ? 'true' : 'false';
+  <script>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+    const brandsText = document.querySelector(".brands");
+    brandsText.textContent = JSON.stringify(
+      navigator.userAgentData.brands,
+      null,
+      "  ",
+    );
+    const platform = document.querySelector(".platform");
+    platform.textContent = navigator.userAgentData.platform;
+    const mobileText = document.querySelector(".mobile");
+    mobileText.textContent = navigator.userAgentData.mobile ? "true" : "false";
 
-  const highEntropyText = document.querySelector('.high-entropy');
-  navigator.userAgentData
-    .getHighEntropyValues(['architecture', 'bitness', 'brands', 'mobile', 'model', 'platform', 'platformVersion', 'uaFullVersion', 'fullVersionList'])
-    .then(ua => {
-      highEntropyText.textContent = JSON.stringify(ua, null, '  ');
-    });
+    const highEntropyText = document.querySelector(".high-entropy");
+    navigator.userAgentData
+      .getHighEntropyValues([
+        "architecture",
+        "bitness",
+        "brands",
+        "mobile",
+        "model",
+        "platform",
+        "platformVersion",
+        "uaFullVersion",
+        "fullVersionList",
+      ])
+      .then((ua) => {
+        highEntropyText.textContent = JSON.stringify(ua, null, "  ");
+      });
 
-  document.querySelector('.user-agent').textContent = navigator.userAgent;
-</script>
+    document.querySelector(".user-agent").textContent = navigator.userAgent;
+  </script>
+</html>

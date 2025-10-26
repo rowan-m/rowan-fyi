@@ -1,308 +1,350 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" href="data:;base64,iVBORw0KGgo=">
-<title>Strange Attraction</title>
-<style>
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-    color: whitesmoke;
-    background: rgb(20, 20, 20);
-    font-family: sans-serif;
-    font-size: 0.8rem;
-  }
-  
-  header {
-    padding: 0.4rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0.2);
-  }
-  
-  h1 {
-    font-weight: 100;
-    font-size: 0.8rem;
-  }
-  
-  a {
-    color: palegoldenrod;
-  }
-  
-  main {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    user-select: none;
-    touch-action: none;
-    z-index: -10;
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: space-around;
-    align-items: center;
-  }
-
-  canvas {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    z-index: -30;
-  }
-  
-  nav {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-  
-  form {
-    position: relative;
-    padding: 0.4rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-evenly;
-    align-items: center;
-    align-content: center;
-    font-size: 1rem;
-  }
-  
-  button {
-    padding: 0.6rem;
-    margin: 0.6rem;
-  }
-</style>
-<header>
-  <h1>Strange Attraction</h1>
-  <section>
-    <a href="https://glitch.com/edit/#!/strangely?path=index.html">🧑‍💻 Code</a>
-    <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a>
-  </section>
-</header>
-<main>
-  <canvas class="strange-canvas"></canvas>
-</main>
-<nav>
-  <form>
-    <button type="button" class="saveimage">💾</button>
-    <button type="button" class="toggle-pp">⏸️</button>
-    <button type="button" class="shuffle">🔀</button>
-  </form>
-</nav>
-<script>
-  'use strict';
-  
-  if (location.protocol !== 'https:') {
-    location.replace(`https:${location.href.substring(location.protocol.length)}`);
-  }
-  
-  document.querySelector('.saveimage').addEventListener('click', e => {
-    const d = new Date();
-    const timestamp = '' + d.getFullYear() + d.getMonth() + d.getDay() + d.getHours() + d.getMinutes() + d.getSeconds();
-    
-    const tmpA = document.createElement('a');
-    tmpA.href = document.querySelector('canvas').toDataURL('image/png').replace('image/png', 'image/octet-stream');
-    tmpA.target = '_blank';
-    tmpA.download = `strange-attraction-${timestamp}.png`;
-    tmpA.click();
-  });
-  
-  class StrangeCanvas {
-    constructor(cvs) {
-      this.tick = this.tick.bind(this);
-      this.handleResize = this.handleResize.bind(this);
-      this.togglePP = this.togglePP.bind(this);
-      this.play = this.play.bind(this);
-      this.pause = this.pause.bind(this);
-      this.shuffle = this.shuffle.bind(this);
-      
-      this.as = [0, 0, 0, 0, 0, 0];
-      this.fs = [0, 0, 0, 0, 0, 0];
-      this.a  = [0, 0, 0, 0, 0, 0];
-      this.f  = [0, 0, 0, 0, 0, 0];
-      this.max = 6;
-      this.varoffset = 0;
-      this.hueoffset = 0;
-      this.state = 'playing';
-      
-      this.updateFromUrl();
-      // this.updateHistory();
-      
-      this.cvs = cvs;
-      this.ctx = this.cvs.getContext('2d');
-      
-      
-      this.handleResize(null);
-      window.addEventListener('resize', this.handleResize, {passive: true});
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <title>Strange Attraction</title>
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    handleResize(e) {
-      this.w = this.cvs.getBoundingClientRect().width;
-      this.h = this.cvs.getBoundingClientRect().height;
-      this.cvs.width = Math.floor(this.w * window.devicePixelRatio);
-      this.cvs.height = Math.floor(this.h * window.devicePixelRatio);
-      
-      this.scale = Math.min(this.w, this.h) / (this.max * 2.1);
-      this.huescale = (360 / (this.max));
-      this.x = 0;
-      this.y = 0;
+    body {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      color: whitesmoke;
+      background: rgb(20, 20, 20);
+      font-family: sans-serif;
+      font-size: 0.8rem;
+    }
 
-      this.initCtx();
+    header {
+      padding: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgba(0, 0, 0, 0.2);
     }
-    
-    initCtx() {
-      this.ctx.translate(0, 0);
-      this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-      this.ctx.fillStyle = 'hsla(0, 0%, 10%, 1.0)';
-      this.dotSize = 0.6 * window.devicePixelRatio;
-      this.ctx.fillRect(0, 0, this.w, this.h);
-      this.ctx.translate(Math.floor(this.w/2), Math.floor(this.h/2));
+
+    h1 {
+      font-weight: 100;
+      font-size: 0.8rem;
     }
-    
-    updateFromUrl() {
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.forEach(function (value, key) {
-        switch (key) {
-          case 'a':
-            this.a = parseFloat(value);
-            break;
-          case 'b':
-            this.b = parseFloat(value);
-            break;
-          case 'c':
-            this.c= parseFloat(value);
-            break;
-          case 'd':
-            this.d = parseFloat(value);
-            break;
-          case 'ho':
-            this.hueoffset = parseFloat(value);
-            break;
-        }
-      }, this);
+
+    a {
+      color: palegoldenrod;
     }
-    
-    async updateHistory() {
-      history.replaceState(null, 'Strange Attraction',
-        `?a=${this.a}&b=${this.b}&c=${this.c}&d=${this.d}&ho=${this.hueoffset}`
+
+    main {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      user-select: none;
+      touch-action: none;
+      z-index: -10;
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    canvas {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: -30;
+    }
+
+    nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    form {
+      position: relative;
+      padding: 0.4rem;
+      background-color: rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-evenly;
+      align-items: center;
+      align-content: center;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 0.6rem;
+      margin: 0.6rem;
+    }
+  </style>
+  <header>
+    <h1>Strange Attraction</h1>
+    <section>
+      <a href="https://glitch.com/edit/#!/strangely?path=index.html">🧑‍💻 Code</a>
+      <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a>
+    </section>
+  </header>
+  <main>
+    <canvas class="strange-canvas"></canvas>
+  </main>
+  <nav>
+    <form>
+      <button type="button" class="saveimage">💾</button>
+      <button type="button" class="toggle-pp">⏸️</button>
+      <button type="button" class="shuffle">🔀</button>
+    </form>
+  </nav>
+  <script>
+    "use strict";
+
+    if (location.protocol !== "https:") {
+      location.replace(
+        `https:${location.href.substring(location.protocol.length)}`,
       );
     }
-    
-    handleChange(e) {
-      let val = parseFloat(e.target.value);
-      
-      switch (e.target.name) {
-        case 'a':
-          this.a = (isNaN(val)) ? 0 : val;
-          break;
-        case 'b':
-          this.b = (isNaN(val)) ? 0 : val;
-          break;
-        case 'c':
-          this.c = (isNaN(val)) ? 0 : val;
-          break;
-        case 'd':
-          this.d = (isNaN(val)) ? 0 : val;
-          break;
-      }
-      
-      this.updateHistory();
-    }
-    
-    update(t) {
-      const nx = this.a[0] * Math.cos(this.x * this.f[0])
-               + this.a[1] * Math.sin(this.y * this.f[1]);
-               // + this.a[2] * Math.cos(this.t * this.f[2]);
-      const ny = this.a[3] * Math.sin(this.x * this.f[3])
-               + this.a[4] * Math.cos(this.y * this.f[4]);
-               // + this.a[5] * Math.sin(this.t * this.f[5]);
 
-      // const nx = Math.sin(this.f[0] * this.y)
-      //          + Math.cos(this.f[0] * this.x) * this.a[0];
-      // const ny = Math.sin(this.f[1] * this.x) 
-      //          + Math.cos(this.f[1] * this.y) * this.a[1];
- 
-      // const nx = Math.sin(this.x * this.y / this.a[0]) * this.y + Math.cos(this.a[1] * this.x - this.y);
-      // const ny = this.x + Math.sin(this.y) / this.a[0];
+    document.querySelector(".saveimage").addEventListener("click", (e) => {
+      const d = new Date();
+      const timestamp =
+        "" +
+        d.getFullYear() +
+        d.getMonth() +
+        d.getDay() +
+        d.getHours() +
+        d.getMinutes() +
+        d.getSeconds();
 
-      const hue = (Math.hypot(this.x - nx, this.y - ny) * this.huescale + this.hueoffset) % 360;
-      const ang = Math.atan2(this.x - nx, this.y - ny);
-      this.dotSize = Math.abs(ang);
-      this.x = nx;
-      this.y = ny;
-      this.ctx.fillStyle = `hsla(${hue}, 30%, 60%, 1.0)`;
-      this.ctx.beginPath();
-      this.ctx.arc(this.x*this.scale, this.y*this.scale, this.dotSize, 0, 2 * Math.PI);
-      this.ctx.fill();
-    }
-    
-    tick(t) {
-      this.t = 0;
-      this.a.forEach((v, i) => { this.a[i] = 3 * Math.sin(this.as[i] + this.varoffset); });
-      this.f.forEach((v, i) => { this.f[i] = 1 * Math.cos(this.fs[i] + this.varoffset); });
-      
-      this.ctx.fillStyle = 'hsla(0, 0%, 9%, 0.02)';
-      this.ctx.fillRect(-Math.floor(this.w/2), -Math.floor(this.h/2), this.w, this.h);
-      while(performance.now() - t < 12) {
-        this.update(t);
-        this.t += .5;
+      const tmpA = document.createElement("a");
+      tmpA.href = document
+        .querySelector("canvas")
+        .toDataURL("image/png")
+        .replace("image/png", "image/octet-stream");
+      tmpA.target = "_blank";
+      tmpA.download = `strange-attraction-${timestamp}.png`;
+      tmpA.click();
+    });
+
+    class StrangeCanvas {
+      constructor(cvs) {
+        this.tick = this.tick.bind(this);
+        this.handleResize = this.handleResize.bind(this);
+        this.togglePP = this.togglePP.bind(this);
+        this.play = this.play.bind(this);
+        this.pause = this.pause.bind(this);
+        this.shuffle = this.shuffle.bind(this);
+
+        this.as = [0, 0, 0, 0, 0, 0];
+        this.fs = [0, 0, 0, 0, 0, 0];
+        this.a = [0, 0, 0, 0, 0, 0];
+        this.f = [0, 0, 0, 0, 0, 0];
+        this.max = 6;
+        this.varoffset = 0;
+        this.hueoffset = 0;
+        this.state = "playing";
+
+        this.updateFromUrl();
+        // this.updateHistory();
+
+        this.cvs = cvs;
+        this.ctx = this.cvs.getContext("2d");
+
+        this.handleResize(null);
+        window.addEventListener("resize", this.handleResize, { passive: true });
       }
-      
-      this.varoffset += 0.002;
-      this.hueoffset += .8;
-      
-      if (this.state === 'playing') {
+
+      handleResize(e) {
+        this.w = this.cvs.getBoundingClientRect().width;
+        this.h = this.cvs.getBoundingClientRect().height;
+        this.cvs.width = Math.floor(this.w * window.devicePixelRatio);
+        this.cvs.height = Math.floor(this.h * window.devicePixelRatio);
+
+        this.scale = Math.min(this.w, this.h) / (this.max * 2.1);
+        this.huescale = 360 / this.max;
+        this.x = 0;
+        this.y = 0;
+
+        this.initCtx();
+      }
+
+      initCtx() {
+        this.ctx.translate(0, 0);
+        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        this.ctx.fillStyle = "hsla(0, 0%, 10%, 1.0)";
+        this.dotSize = 0.6 * window.devicePixelRatio;
+        this.ctx.fillRect(0, 0, this.w, this.h);
+        this.ctx.translate(Math.floor(this.w / 2), Math.floor(this.h / 2));
+      }
+
+      updateFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach(function (value, key) {
+          switch (key) {
+            case "a":
+              this.a = parseFloat(value);
+              break;
+            case "b":
+              this.b = parseFloat(value);
+              break;
+            case "c":
+              this.c = parseFloat(value);
+              break;
+            case "d":
+              this.d = parseFloat(value);
+              break;
+            case "ho":
+              this.hueoffset = parseFloat(value);
+              break;
+          }
+        }, this);
+      }
+
+      async updateHistory() {
+        history.replaceState(
+          null,
+          "Strange Attraction",
+          `?a=${this.a}&b=${this.b}&c=${this.c}&d=${this.d}&ho=${this.hueoffset}`,
+        );
+      }
+
+      handleChange(e) {
+        let val = parseFloat(e.target.value);
+
+        switch (e.target.name) {
+          case "a":
+            this.a = isNaN(val) ? 0 : val;
+            break;
+          case "b":
+            this.b = isNaN(val) ? 0 : val;
+            break;
+          case "c":
+            this.c = isNaN(val) ? 0 : val;
+            break;
+          case "d":
+            this.d = isNaN(val) ? 0 : val;
+            break;
+        }
+
+        this.updateHistory();
+      }
+
+      update(t) {
+        const nx =
+          this.a[0] * Math.cos(this.x * this.f[0]) +
+          this.a[1] * Math.sin(this.y * this.f[1]);
+        // + this.a[2] * Math.cos(this.t * this.f[2]);
+        const ny =
+          this.a[3] * Math.sin(this.x * this.f[3]) +
+          this.a[4] * Math.cos(this.y * this.f[4]);
+        // + this.a[5] * Math.sin(this.t * this.f[5]);
+
+        // const nx = Math.sin(this.f[0] * this.y)
+        //          + Math.cos(this.f[0] * this.x) * this.a[0];
+        // const ny = Math.sin(this.f[1] * this.x)
+        //          + Math.cos(this.f[1] * this.y) * this.a[1];
+
+        // const nx = Math.sin(this.x * this.y / this.a[0]) * this.y + Math.cos(this.a[1] * this.x - this.y);
+        // const ny = this.x + Math.sin(this.y) / this.a[0];
+
+        const hue =
+          (Math.hypot(this.x - nx, this.y - ny) * this.huescale +
+            this.hueoffset) %
+          360;
+        const ang = Math.atan2(this.x - nx, this.y - ny);
+        this.dotSize = Math.abs(ang);
+        this.x = nx;
+        this.y = ny;
+        this.ctx.fillStyle = `hsla(${hue}, 30%, 60%, 1.0)`;
+        this.ctx.beginPath();
+        this.ctx.arc(
+          this.x * this.scale,
+          this.y * this.scale,
+          this.dotSize,
+          0,
+          2 * Math.PI,
+        );
+        this.ctx.fill();
+      }
+
+      tick(t) {
+        this.t = 0;
+        this.a.forEach((v, i) => {
+          this.a[i] = 3 * Math.sin(this.as[i] + this.varoffset);
+        });
+        this.f.forEach((v, i) => {
+          this.f[i] = 1 * Math.cos(this.fs[i] + this.varoffset);
+        });
+
+        this.ctx.fillStyle = "hsla(0, 0%, 9%, 0.02)";
+        this.ctx.fillRect(
+          -Math.floor(this.w / 2),
+          -Math.floor(this.h / 2),
+          this.w,
+          this.h,
+        );
+        while (performance.now() - t < 12) {
+          this.update(t);
+          this.t += 0.5;
+        }
+
+        this.varoffset += 0.002;
+        this.hueoffset += 0.8;
+
+        if (this.state === "playing") {
+          window.requestAnimationFrame(this.tick);
+        }
+      }
+
+      play() {
+        this.state = "playing";
         window.requestAnimationFrame(this.tick);
       }
-    }
-    
-    play() {
-      this.state = 'playing';
-      window.requestAnimationFrame(this.tick);
-    }
-    
-    pause() {
-      this.state = 'paused';
-    }
-    
-    togglePP() {
-      if (this.state === 'playing') {
-        this.pause()
-      } else {
-        this.play();
+
+      pause() {
+        this.state = "paused";
+      }
+
+      togglePP() {
+        if (this.state === "playing") {
+          this.pause();
+        } else {
+          this.play();
+        }
+      }
+
+      shuffle() {
+        this.as.forEach((v, i) => {
+          this.as[i] = 2 * Math.PI * Math.random();
+        });
+        this.fs.forEach((v, i) => {
+          this.fs[i] = 2 * Math.PI * Math.random();
+        });
+        this.varoffset = 0;
+        this.a.forEach((v, i) => {
+          this.a[i] = 1 * Math.sin(this.as[i]);
+        });
+        this.f.forEach((v, i) => {
+          this.f[i] = 1 * Math.cos(this.fs[i]);
+        });
+        // this.updateHistory();
+        this.handleResize();
       }
     }
-    
-    shuffle() {
-      this.as.forEach((v, i) => { this.as[i] = 2 * Math.PI * Math.random(); });
-      this.fs.forEach((v, i) => { this.fs[i] = 2 * Math.PI * Math.random(); });
-      this.varoffset = 0;
-      this.a.forEach((v, i) => { this.a[i] = 1 * Math.sin(this.as[i]); });
-      this.f.forEach((v, i) => { this.f[i] = 1 * Math.cos(this.fs[i]); });
-      // this.updateHistory();
-      this.handleResize();
-    }
-  }
-  
-  const cvs = document.querySelector('.strange-canvas');
-  const sc = new StrangeCanvas(cvs);
-  document.querySelector('.toggle-pp').addEventListener('click', e => {
-    sc.togglePP();
-    e.target.textContent = (sc.state === 'playing') ? '⏸️' : '▶️';
-  });
-  document.querySelector('.shuffle').addEventListener('click', e => {
+
+    const cvs = document.querySelector(".strange-canvas");
+    const sc = new StrangeCanvas(cvs);
+    document.querySelector(".toggle-pp").addEventListener("click", (e) => {
+      sc.togglePP();
+      e.target.textContent = sc.state === "playing" ? "⏸️" : "▶️";
+    });
+    document.querySelector(".shuffle").addEventListener("click", (e) => {
+      sc.shuffle();
+    });
     sc.shuffle();
-  });
-  sc.shuffle();
-  sc.play();
-</script>
+    sc.play();
+  </script>
+</html>

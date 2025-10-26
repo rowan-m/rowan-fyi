@@ -5,6 +5,7 @@ image: fractious.png
 description: A WebGL-based viewer for the Mandelbrot set.
 pubDate: 2021-02-26
 ---
+
 A WebGL-based viewer for the Mandelbrot set. This is cobbled together from a variety of sources
 
 The core shader implementation comes from:

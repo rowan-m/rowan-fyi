@@ -13,311 +13,351 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8">
-<title>&lt;input-knob&gt; goes to eleven</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="shortcut icon" href="./assets/favicon.ico">
+  <meta charset="utf-8" />
+  <title>&lt;input-knob&gt; goes to eleven</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="shortcut icon" href="./assets/favicon.ico" />
 
-<meta name="Description" content="<input-knob> 🎛️ goes to eleven" />
-<meta name="theme-color" content="#D2B48C" />
+  <meta name="Description" content="<input-knob> 🎛️ goes to eleven" />
+  <meta name="theme-color" content="#D2B48C" />
 
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@rowan_m" />
-<meta name="twitter:title" content="<input-knob> 🎛️ goes to eleven" />
-<meta name="twitter:description" content="A web component that goes to eleven." />
-<meta name="twitter:image"
-  content="https://rowan.fyi/made/goes-to-eleven/assets/knob-preview.jpg" />
-<meta name="twitter:image:width" content="1900" />
-<meta name="twitter:image:height" content="1125" />
-<meta name="twitter:image:alt" content="A web component that goes to eleven." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@rowan_m" />
+  <meta name="twitter:title" content="<input-knob> 🎛️ goes to eleven" />
+  <meta
+    name="twitter:description"
+    content="A web component that goes to eleven."
+  />
+  <meta
+    name="twitter:image"
+    content="https://rowan.fyi/made/goes-to-eleven/assets/knob-preview.jpg"
+  />
+  <meta name="twitter:image:width" content="1900" />
+  <meta name="twitter:image:height" content="1125" />
+  <meta
+    name="twitter:image:alt"
+    content="A web component that goes to eleven."
+  />
 
-<meta property="og:url" content="https://rowan.fyi/made/goes-to-eleven" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="<input-knob> 🎛️ goes to eleven" />
-<meta property="og:description" content="A web component that goes to eleven." />
-<meta property="og:image" content="https://rowan.fyi/made/goes-to-eleven/assets/knob-preview.jpg" />
-<meta property="og:image:width" content="1900" />
-<meta property="og:image:height" content="1125" />
-  
-<style>
-  body {
-    font-family: monospace;
-    color: #222;
-    background-size: 100vw 100vh;
-    background-color: tan;
-    background-image:
-      linear-gradient(#333 3rem, rgba(0, 0, 0, 0) 3rem 18rem, #333 18rem 100%),
-      linear-gradient(160deg, rgba(32, 32, 32, 0.8) 0%, rgba(0, 0, 0, 0) 40vw, rgba(32, 32, 32, 0.8) 100%),
-      linear-gradient(160deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, .8) 40vw, rgba(0, 0, 0, 0) 100%),
-      repeating-linear-gradient(darkgoldenrod 1px, goldenrod 4px);
+  <meta property="og:url" content="https://rowan.fyi/made/goes-to-eleven" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="<input-knob> 🎛️ goes to eleven" />
+  <meta
+    property="og:description"
+    content="A web component that goes to eleven."
+  />
+  <meta
+    property="og:image"
+    content="https://rowan.fyi/made/goes-to-eleven/assets/knob-preview.jpg"
+  />
+  <meta property="og:image:width" content="1900" />
+  <meta property="og:image:height" content="1125" />
 
-  }
+  <style>
+    body {
+      font-family: monospace;
+      color: #222;
+      background-size: 100vw 100vh;
+      background-color: tan;
+      background-image:
+        linear-gradient(
+          #333 3rem,
+          rgba(0, 0, 0, 0) 3rem 18rem,
+          #333 18rem 100%
+        ),
+        linear-gradient(
+          160deg,
+          rgba(32, 32, 32, 0.8) 0%,
+          rgba(0, 0, 0, 0) 40vw,
+          rgba(32, 32, 32, 0.8) 100%
+        ),
+        linear-gradient(
+          160deg,
+          rgba(0, 0, 0, 0) 0%,
+          rgba(255, 255, 255, 0.8) 40vw,
+          rgba(0, 0, 0, 0) 100%
+        ),
+        repeating-linear-gradient(darkgoldenrod 1px, goldenrod 4px);
+    }
 
-  .outer-numbers {
-    box-sizing: border-box;
-    position: absolute;
-    left: calc(50% - 6.5rem);
-    top: 4rem;
-    width: 13rem;
-    height: 13rem;
-    transform: rotate(-154deg);
-    text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, .6);
-  }
-  
-  .outer-numbers span {
-    box-sizing: border-box;
-    position: absolute;
-    height: 6.5rem;
-    width: 2rem;
-    top: 0rem;
-    left: 5.5rem;
-    transform-origin: center bottom;
-    text-align: center;
-    font: bold 110% monospace;
-  }
-  
-  input-knob {
-    box-sizing: border-box;
-    position: absolute;
-    left: calc(50% - 5rem);
-    top: 5.6rem;
-    width: 10rem;
-    height: 10rem;
-    transform: rotate(-154deg);
-    border-radius: 100%;
-    box-shadow: -0.3rem -0.1rem 0.3rem rgba(0, 0, 0, 0.5);
-  }
-  
-  input-knob::part(rotator) {
-    box-sizing: border-box;
-    position: absolute;
-    z-index: 0;
-    height: 10rem;
-    width: 10rem;
-    border-radius: 100%;
-    background-color: #333;
-    background-image:
-      repeating-conic-gradient(
+    .outer-numbers {
+      box-sizing: border-box;
+      position: absolute;
+      left: calc(50% - 6.5rem);
+      top: 4rem;
+      width: 13rem;
+      height: 13rem;
+      transform: rotate(-154deg);
+      text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.6);
+    }
+
+    .outer-numbers span {
+      box-sizing: border-box;
+      position: absolute;
+      height: 6.5rem;
+      width: 2rem;
+      top: 0rem;
+      left: 5.5rem;
+      transform-origin: center bottom;
+      text-align: center;
+      font: bold 110% monospace;
+    }
+
+    input-knob {
+      box-sizing: border-box;
+      position: absolute;
+      left: calc(50% - 5rem);
+      top: 5.6rem;
+      width: 10rem;
+      height: 10rem;
+      transform: rotate(-154deg);
+      border-radius: 100%;
+      box-shadow: -0.3rem -0.1rem 0.3rem rgba(0, 0, 0, 0.5);
+    }
+
+    input-knob::part(rotator) {
+      box-sizing: border-box;
+      position: absolute;
+      z-index: 0;
+      height: 10rem;
+      width: 10rem;
+      border-radius: 100%;
+      background-color: #333;
+      background-image: repeating-conic-gradient(
         #222 0deg,
         #444 2deg,
         #555 5deg 7deg,
         #444 12deg,
         #222 14deg 18deg
       );
-    box-shadow: inset 0 0 .1rem 0.1rem #222;
-  }
+      box-shadow: inset 0 0 0.1rem 0.1rem #222;
+    }
 
-  input-knob.fallback>span.fallback {
-    display: block;
-    box-sizing: border-box;
-    z-index: 0;
-    height: 10rem;
-    width: 10rem;
-    border-radius: 100%;
-    background-color: #333;
-    background-image:
-      repeating-conic-gradient(
+    input-knob.fallback > span.fallback {
+      display: block;
+      box-sizing: border-box;
+      z-index: 0;
+      height: 10rem;
+      width: 10rem;
+      border-radius: 100%;
+      background-color: #333;
+      background-image: repeating-conic-gradient(
         #222 0deg,
         #444 2deg,
         #555 5deg 7deg,
         #444 12deg,
         #222 14deg 18deg
       );
-    box-shadow: inset 0 0 .1rem 0.1rem #222;
-  }
-  
-  .face {
-    position: absolute;
-    top: 0.75rem;
-    left: 0.75rem;
-    box-sizing: border-box;
-    background-color: #aaa;
-    background-image:
-      repeating-conic-gradient(rgba(64, 64, 64, .03) 0deg, rgba(0, 0, 0, 0) 8deg, rgba(64, 64, 64, .03) 16deg),
-      repeating-radial-gradient(#999 1%, #aaa 2%, #999 3%);
-    border-radius: 100%;
-    border: 0.3rem solid #666;
-    width: 8.5rem;
-    height: 8.5rem;
-  }
-  
-  .shine {
-    position: absolute;
-    top: 0.75rem;
-    left: 0.75rem;
-    box-sizing: border-box;
-    background-image:
-      repeating-conic-gradient(
+      box-shadow: inset 0 0 0.1rem 0.1rem #222;
+    }
+
+    .face {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      box-sizing: border-box;
+      background-color: #aaa;
+      background-image:
+        repeating-conic-gradient(
+          rgba(64, 64, 64, 0.03) 0deg,
+          rgba(0, 0, 0, 0) 8deg,
+          rgba(64, 64, 64, 0.03) 16deg
+        ),
+        repeating-radial-gradient(#999 1%, #aaa 2%, #999 3%);
+      border-radius: 100%;
+      border: 0.3rem solid #666;
+      width: 8.5rem;
+      height: 8.5rem;
+    }
+
+    .shine {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      box-sizing: border-box;
+      background-image: repeating-conic-gradient(
         from 131deg,
         rgba(240, 240, 240, 0) 0deg 70deg,
         rgba(240, 240, 240, 0.7) 90deg,
         rgba(240, 240, 240, 0) 110deg 180deg
       );
-    border-radius: 100%;
-    width: 8.5rem;
-    height: 8.5rem;
-    z-index: 10;
-    will-change: transform;
-    box-shadow: 0 0 0.6rem 0.2rem rgba(0, 0, 0, .5);
-  }
-  
-  .mark {
-    position: relative;
-    top: 1rem;
-    background: #333;
-    height: 3.5rem;
-    width: 0.4rem;
-    margin: auto;
-    z-index: 20;
-    box-shadow: inset 0.5px 0.5px 0.3px rgba(255, 255, 255, 0.4);
-  }
-  
-  .monitor {
-    width: 70%;
-    margin: 2rem auto 0 auto;
-    text-align: center;
-  }
-  
-  .progress {
-    display: block;
-    width: 70%;
-    margin: 2rem auto 0 auto;
-    text-align: center;
-  }
-  
-  footer {
-    background-color: #333;
-    margin-top: 18rem;
-    padding: 0.5rem 5% 0.5rem 5%;
-    color: tan;
-  }
-  
-  a {
-    color: goldenrod;
-  }
-  
-  .outer1 {
-    transform: rotate(calc(1/13*1turn));
-  }
-  
-  .outer2 {
-    transform: rotate(calc(2/13*1turn));
-  }
-  
-  .outer3 {
-    transform: rotate(calc(3/13*1turn));
-  }
-  
-  .outer4 {
-    transform: rotate(calc(4/13*1turn));
-  }
-  
-  .outer5 {
-    transform: rotate(calc(5/13*1turn));
-  }
-  
-  .outer6 {
-    transform: rotate(calc(6/13*1turn));
-  }
-  
-  .outer7 {
-    transform: rotate(calc(7/13*1turn));
-  }
-  
-  .outer8 {
-    transform: rotate(calc(8/13*1turn));
-  }
-  
-  .outer9 {
-    transform: rotate(calc(9/13*1turn));
-  }
-  
-  .outer10 {
-    transform: rotate(calc(10/13*1turn));
-  }
-  
-  .outer11 {
-    transform: rotate(calc(11/13*1turn));
-  }
-</style>
-  
-<div class="outer-numbers">
-  <span class="outer0">0</span>
-  <span class="outer1">|</span>
-  <span class="outer2">2</span>
-  <span class="outer3">|</span>
-  <span class="outer4">4</span>
-  <span class="outer5">|</span>
-  <span class="outer6">6</span>
-  <span class="outer7">|</span>
-  <span class="outer8">8</span>
-  <span class="outer9">|</span>
-  <span class="outer10">10</span>
-  <span class="outer11">11</span>
-</div>
-<input-knob value="0" scale="13" min="0" max="11">
-  <div class="shine"></div>
-  <div class="mark"></div>
-  <div class="face"></div>
-</input-knob>
+      border-radius: 100%;
+      width: 8.5rem;
+      height: 8.5rem;
+      z-index: 10;
+      will-change: transform;
+      box-shadow: 0 0 0.6rem 0.2rem rgba(0, 0, 0, 0.5);
+    }
 
-<footer>
-  <input type="range" class="progress" min="0" max="11">
-  <div class="monitor">Value: <span class="show-value"></span></div>
-  You can: 
-  <ul>
-    <li>🔎 use "view source" to see the code
-    <li>📦 npm: <a href="https://www.npmjs.com/package/input-knob">input-knob</a>
-    <li>🎛️ GitHub: <a href="https://github.com/GoogleChromeLabs/input-knob">GoogleChromeLabs/input-knob</a>
-    <li>🤘 <a href="https://youtu.be/4xgx4k83zzc">Wait, what's the reference?</a>
-    <li>💜 Made by <a href="https://rowan.fyi/">rowan.fyi</a>
-  </ul>
-</footer>
+    .mark {
+      position: relative;
+      top: 1rem;
+      background: #333;
+      height: 3.5rem;
+      width: 0.4rem;
+      margin: auto;
+      z-index: 20;
+      box-shadow: inset 0.5px 0.5px 0.3px rgba(255, 255, 255, 0.4);
+    }
 
-<script src="https://unpkg.com/input-knob"></script>
-<script>
-  const knob = document.querySelector('input-knob');
-  const shine = document.querySelector('.shine');
-  const range = document.querySelector('.progress');
-  const showValue = document.querySelector('.show-value');
-  let angle = knob._angle;
-  let tilt = 0;
-  
-  const initValue = Number.parseFloat(knob.value).toFixed(3);
-  showValue.textContent = initValue;
-  range.value = initValue;
+    .monitor {
+      width: 70%;
+      margin: 2rem auto 0 auto;
+      text-align: center;
+    }
 
-  function updateFromKnob(evt) {
-    const curValue = Number.parseFloat(knob.value).toFixed(3);
-    showValue.textContent = curValue;
-    range.value = curValue;
-    angle = knob._angle;
-    const offset = tilt - angle;
-    shine.style.transform = `rotate(${offset}rad)`;
-  }
-  
-  function updateFromRange(evt) {
-    const curValue = Number.parseFloat(range.value).toFixed(3);
-    showValue.textContent = curValue;
-    knob.value = curValue;
-    angle = knob._angle;
-    const offset = tilt - angle;
-    shine.style.transform = `rotate(${offset}rad)`;
-  }
-  
-  function handleOrientation(evt) {
-    const alpha    = evt.alpha * Math.PI / 180;
-    const beta     = evt.beta * Math.PI / 180;
-    const gamma    = evt.gamma * Math.PI / 180;
-    tilt = (alpha + beta + gamma) / 2;
-    const offset = tilt - angle;
-    shine.style.transform = `rotate(${offset}rad)`;
-  }
-  
-  document.addEventListener('knob-move-change', updateFromKnob);
-  range.addEventListener('input', updateFromRange);
-  window.addEventListener("deviceorientation", handleOrientation, true);
-</script>
+    .progress {
+      display: block;
+      width: 70%;
+      margin: 2rem auto 0 auto;
+      text-align: center;
+    }
+
+    footer {
+      background-color: #333;
+      margin-top: 18rem;
+      padding: 0.5rem 5% 0.5rem 5%;
+      color: tan;
+    }
+
+    a {
+      color: goldenrod;
+    }
+
+    .outer1 {
+      transform: rotate(calc(1 / 13 * 1turn));
+    }
+
+    .outer2 {
+      transform: rotate(calc(2 / 13 * 1turn));
+    }
+
+    .outer3 {
+      transform: rotate(calc(3 / 13 * 1turn));
+    }
+
+    .outer4 {
+      transform: rotate(calc(4 / 13 * 1turn));
+    }
+
+    .outer5 {
+      transform: rotate(calc(5 / 13 * 1turn));
+    }
+
+    .outer6 {
+      transform: rotate(calc(6 / 13 * 1turn));
+    }
+
+    .outer7 {
+      transform: rotate(calc(7 / 13 * 1turn));
+    }
+
+    .outer8 {
+      transform: rotate(calc(8 / 13 * 1turn));
+    }
+
+    .outer9 {
+      transform: rotate(calc(9 / 13 * 1turn));
+    }
+
+    .outer10 {
+      transform: rotate(calc(10 / 13 * 1turn));
+    }
+
+    .outer11 {
+      transform: rotate(calc(11 / 13 * 1turn));
+    }
+  </style>
+
+  <div class="outer-numbers">
+    <span class="outer0">0</span>
+    <span class="outer1">|</span>
+    <span class="outer2">2</span>
+    <span class="outer3">|</span>
+    <span class="outer4">4</span>
+    <span class="outer5">|</span>
+    <span class="outer6">6</span>
+    <span class="outer7">|</span>
+    <span class="outer8">8</span>
+    <span class="outer9">|</span>
+    <span class="outer10">10</span>
+    <span class="outer11">11</span>
+  </div>
+  <input-knob value="0" scale="13" min="0" max="11">
+    <div class="shine"></div>
+    <div class="mark"></div>
+    <div class="face"></div>
+  </input-knob>
+
+  <footer>
+    <input type="range" class="progress" min="0" max="11" />
+    <div class="monitor">Value: <span class="show-value"></span></div>
+    You can:
+    <ul>
+      <li>🔎 use "view source" to see the code</li>
+      <li>
+        📦 npm:
+        <a href="https://www.npmjs.com/package/input-knob">input-knob</a>
+      </li>
+      <li>
+        🎛️ GitHub:
+        <a href="https://github.com/GoogleChromeLabs/input-knob"
+          >GoogleChromeLabs/input-knob</a
+        >
+      </li>
+      <li>
+        🤘
+        <a href="https://youtu.be/4xgx4k83zzc">Wait, what's the reference?</a>
+      </li>
+      <li>💜 Made by <a href="https://rowan.fyi/">rowan.fyi</a></li>
+    </ul>
+  </footer>
+
+  <script src="https://unpkg.com/input-knob"></script>
+  <script>
+    const knob = document.querySelector("input-knob");
+    const shine = document.querySelector(".shine");
+    const range = document.querySelector(".progress");
+    const showValue = document.querySelector(".show-value");
+    let angle = knob._angle;
+    let tilt = 0;
+
+    const initValue = Number.parseFloat(knob.value).toFixed(3);
+    showValue.textContent = initValue;
+    range.value = initValue;
+
+    function updateFromKnob(evt) {
+      const curValue = Number.parseFloat(knob.value).toFixed(3);
+      showValue.textContent = curValue;
+      range.value = curValue;
+      angle = knob._angle;
+      const offset = tilt - angle;
+      shine.style.transform = `rotate(${offset}rad)`;
+    }
+
+    function updateFromRange(evt) {
+      const curValue = Number.parseFloat(range.value).toFixed(3);
+      showValue.textContent = curValue;
+      knob.value = curValue;
+      angle = knob._angle;
+      const offset = tilt - angle;
+      shine.style.transform = `rotate(${offset}rad)`;
+    }
+
+    function handleOrientation(evt) {
+      const alpha = (evt.alpha * Math.PI) / 180;
+      const beta = (evt.beta * Math.PI) / 180;
+      const gamma = (evt.gamma * Math.PI) / 180;
+      tilt = (alpha + beta + gamma) / 2;
+      const offset = tilt - angle;
+      shine.style.transform = `rotate(${offset}rad)`;
+    }
+
+    document.addEventListener("knob-move-change", updateFromKnob);
+    range.addEventListener("input", updateFromRange);
+    window.addEventListener("deviceorientation", handleOrientation, true);
+  </script>
+</html>

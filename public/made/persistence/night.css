@@ -43,16 +43,16 @@ a:visited {
 /* SVG styles */
 
 .hour-num {
-  color: hsl(156,90%,60%);
+  color: hsl(156, 90%, 60%);
 }
 
 .second-hand {
-  fill: hsl(156,90%,55%);
-  stroke: hsl(156,90%,35%);
+  fill: hsl(156, 90%, 55%);
+  stroke: hsl(156, 90%, 35%);
 }
 
 .minute-hand,
 .hour-hand {
-  fill: hsl(156,90%,75%);
-  stroke: hsl(156,90%,35%);
+  fill: hsl(156, 90%, 75%);
+  stroke: hsl(156, 90%, 35%);
 }
