@@ -2,6 +2,7 @@
 import BareLayout from "src/layouts/BareLayout.astro";
 import Header from "@/components/Header.astro";
 import PostCardView from "@/components/PostCardView.astro";
+import LastFmTrack from "@/components/LastFmTrack.astro";
 
 import { getCollection } from "astro:content";
 
@@ -126,6 +127,8 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
         >
       </li>
     </ul>
+    <LastFmTrack />
+
     <section class="posts">
       <h2>Posts</h2>
       <div>
