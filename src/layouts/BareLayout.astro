@@ -1,4 +1,6 @@
 ---
+import HtmlBoilerplate from "@/components/HtmlBoilerplate.astro";
+import LinkRels from "@/components/LinkRels.astro";
 import Footer from "@/components/Footer.astro";
 import "@/assets/base.css";
 
@@ -9,33 +11,10 @@ interface Props {
 const { title, description } = Astro.props;
 ---
 
-<!doctype html>
-<html lang="en">
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="/img/icon.svg" />
-  <meta property="og:logo" content={new URL("img/icon.svg", Astro.site)} />
-  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
-  <link rel="me" href="https://bsky.app/profile/rowan.fyi" />
-  <link rel="me" href="https://mastodon.social/@rowan_m" />
-  <link rel="me" href="https://glitch.com/@rowan-m" />
-  <link rel="me" href="https://github.com/rowan-m/" />
-  <link rel="me" href="https://www.threads.com/@rowan_m" />
-  <link rel="me" href="https://www.linkedin.com/in/rowanmerewood/" />
-  <link rel="me" href="https://www.instagram.com/rowan_m/" />
-  <meta name="fediverse:creator" content="@rowan_m@mastodon.social" />
-  <link rel="author" href="https://rowan.fyi" />
-  <link rel="sitemap" href="/sitemap-index.xml" />
-  <link
-    rel="alternate"
-    type="application/rss+xml"
-    title="rowan.fyi"
-    href={new URL("rss.xml", Astro.site)}
-  />
-  <link rel="webmention" href="https://webmention.io/rowan.fyi/webmention" />
-
-  <title>{title}</title>
-  <meta name="description" content={description} />
-  <slot />
-  <Footer />
-</html>
+<HtmlBoilerplate />
+<LinkRels />
+<link rel="icon" href="/img/icon.svg" />
+<title>{title}</title>
+<meta name="description" content={description} />
+<slot />
+<Footer />

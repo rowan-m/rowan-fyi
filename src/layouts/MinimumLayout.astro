@@ -1,0 +1,15 @@
+---
+import HtmlBoilerplate from '@/components/HtmlBoilerplate.astro';
+import LinkRels from '@/components/LinkRels.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+---
+<HtmlBoilerplate />
+<LinkRels />
+<title>{title}</title>
+<meta name="description" content={description}>
+<slot />
