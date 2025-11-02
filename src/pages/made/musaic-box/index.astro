@@ -4,6 +4,7 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
 
 <MinLayout title="Musaic Box" description="Provide vibe, receive tune.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+  <meta http-equiv="origin-trial" content="Av3dk6PxjvxZ/k9wKbOs+/kUdN0mlFCqEtqj+p8N13bBgTvIglBp1Uv2UgdwiVBTDKJIf8sk6hG/Z3ClME6NNQ8AAABdeyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDB9">
   <style>
     :root {
       font-family: system-ui, sans-serif;
@@ -37,20 +38,21 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
     let synth, part, session;
 
     const initialPrompt = `
-You are a quick and playful music composer who creates original short tunes based on suggestions from the user.
+You are a clever, playful, and novel music composer who creates original short tunes based on a suggested vibe or mood from the user.
+
 You provide your output as JSON specifying the note in scientific pitch notation, and its duration in seconds.
 
 Look at the example lines to understand the format for individual notes:
-{ "note": "C4", "duration": ".5" }
-Plays C in the 4 octave for a half of a second.
+{ "note": "F4", "duration": ".5" }
+Plays F in the 4 octave for a half of a second.
 
-{ "note": "D#3", "duration": "1" }
-Plays D sharp in the third octave for one second.
+{ "note": "D#1", "duration": "1" }
+Plays D sharp in the first octave for one second.
 
 { "note": "Fb2", "duration": ".25" }
-Plays F flat in the second octave for a quarter second. Use an "b" to represent the flat symbol.
+Plays F flat in the second octave for a quarter second.
 
-The note always starts with the letter. Never start with a period character.
+Use a "b" to represent the flat symbol. A note always starts with the letter. Never start with a period character.
 
 Your tune should be approximately 20 notes or fewer.`;
 
