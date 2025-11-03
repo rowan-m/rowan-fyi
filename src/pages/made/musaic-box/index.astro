@@ -3,8 +3,14 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
 ---
 
 <MinLayout title="Musaic Box" description="Provide vibe, receive tune.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
-  <meta http-equiv="origin-trial" content="Av3dk6PxjvxZ/k9wKbOs+/kUdN0mlFCqEtqj+p8N13bBgTvIglBp1Uv2UgdwiVBTDKJIf8sk6hG/Z3ClME6NNQ8AAABdeyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDB9">
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>"
+  />
+  <meta
+    http-equiv="origin-trial"
+    content="Av3dk6PxjvxZ/k9wKbOs+/kUdN0mlFCqEtqj+p8N13bBgTvIglBp1Uv2UgdwiVBTDKJIf8sk6hG/Z3ClME6NNQ8AAABdeyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDB9"
+  />
   <style>
     :root {
       font-family: system-ui, sans-serif;
@@ -18,7 +24,7 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
       display: flex;
       flex-flow: column wrap;
       place-items: center;
-      gap: 1rem;
+      gap: 0.5rem;
     }
 
     h1 {
@@ -28,16 +34,29 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
   </style>
   <main>
     <h1>Musaic Box</h1>
-    <p class="status">Enter a vibe and generate.</p>
+    <dialog id="not-supported">
+      It looks like the on-device Prompt API is not supported on this device.
+      You can check the hardware requirements and try enabling
+      <code>chrome://flags/#prompt-api-for-gemini-nano</code> and
+      <code>chrome://flags/#enable-experimental-web-platform-features</code>.
+      You can still play generated melodies though!
+      <form method="dialog">
+        <button>OK</button>
+      </form>
+    </dialog>
+    <dialog id="download-status">
+      <button name="download" disabled>Download model</button><output
+        >Downloaded: <span id="download-percent">0</span>%</output
+      >
+    </dialog>
+    <p id="status">Enter a vibe and generate.</p>
     <label>Vibe <input type="text" name="vibe" /></label>
-    <button type="button" name="generate">🎶 Generate</button>
+    <button type="button" name="generate" disabled>🎶 Generate</button>
     <button type="button" name="playpause" disabled>⏯ Play / pause</button>
   </main>
   <script type="module">
     import * as Tone from "https://cdn.jsdelivr.net/npm/tone@15.1.22/+esm";
-    let synth, part, session;
-
-    const initialPrompt = `
+    const SYSTEM_PROMPT = `
 You are a clever, playful, and novel music composer who creates original short tunes based on a suggested vibe or mood from the user.
 
 You provide your output as JSON specifying the note in scientific pitch notation, and its duration in seconds.
@@ -55,6 +74,46 @@ Plays F flat in the second octave for a quarter second.
 Use a "b" to represent the flat symbol. A note always starts with the letter. Never start with a period character.
 
 Your tune should be approximately 20 notes or fewer.`;
+
+    const notSupportedDialog = document.querySelector("#not-supported");
+    const statusText = document.querySelector("#status");
+    const downloadDialog = document.querySelector("#download-status");
+    const downloadButt = document.querySelector('button[name="download"]');
+    const downloadPercent = document.querySelector("#download-percent");
+    const playPauseButt = document.querySelector('button[name="playpause"]');
+    const generateButt = document.querySelector('button[name="generate"]');
+
+    let synth, part, model;
+
+    playPauseButt.addEventListener("click", playMusic);
+    generateButt.addEventListener("click", generate);
+
+    const modelSupported = "LanguageModel" in self;
+    if (!modelSupported) {
+      notSupportedDialog.showModal();
+    } else {
+      const modelAvailability = await LanguageModel.availability({
+        expectedInputs: [{ type: "text", languages: ["en"] }],
+        expectedOutputs: [{ type: "text", languages: ["en"] }],
+      });
+
+      console.log({ modelAvailability });
+
+      if (modelAvailability === "downloading") {
+        downloadDialog.showModal();
+        createModel();
+      }
+
+      if (modelAvailability === "downloadable") {
+        downloadDialog.showModal();
+        downloadButt.addEventListener("click", createModel);
+        downloadButt.disabled = false;
+      }
+
+      if (modelAvailability === "available") {
+        createModel();
+      }
+    }
 
     const testNotes = [
       { note: "C4", duration: ".5" },
@@ -95,12 +154,28 @@ Your tune should be approximately 20 notes or fewer.`;
       },
     };
 
-    const statusText = document.querySelector(".status");
-    const playPauseButt = document.querySelector('button[name="playpause"]');
-    const generateButt = document.querySelector('button[name="generate"]');
+    async function createModel() {
+      generateButt.disabled = true;
+      downloadButt.textContent = "Downloading...";
+      downloadButt.disabled = true;
 
-    if (!("LanguageModel" in window)) {
-      alert("Prompt API is not available in this browser.");
+      model = await LanguageModel.create({
+        monitor(m) {
+          m.addEventListener("downloadprogress", (e) => {
+            const loaded = Math.round(parseFloat(e.loaded * 100));
+            downloadPercent.textContent = loaded;
+            if (loaded >= 100) {
+              downloadButt.disabled = true;
+              downloadDialog.close();
+            }
+          });
+        },
+        initialPrompts: [{ role: "system", content: SYSTEM_PROMPT }],
+        expectedInputs: [{ type: "text", languages: ["en"] }],
+        expectedOutputs: [{ type: "text", languages: ["en"] }],
+      });
+      
+      generateButt.disabled = false;
     }
 
     async function generate(e) {
@@ -110,13 +185,13 @@ Your tune should be approximately 20 notes or fewer.`;
 
       try {
         console.log(`Create a melody based on the vibe: ${vibe}`);
-          const result = await session.prompt(
-            `Create a melody based on the vibe: ${vibe}`,
-            { responseConstraint: { schema } }
-          );
-          const generated = JSON.parse(result);
-          console.log(generated.notes);
-          const notes = generated.notes;
+        const result = await model.prompt(
+          `Create a melody based on the vibe: ${vibe}`,
+          { responseConstraint: { schema } }
+        );
+        const generated = JSON.parse(result);
+        console.log(generated.notes);
+        const notes = generated.notes;
         // const notes = testNotes;
 
         const url = new URL(window.location);
@@ -158,7 +233,7 @@ Your tune should be approximately 20 notes or fewer.`;
       }, partNotes).start(0);
 
       part.loop = true;
-      part.loopEnd = currentTime;
+      part.loopEnd = currentTime + 1;
     }
 
     function playMusic(e) {
@@ -166,7 +241,6 @@ Your tune should be approximately 20 notes or fewer.`;
         Tone.getTransport().start();
       } else {
         Tone.getTransport().stop();
-        // Reset transport position to the beginning
         Tone.getTransport().position = 0;
       }
     }
@@ -196,7 +270,7 @@ Your tune should be approximately 20 notes or fewer.`;
         high: 10,
       }).toDestination();
 
-      const delay = new Tone.PingPongDelay("8n", 0.1).toDestination();
+      const delay = new Tone.PingPongDelay("16n", 0.1).toDestination();
       delay.wet.value = 0.05;
 
       const reverb = new Tone.Reverb({
@@ -222,29 +296,10 @@ Your tune should be approximately 20 notes or fewer.`;
           alert("Could not load melody from URL. See console for details.");
         }
       }
-
-      console.log(initialPrompt);
-      session = await LanguageModel.create({
-        initialPrompts: [
-          {
-            role: "system",
-            content: initialPrompt,
-          },
-        ],
-        expectedInputs: [{ type: "text", languages: ["en"] }],
-        expectedOutputs: [{ type: "text", languages: ["en"] }],
-      });
-
-      document
-        .querySelector('button[name="playpause"]')
-        .addEventListener("click", playMusic);
-      document
-        .querySelector('button[name="generate"]')
-        .addEventListener("click", generate);
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    (async () => {
       init();
-    });
+    })();
   </script>
 </MinLayout>
