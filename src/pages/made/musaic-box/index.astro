@@ -34,26 +34,33 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
   </style>
   <main>
     <h1>Musaic Box</h1>
-    <dialog id="not-supported">
-      It looks like the on-device Prompt API is not supported on this device.
-      You can check the hardware requirements and try enabling
-      <code>chrome://flags/#prompt-api-for-gemini-nano</code> and
-      <code>chrome://flags/#enable-experimental-web-platform-features</code>.
-      You can still play generated melodies though!
-      <form method="dialog">
-        <button>OK</button>
-      </form>
-    </dialog>
-    <dialog id="download-status">
-      <button name="download" disabled>Download model</button><output
-        >Downloaded: <span id="download-percent">0</span>%</output
-      >
-    </dialog>
-    <p id="status">Enter a vibe and generate.</p>
-    <label>Vibe <input type="text" name="vibe" /></label>
+    <p>
+      Use <a href="https://developer.chrome.com/docs/ai/built-in"
+        >Chrome's built-in AI</a
+      > and <a href="https://tonejs.github.io/">Tone.js</a> to power a music box.
+      Enter a vibe and generate.
+    </p>
+    <label>Vibe: <input type="text" name="vibe" /></label>
     <button type="button" name="generate" disabled>🎶 Generate</button>
     <button type="button" name="playpause" disabled>⏯ Play / pause</button>
+    <p id="status"></p>
   </main>
+  <dialog id="download-status">
+    <button name="download" disabled>Download model</button><output
+      >Downloaded: <span id="download-percent">0</span>%</output
+    >
+  </dialog>
+  <dialog id="not-supported">
+    It looks like the on-device Prompt API is not supported on this device. You
+    can check the hardware requirements and try enabling
+    <code>chrome://flags/#prompt-api-for-gemini-nano</code> and
+    <code>chrome://flags/#enable-experimental-web-platform-features</code>. You
+    can still play generated melodies though!
+    <form method="dialog">
+      <button>OK</button>
+    </form>
+  </dialog>
+
   <script type="module">
     import * as Tone from "https://cdn.jsdelivr.net/npm/tone@15.1.22/+esm";
     const SYSTEM_PROMPT = `
@@ -73,6 +80,7 @@ Plays F flat in the second octave for a quarter second.
 
 Use a "b" to represent the flat symbol.
 A note always starts with the letter. NEVER start a note with a "." character. These are INVALID notes ".F#2", ".b1", ".Bb1"
+A valid note matches the regular expression ^[A-G][#b]?\\d+$
 
 Your tune should be approximately 20 notes or fewer.`;
 
@@ -164,7 +172,10 @@ Your tune should be approximately 20 notes or fewer.`;
       generateButt.disabled = true;
 
       try {
-        console.log("User prompt: ", `Create a melody based on the vibe: ${vibe}`);
+        console.log(
+          "User prompt: ",
+          `Create a melody based on the vibe: ${vibe}`
+        );
         const result = await model.prompt(
           `Create a melody based on the vibe: ${vibe}`,
           { responseConstraint: { schema } }
@@ -208,6 +219,10 @@ Your tune should be approximately 20 notes or fewer.`;
       });
 
       part = new Tone.Part((time, value) => {
+        if (!/^[A-G][#b]?\d+$/.test(value.note)) {
+          console.log('Skipping invalid note:', value.note);
+          return;
+        }
         synth.triggerAttackRelease(value.note, value.duration, time);
       }, partNotes).start(0);
 
