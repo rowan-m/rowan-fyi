@@ -71,7 +71,8 @@ Plays D sharp in the first octave for one second.
 { "note": "Fb2", "duration": ".25" }
 Plays F flat in the second octave for a quarter second.
 
-Use a "b" to represent the flat symbol. A note always starts with the letter. Never start with a period character.
+Use a "b" to represent the flat symbol.
+A note always starts with the letter. NEVER start a note with a "." character. These are INVALID notes ".F#2", ".b1", ".Bb1"
 
 Your tune should be approximately 20 notes or fewer.`;
 
@@ -97,7 +98,7 @@ Your tune should be approximately 20 notes or fewer.`;
         expectedOutputs: [{ type: "text", languages: ["en"] }],
       });
 
-      console.log({ modelAvailability });
+      console.log("Model availability: ", modelAvailability);
 
       if (modelAvailability === "downloading") {
         downloadDialog.showModal();
@@ -115,27 +116,6 @@ Your tune should be approximately 20 notes or fewer.`;
       }
     }
 
-    const testNotes = [
-      { note: "C4", duration: ".5" },
-      { note: "E4", duration: ".5" },
-      { note: "F4", duration: ".5" },
-      { note: "G4", duration: ".5" },
-      { note: "A4", duration: ".5" },
-      { note: "G4", duration: ".5" },
-      { note: "E4", duration: ".5" },
-      { note: "C4", duration: ".5" },
-      { note: "D4", duration: ".25" },
-      { note: "E4", duration: ".25" },
-      { note: "F4", duration: ".25" },
-      { note: "G4", duration: ".25" },
-      { note: "A4", duration: ".25" },
-      { note: "G4", duration: ".25" },
-      { note: "E4", duration: ".25" },
-      { note: "C4", duration: ".25" },
-      { note: "C5", duration: ".5" },
-      { note: "G4", duration: ".5" },
-      { note: "C4", duration: ".5" },
-    ];
     const schema = {
       type: "object",
       properties: {
@@ -174,7 +154,7 @@ Your tune should be approximately 20 notes or fewer.`;
         expectedInputs: [{ type: "text", languages: ["en"] }],
         expectedOutputs: [{ type: "text", languages: ["en"] }],
       });
-      
+      console.log("System prompt: ", SYSTEM_PROMPT);
       generateButt.disabled = false;
     }
 
@@ -184,15 +164,14 @@ Your tune should be approximately 20 notes or fewer.`;
       generateButt.disabled = true;
 
       try {
-        console.log(`Create a melody based on the vibe: ${vibe}`);
+        console.log("User prompt: ", `Create a melody based on the vibe: ${vibe}`);
         const result = await model.prompt(
           `Create a melody based on the vibe: ${vibe}`,
           { responseConstraint: { schema } }
         );
         const generated = JSON.parse(result);
-        console.log(generated.notes);
+        console.log("Generated notes: ", generated.notes);
         const notes = generated.notes;
-        // const notes = testNotes;
 
         const url = new URL(window.location);
         url.searchParams.set("vibe", vibe);
