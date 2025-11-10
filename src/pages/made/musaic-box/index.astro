@@ -13,36 +13,114 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
   />
   <style>
     :root {
-      font-family: system-ui, sans-serif;
+      font-family: "Georgia", serif;
       font-synthesis: none;
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      color: #5a4a3a;
+    }
+
+    body {
+      margin: 0;
+      padding: 5vh 2rem 2rem 2rem;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fdf8e1 0%, #e8dccb 100%);
     }
 
     main {
       display: flex;
       flex-flow: column wrap;
       place-items: center;
-      gap: 0.5rem;
+      gap: 1rem;
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
     }
 
     h1 {
-      font-size: 1rem;
+      font-size: 2.5rem;
       margin: 0;
+      color: #8b4513;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    div {
+      line-height: 1.5;
+    }
+
+    a {
+      color: #4a69bb;
+      text-decoration: none;
+      border-bottom: 1px dotted #4a69bb;
+    }
+
+    a:hover {
+      color: #2e4a8d;
+      border-bottom: 1px solid #2e4a8d;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    input[type="text"] {
+      padding: 0.6rem 1rem;
+      border: 1px solid #d4c2a8;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 250px;
+      max-width: 80%;
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    button {
+      background-color: #a8d4c2;
+      color: #5a4a3a;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem 1.5rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition:
+        background-color 0.2s ease,
+        transform 0.1s ease;
+      box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    button:hover:not(:disabled) {
+      background-color: #8cc7b0;
+      transform: translateY(-2px);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    button:disabled {
+      background-color: #e0e0e0;
+      color: #a0a0a0;
+      cursor: not-allowed;
+      box-shadow: none;
     }
 
     .note {
       display: inline-block;
+      font-size: 1.5rem;
     }
 
     .cog {
       display: inline-block;
       animation: spin 4s linear infinite;
+      font-size: 1.5rem;
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     @keyframes spin {
@@ -60,7 +138,7 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
         transform: translateY(0);
       }
       50% {
-        transform: translateY(-5px);
+        transform: translateY(-8px);
       }
     }
 
@@ -79,10 +157,43 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
     #playable-status.playing .note:nth-child(3) {
       animation-delay: 0.5s;
     }
+
+    dialog {
+      border: 2px solid #d4c2a8;
+      border-radius: 10px;
+      box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
+      padding: 1.5rem;
+      background-color: #fffef7;
+      color: #5a4a3a;
+    }
+
+    dialog > div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    dialog::backdrop {
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    dialog button {
+      margin-top: 1rem;
+      background-color: #d4c2a8;
+    }
+
+    dialog button:hover:not(:disabled) {
+      background-color: #c2b09a;
+    }
   </style>
   <main>
     <h1>Musaic Box</h1>
-    <div>Use <a href="https://developer.chrome.com/docs/ai/built-in">Chrome's built-in AI</a> and <a href="https://tonejs.github.io/">Tone.js</a> to power a music box.</div>
+    <div>
+      Use <a href="https://developer.chrome.com/docs/ai/built-in"
+        >Chrome's built-in AI</a
+      > and <a href="https://tonejs.github.io/">Tone.js</a> to power a music box.
+    </div>
     <div>Enter a vibe and generate.</div>
     <label>Vibe: <input type="text" name="vibe" /></label>
     <button type="button" name="generate" disabled>🎶 Generate</button>
@@ -100,19 +211,22 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
     </div>
   </main>
   <dialog id="download-status">
-    <button name="download" disabled>Download model</button><output
-      >Downloaded: <span id="download-percent">0</span>%</output
-    >
+    <div>
+      <div>One-time model download required. Warning: may take a while!</div>
+      <button name="download" disabled>Download model</button>
+      <output>Downloaded: <span id="download-percent">0.00</span>%</output>
+    </div>
   </dialog>
   <dialog id="not-supported-status">
-    It looks like the on-device Prompt API is not supported on this device. You
-    can check the hardware requirements and try enabling
-    <code>chrome://flags/#prompt-api-for-gemini-nano</code> and
-    <code>chrome://flags/#enable-experimental-web-platform-features</code>. You
-    can still play generated melodies though!
-    <form method="dialog">
-      <button>OK</button>
-    </form>
+    <div>
+      <div>
+        It looks like the on-device Prompt API is not supported on this device.
+      </div>
+      <div>You can still play generated melodies though!</div>
+      <form method="dialog">
+        <button>OK</button>
+      </form>
+    </div>
   </dialog>
 
   <script type="module">
@@ -204,7 +318,7 @@ Your tune should be approximately 20 notes or fewer.`;
       model = await LanguageModel.create({
         monitor(m) {
           m.addEventListener("downloadprogress", (e) => {
-            const loaded = Math.round(parseFloat(e.loaded * 100));
+            const loaded = (parseFloat(e.loaded * 100)).toFixed(2);
             downloadPercent.textContent = loaded;
             if (loaded >= 100) {
               downloadButt.disabled = true;
