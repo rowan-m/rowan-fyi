@@ -224,7 +224,7 @@ Your tune should be approximately 20 notes or fewer.`;
       const vibe = document.querySelector('input[name="vibe"]').value;
       generatingStatus.classList.remove("hidden");
       playableStatus.classList.add("hidden");
-      chosenVibeText.forEach((el) => (el.textContent = vibeParam));
+      chosenVibeText.forEach((el) => (el.textContent = vibe));
       generateButt.disabled = true;
 
       try {
