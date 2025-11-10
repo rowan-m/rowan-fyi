@@ -31,6 +31,50 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
       font-size: 1rem;
       margin: 0;
     }
+
+    .note {
+      display: inline-block;
+    }
+
+    .cog {
+      display: inline-block;
+      animation: spin 4s linear infinite;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes bounce {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    #playable-status.playing .note {
+      animation: bounce 1.5s infinite ease-in-out;
+    }
+
+    #playable-status.playing .note:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    #playable-status.playing .note:nth-child(2) {
+      animation-delay: 0.25s;
+    }
+
+    #playable-status.playing .note:nth-child(3) {
+      animation-delay: 0.5s;
+    }
   </style>
   <main>
     <h1>Musaic Box</h1>
@@ -44,13 +88,24 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
     <button type="button" name="generate" disabled>🎶 Generate</button>
     <button type="button" name="playpause" disabled>⏯ Play / pause</button>
     <p id="status"></p>
+    <p id="generating-status" class="hidden">
+      <span class="cog">⚙</span>
+      Generating your "<span class="chosen-vibe"></span>" tune...
+    </p>
+    <p id="playable-status" class="hidden">
+      <span class="note">🎵</span>
+      <span class="note">🎵</span>
+      <span class="note">🎵</span>
+      "<span class="chosen-vibe"></span>" tune
+      <span>generated</span>! Press Play.
+    </p>
   </main>
   <dialog id="download-status">
     <button name="download" disabled>Download model</button><output
       >Downloaded: <span id="download-percent">0</span>%</output
     >
   </dialog>
-  <dialog id="not-supported">
+  <dialog id="not-supported-status">
     It looks like the on-device Prompt API is not supported on this device. You
     can check the hardware requirements and try enabling
     <code>chrome://flags/#prompt-api-for-gemini-nano</code> and
@@ -78,20 +133,20 @@ Plays D sharp in the first octave for one second.
 { "note": "Fb2", "duration": ".25" }
 Plays F flat in the second octave for a quarter second.
 
-Use a "b" to represent the flat symbol.
-A note always starts with the letter. NEVER start a note with a "." character. These are INVALID notes ".F#2", ".b1", ".Bb1"
 A valid note matches the regular expression ^[A-G][#b]?\\d+$
+Start with a letter from "A", "B", "C", "D", "E", "F", or "G". Then an optional "#" for sharp notes or "b" for flat notes. End with a number from 0-9 for the octave.
 
 Your tune should be approximately 20 notes or fewer.`;
 
-    const notSupportedDialog = document.querySelector("#not-supported");
-    const statusText = document.querySelector("#status");
+    const playableStatus = document.querySelector("#playable-status");
+    const generatingStatus = document.querySelector("#generating-status");
+    const chosenVibeText = document.querySelectorAll(".chosen-vibe");
+    const playPauseButt = document.querySelector('button[name="playpause"]');
+    const generateButt = document.querySelector('button[name="generate"]');
     const downloadDialog = document.querySelector("#download-status");
     const downloadButt = document.querySelector('button[name="download"]');
     const downloadPercent = document.querySelector("#download-percent");
-    const playPauseButt = document.querySelector('button[name="playpause"]');
-    const generateButt = document.querySelector('button[name="generate"]');
-
+    const notSupportedDialog = document.querySelector("#not-supported-status");
     let synth, part, model;
 
     playPauseButt.addEventListener("click", playMusic);
@@ -168,7 +223,9 @@ Your tune should be approximately 20 notes or fewer.`;
 
     async function generate(e) {
       const vibe = document.querySelector('input[name="vibe"]').value;
-      statusText.textContent = `Generating your "${vibe}" tune...`;
+      generatingStatus.classList.remove("hidden");
+      playableStatus.classList.add("hidden");
+      chosenVibeText.forEach((el) => (el.textContent = vibeParam));
       generateButt.disabled = true;
 
       try {
@@ -195,7 +252,9 @@ Your tune should be approximately 20 notes or fewer.`;
         alert("Failed to generate music. See console for details.");
       }
 
-      statusText.textContent = `Generated! Press play.`;
+      generatingStatus.classList.add("hidden");
+      playableStatus.classList.remove("hidden");
+      chosenVibeText.forEach((el) => (el.textContent = vibe));
       playPauseButt.disabled = false;
       generateButt.disabled = false;
     }
@@ -220,7 +279,7 @@ Your tune should be approximately 20 notes or fewer.`;
 
       part = new Tone.Part((time, value) => {
         if (!/^[A-G][#b]?\d+$/.test(value.note)) {
-          console.log('Skipping invalid note:', value.note);
+          console.log("Skipping invalid note:", value.note);
           return;
         }
         synth.triggerAttackRelease(value.note, value.duration, time);
@@ -233,9 +292,11 @@ Your tune should be approximately 20 notes or fewer.`;
     function playMusic(e) {
       if (Tone.getTransport().state !== "started") {
         Tone.getTransport().start();
+        playableStatus.classList.add("playing");
       } else {
         Tone.getTransport().stop();
         Tone.getTransport().position = 0;
+        playableStatus.classList.remove("playing");
       }
     }
 
@@ -283,7 +344,9 @@ Your tune should be approximately 20 notes or fewer.`;
         try {
           const notes = JSON.parse(notesParam);
           scheduleMelody(notes);
-          statusText.textContent = `Loaded "${vibeParam}" tune! Press play.`;
+          generatingStatus.classList.add("hidden");
+          playableStatus.classList.remove("hidden");
+          chosenVibeText.forEach((el) => (el.textContent = vibeParam));
           playPauseButt.disabled = false;
         } catch (error) {
           console.error("Error parsing notes from URL:", error);
