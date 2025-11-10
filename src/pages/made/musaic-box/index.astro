@@ -46,8 +46,12 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     @keyframes bounce {
@@ -78,27 +82,22 @@ import MinLayout from "@/layouts/MinimumLayout.astro";
   </style>
   <main>
     <h1>Musaic Box</h1>
-    <p>
-      Use <a href="https://developer.chrome.com/docs/ai/built-in"
-        >Chrome's built-in AI</a
-      > and <a href="https://tonejs.github.io/">Tone.js</a> to power a music box.
-      Enter a vibe and generate.
-    </p>
+    <div>Use <a href="https://developer.chrome.com/docs/ai/built-in">Chrome's built-in AI</a> and <a href="https://tonejs.github.io/">Tone.js</a> to power a music box.</div>
+    <div>Enter a vibe and generate.</div>
     <label>Vibe: <input type="text" name="vibe" /></label>
     <button type="button" name="generate" disabled>🎶 Generate</button>
     <button type="button" name="playpause" disabled>⏯ Play / pause</button>
-    <p id="status"></p>
-    <p id="generating-status" class="hidden">
+    <div id="generating-status" class="hidden">
       <span class="cog">⚙</span>
       Generating your "<span class="chosen-vibe"></span>" tune...
-    </p>
-    <p id="playable-status" class="hidden">
+    </div>
+    <div id="playable-status" class="hidden">
       <span class="note">🎵</span>
       <span class="note">🎵</span>
       <span class="note">🎵</span>
       "<span class="chosen-vibe"></span>" tune
       <span>generated</span>! Press Play.
-    </p>
+    </div>
   </main>
   <dialog id="download-status">
     <button name="download" disabled>Download model</button><output
