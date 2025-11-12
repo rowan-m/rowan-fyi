@@ -6,6 +6,8 @@ description: Experimenting with Chrome's built-in AI APIs and Tone.js to create 
 pubDate: 2025-11-12
 ---
 
+_Experimenting with Chrome's built-in AI APIs and Tone.js to create a vibe-based music box._
+
 At the time of writing, Chrome is running an origin trial (which means it's very early, has limited device support, may have issues, etc.) for a suite of [built-in AI APIs](https://developer.chrome.com/docs/ai/get-started). This means you get a local LLM with a variety of interfaces for summarising, translating, writing, rewriting, proofreading, and plain ol' prompting. I wanted to play with the Prompt API as it provides the most flexibility, however I wasn't particulary excited about building another chat interface. It was [Brecht De Ruyte](https://utilitybend.com/)'s post on ["Build a guessing game with the Prompt API"](https://developer.chrome.com/blog/ai-guessing-game) that highlighted the feature to restrict the model's output to a JSON schema that provided the necessary inspiration. Instead of unstructured text, I should be able to get the model to produce any structured data I need.
 
 In this case, that data is a series of notes that I can feed to [Tone.js](https://tonejs.github.io/) to play with a music box-like effect. I've also been experimenting with AI assisted coding tools, in this case primarily [Gemini CLI](https://github.com/google-gemini/gemini-cli), to understand how to make sure I'm not ["holding it wrong"](https://www.wired.com/2010/06/iphone-4-holding-it-wrong/). The sweet spot I've been finding with these tools is where:
@@ -124,4 +126,4 @@ This is very much a toy project to learn, but as ever there are a few things I m
 - I do want to figure out if there's a path to more reliably valid output from the model or if I'm simply looking for determinism in a non-deterministic system.
 - I'm playing with letting Astro render this page versus my normal static approach, which means it's littered with various data elements. I'm not sure how I feel about this. For demos I prefer that you can just view source and see the simplest possible code... so I may move it back.
 
-Code is on [GitHub rowan-fyi](](https://www.reddit.com/r/edmproduction/comments/7l9q61/help_related_to_music_box_kind_of_synth_sounds/)) if you'd like to dig through. PRs are always welcome!
+Code is on [GitHub rowan-fyi](https://github.com/rowan-m/rowan-fyi/blob/main/src/pages/made/musaic-box/index.astro) if you'd like to dig through. PRs are always welcome!
