@@ -992,21 +992,24 @@
           (this.pointers.init.zoom * this.pointers.zoom.initdist) /
             this.pointers.zoom.dist,
         );
+        const divisor = this.pointers.zoom.id !== false ? 2 : 1;
         this.config.center.x =
           this.pointers.init.x -
-          ((this.pointers.center.x -
+          (((this.pointers.center.x -
             this.pointers.center.initx +
             this.pointers.zoom.x -
             this.pointers.zoom.initx) /
+            divisor) /
             (this.w * this.config.resolution)) *
             this.config.zoom *
             window.devicePixelRatio;
         this.config.center.y =
           this.pointers.init.y +
-          ((this.pointers.center.y -
+          (((this.pointers.center.y -
             this.pointers.center.inity +
             this.pointers.zoom.y -
             this.pointers.zoom.inity) /
+            divisor) /
             ((this.h * this.config.resolution) / this.config.aspect)) *
             this.config.zoom *
             window.devicePixelRatio;
