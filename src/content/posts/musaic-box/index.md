@@ -56,6 +56,8 @@ The [Prompt API docs](https://developer.chrome.com/docs/ai/prompt-api) cover the
 
 This is where I've been learning most of the quirks and limitations of getting reliable output from the model; this is still an iterative work in progress. Most of the tweaking comes from getting it to consistently produce a valid note. In earlier iterations is would sometimes precede notes with a ".". Now it will still sometime produce notes like `Aa3` or `Cc5` rather than using only a `#` or `b`. Adding the regular expression format in there did appear to be the most effective option in constraining the format.
 
+**Update:** Shout out to [Thomas Steiner](https://blog.tomayac.com/) for pointing out I can add [regex validation directly in the JSON schema](https://json-schema.org/understanding-json-schema/reference/regular_expressions)!
+
 However, the best option is just using the schema to strictly type the output. In the initial version notes could be represented using the more flexible format that [Tone.js Time format](https://github.com/tonejs/tone.js/wiki/Time) which allows string like `4n` for a quarter note or `1:2` for 1 bar and 2 quarter notes. However, the model would regularly just output `quarter` or `whole` which is `whole`ly invalid syntax. Restricting `duration` to a float for the number of seconds removed all this risk.
 
 The schema itself is applied as part of each user prompt.
@@ -69,7 +71,7 @@ const schema = {
       items: {
         type: "object",
         properties: {
-          note: { type: "string" },
+          note: { type: "string", pattern: "^[A-G][#b]?[2-9]$" },
           duration: { type: "number" },
         },
         required: ["note", "duration"],

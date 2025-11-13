@@ -301,7 +301,7 @@ Your tune should be approximately 20 notes or fewer.`;
           items: {
             type: "object",
             properties: {
-              note: { type: "string" },
+              note: { type: "string", pattern: "^[A-G][#b]?[2-9]$" },
               duration: { type: "number" },
             },
             required: ["note", "duration"],
@@ -318,7 +318,7 @@ Your tune should be approximately 20 notes or fewer.`;
       model = await LanguageModel.create({
         monitor(m) {
           m.addEventListener("downloadprogress", (e) => {
-            const loaded = (parseFloat(e.loaded * 100)).toFixed(2);
+            const loaded = parseFloat(e.loaded * 100).toFixed(2);
             downloadPercent.textContent = loaded;
             if (loaded >= 100) {
               downloadButt.disabled = true;
@@ -344,11 +344,11 @@ Your tune should be approximately 20 notes or fewer.`;
       try {
         console.log(
           "User prompt: ",
-          `Create a melody based on the vibe: ${vibe}`
+          `Create a melody based on the vibe: ${vibe}`,
         );
         const result = await model.prompt(
           `Create a melody based on the vibe: ${vibe}`,
-          { responseConstraint: { schema } }
+          { responseConstraint: { schema } },
         );
         const generated = JSON.parse(result);
         console.log("Generated notes: ", generated.notes);
