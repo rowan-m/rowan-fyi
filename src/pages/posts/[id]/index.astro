@@ -1,6 +1,6 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import BareLayout from "src/layouts/BareLayout.astro";
+import SiteDefaultLayout from "src/layouts/SiteDefaultLayout.astro";
 import Header from "@/components/Header.astro";
 import NewTabIcon from "/public/img/new-tab.svg";
 
@@ -37,7 +37,7 @@ const articleData = {
 };
 ---
 
-<BareLayout
+<SiteDefaultLayout
   title={post.data.title + " | rowan.fyi"}
   description={post.data.description}
 >
@@ -121,4 +121,4 @@ const articleData = {
     </article>
     <ShareButton />
   </main>
-</BareLayout>
+</SiteDefaultLayout>

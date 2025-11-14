@@ -1,5 +1,5 @@
 ---
-import BareLayout from "src/layouts/BareLayout.astro";
+import SiteDefaultLayout from "src/layouts/SiteDefaultLayout.astro";
 import Header from "@/components/Header.astro";
 import PostCardView from "@/components/PostCardView.astro";
 import LastFmTrack from "@/components/LastFmTrack.astro";
@@ -43,7 +43,7 @@ const posts = await getCollection("posts");
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BareLayout title="rowan.fyi" description={description}>
+<SiteDefaultLayout title="rowan.fyi" description={description}>
   <script
     is:inline
     type="application/ld+json"
@@ -135,4 +135,4 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
       </div>
     </section>
   </main>
-</BareLayout>
+</SiteDefaultLayout>

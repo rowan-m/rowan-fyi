@@ -1,5 +1,5 @@
 ---
-import BareLayout from "@/layouts/BareLayout.astro";
+import SiteDefaultLayout from "@/layouts/SiteDefaultLayout.astro";
 import Header from "@/components/Header.astro";
 
 const madeItems = import.meta.glob("/public/made/*/index.html", {
@@ -7,7 +7,7 @@ const madeItems = import.meta.glob("/public/made/*/index.html", {
 });
 ---
 
-<BareLayout title="Made by Rowan" description="Things I've made">
+<SiteDefaultLayout title="Made by Rowan" description="Things I've made">
   <Header />
   <main>
     <h1>Things I've made</h1>
@@ -34,4 +34,4 @@ const madeItems = import.meta.glob("/public/made/*/index.html", {
       }
     </ul>
   </main>
-</BareLayout>
+</SiteDefaultLayout>
