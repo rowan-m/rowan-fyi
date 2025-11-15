@@ -1,0 +1,14 @@
+---
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import "@/assets/base.css";
+
+interface Props {
+  useH1HeaderHeader?: boolean;
+}
+const { useH1HeaderHeader } = Astro.props;
+---
+
+<Header useH1Header={useH1HeaderHeader} />
+<slot />
+<Footer />

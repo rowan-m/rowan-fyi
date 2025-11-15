@@ -1,13 +1,15 @@
 ---
-import SiteDefaultLayout from "@/layouts/SiteDefaultLayout.astro";
+import DefaultHeadLayout from "@/layouts/DefaultHeadLayout.astro";
+import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import Header from "@/components/Header.astro";
 
 const madeItems = import.meta.glob("/public/made/*/index.html", {
   eager: true,
 });
 ---
-
-<SiteDefaultLayout title="Made by Rowan" description="Things I've made">
+<DefaultHeadLayout title="Made by Rowan" description="Things I've made">
+</DefaultHeadLayout>
+<DefaultBodyLayout>
   <main>
     <h1>Things I've made</h1>
     <p>
@@ -33,4 +35,4 @@ const madeItems = import.meta.glob("/public/made/*/index.html", {
       }
     </ul>
   </main>
-</SiteDefaultLayout>
+</DefaultBodyLayout>

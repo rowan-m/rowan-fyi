@@ -1,8 +1,7 @@
 ---
-import SiteDefaultLayout from "src/layouts/SiteDefaultLayout.astro";
-import Header from "@/components/Header.astro";
+import DefaultHeadLayout from "@/layouts/DefaultHeadLayout.astro";
+import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import PostCardView from "@/components/PostCardView.astro";
-import LastFmTrack from "@/components/LastFmTrack.astro";
 
 import { getCollection } from "astro:content";
 
@@ -42,7 +41,7 @@ const posts = await getCollection("posts");
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<SiteDefaultLayout title="rowan.fyi" description={description} useH1HeaderHeader={true}>
+<DefaultHeadLayout title={title} description={description}>
   <script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
   <meta property="og:url" content={new URL(Astro.site)}>
   <meta property="og:type" content="website">
@@ -55,6 +54,8 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
   <meta name="twitter:title" content={title}>
   <meta name="twitter:description" content={description}>
   <meta name="twitter:image" content={new URL("img/og-preview.png", Astro.site)}>
+</DefaultHeadLayout>
+<DefaultBodyLayout useH1HeaderHeader={true}>
   <style>
     .social-list,
     .social-list li {
@@ -91,7 +92,7 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
     }
   </style>
   <main class="h-card">
-    <a class="u-url" href="/" style="display:none"><img class="u-photo" src="/img/rowan-merewood.jpg" /></a>
+    <a class="u-url" href="/" style="display:none"><img class="u-photo" src="/img/rowan-merewood.jpg" alt="Rowan Merewood"/></a>
     <p>
       <span class="p-note"
         >Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a
@@ -126,4 +127,4 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
       </div>
     </section>
   </main>
-</SiteDefaultLayout>
+</DefaultBodyLayout>

@@ -1,10 +1,13 @@
 ---
-import SiteDefaultLayout from "src/layouts/SiteDefaultLayout.astro";
+import DefaultHeadLayout from "@/layouts/DefaultHeadLayout.astro";
+import DefaultBodyLayout from "src/layouts/DefaultBodyLayout.astro";
 ---
 
-<SiteDefaultLayout title="404 Not found | rowan.fyi" description="There's no page on this URL.">
+<DefaultHeadLayout title="404 Not found | rowan.fyi" description="There's no page on this URL.">
+</DefaultHeadLayout>
+<DefaultBodyLayout>
   <main>
     <h1>404 Not found</h1>
     <p>There's no page on this URL. You can try checking from the <a href="/">home page</a>.
   </main>
-</SiteDefaultLayout>
+</DefaultBodyLayout>

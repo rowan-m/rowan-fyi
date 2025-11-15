@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import SiteDefaultLayout from "src/layouts/SiteDefaultLayout.astro";
-import Header from "@/components/Header.astro";
+import DefaultHeadLayout from "@/layouts/DefaultHeadLayout.astro";
+import DefaultBodyLayout from "src/layouts/DefaultBodyLayout.astro";
 import NewTabIcon from "/public/img/new-tab.svg";
 
 import ShareButton from "@/components/ShareButton.astro";
@@ -36,8 +36,7 @@ const articleData = {
   ],
 };
 ---
-
-<SiteDefaultLayout title={post.data.title + " | rowan.fyi"} description={post.data.description}>
+<DefaultHeadLayout title={post.data.title + " | rowan.fyi"} description={post.data.description}>
   <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)} />
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)}>
   <meta property="og:type" content="website">
@@ -50,6 +49,8 @@ const articleData = {
   <meta name="twitter:title" content={post.data.title}>
   <meta name="twitter:description" content={post.data.description}>
   <meta name="twitter:image" content={new URL(post?.data?.image?.src, Astro.site)}>
+</DefaultHeadLayout>
+<DefaultBodyLayout>
   <style>
     iframe {
       width: 100%;
@@ -94,4 +95,4 @@ const articleData = {
     </article>
     <ShareButton />
   </main>
-</SiteDefaultLayout>
+</DefaultBodyLayout>
