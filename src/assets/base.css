@@ -118,18 +118,27 @@ li::marker {
   text-decoration: none;
 }
 
-.button > svg,
-main ul.socials svg {
+.button > svg  {
   width: 1rem;
   height: 1rem;
 }
 
+footer,
+header,
+main {
+  padding-inline: max(2rem, calc((100vw - 75ch) / 2));
+}
+
+main {
+  padding-block: 1rem;
+}
 
 footer,
 header {
   color: var(--sec-fg);
   fill: var(--sec-fg);
   margin: 0;
+  padding-block: .5rem;
   position: relative;
 
   &::before {
@@ -144,30 +153,14 @@ header {
 }
 
 header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
   border-block-end: var(--sec-border) solid 2px;
-  padding-block: 0.5rem;
 }
 
 footer {
   border-block-start: var(--sec-border) solid 1px;
-}
-
-footer,
-header,
-main {
-  padding-inline: max(2rem, calc((100vw - 75ch) / 2));
-}
-
-footer,
-main {
-  padding-block: 1rem;
-}
-
-nav {
-  display: flex;
 }
 
 header .logo,
@@ -209,28 +202,16 @@ main a:hover {
   text-decoration: underline var(--main-accent);
 }
 
-main ul.socials,
-main ul.socials li {
-  list-style-type: none;
-  padding-inline-start: 0;
-}
-
-main ul.socials svg {
-  vertical-align: text-bottom;
-}
-
-main ul.socials li::marker {
-  content: none;
-}
-
-footer .socials {
+.socials {
   display: flex;
   flex-flow: row nowrap;
   justify-content: flex-end;
   gap: 1rem;
+  line-height: 0;
+  padding: .5rem;
 }
 
-footer .socials svg {
+.socials svg {
   width: 1.5rem;
   height: 1.5rem;
 }

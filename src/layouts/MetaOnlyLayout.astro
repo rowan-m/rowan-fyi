@@ -1,5 +1,5 @@
 ---
-import HeadMeta from "@/components/HeadMeta.astro";
+import CommonMeta from "@/components/CommonMeta.astro";
 
 interface Props {
   title: string;
@@ -10,7 +10,7 @@ const { title, description } = Astro.props;
 
 <!doctype html>
 <html lang="en">
-<HeadMeta />
+<CommonMeta />
 <title>{title}</title>
 <meta name="description" content={description}>
 <slot />

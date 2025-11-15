@@ -1,25 +1,15 @@
 ---
-import Logo from "/public/img/logo.svg";
+import Logo from "@/assets/logo.svg";
 interface Props {
-  useH1?: boolean;
+  useH1Header?: boolean;
 }
-const { useH1 } = Astro.props;
+const { useH1Header } = Astro.props;
 ---
-
 <header>
-  <nav>
-    {
-      useH1 ? (
-        <h1 class="logo">
-          <a href="/" title="rowan.fyi">
-            <Logo />
-          </a>
-        </h1>
-      ) : (
-        <a href="/" class="logo" title="rowan.fyi">
-          <Logo />
-        </a>
-      )
-    }
-  </nav>
+{ useH1Header ? (
+  <h1 class="logo"><a href="/" title="rowan.fyi"><Logo /></a></h1>
+) : (
+  <a href="/" class="logo" title="rowan.fyi"><Logo /></a>
+)
+}
 </header>
