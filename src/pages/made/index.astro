@@ -1,5 +1,5 @@
 ---
-import DefaultHeadLayout from "@/layouts/DefaultHeadLayout.astro";
+import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import Header from "@/components/Header.astro";
 
@@ -7,8 +7,10 @@ const madeItems = import.meta.glob("/public/made/*/index.html", {
   eager: true,
 });
 ---
-<DefaultHeadLayout title="Made by Rowan" description="Things I've made">
-</DefaultHeadLayout>
+
+<!doctype html>
+<html lang="en">
+<DefaultHead title="Made by Rowan" description="Things I've made" />
 <DefaultBodyLayout>
   <main>
     <h1>Things I've made</h1>

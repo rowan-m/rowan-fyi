@@ -1,5 +1,5 @@
 ---
-import DefaultHeadLayout from "@/layouts/DefaultHeadLayout.astro";
+import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import PostCardView from "@/components/PostCardView.astro";
 
@@ -41,20 +41,21 @@ const posts = await getCollection("posts");
 posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<DefaultHeadLayout title={title} description={description}>
-  <script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
-  <meta property="og:url" content={new URL(Astro.site)}>
-  <meta property="og:type" content="website">
-  <meta property="og:title" content={title}>
-  <meta property="og:description" content={description}>
-  <meta name="image" property="og:image" content={new URL("img/og-preview.png", Astro.site)}>
-  <meta name="twitter:card" content="summary_large_image">
-  <meta property="twitter:domain" content="rowan.fyi">
-  <meta property="twitter:url" content={new URL(Astro.site)}>
-  <meta name="twitter:title" content={title}>
-  <meta name="twitter:description" content={description}>
-  <meta name="twitter:image" content={new URL("img/og-preview.png", Astro.site)}>
-</DefaultHeadLayout>
+<!doctype html>
+<html lang="en">
+<DefaultHead title={title} description={description} />
+<script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
+<meta property="og:url" content={new URL(Astro.site)}>
+<meta property="og:type" content="website">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+<meta name="image" property="og:image" content={new URL("img/og-preview.png", Astro.site)}>
+<meta name="twitter:card" content="summary_large_image">
+<meta property="twitter:domain" content="rowan.fyi">
+<meta property="twitter:url" content={new URL(Astro.site)}>
+<meta name="twitter:title" content={title}>
+<meta name="twitter:description" content={description}>
+<meta name="twitter:image" content={new URL("img/og-preview.png", Astro.site)}>
 <DefaultBodyLayout useH1HeaderHeader={true}>
   <style>
     .social-list,

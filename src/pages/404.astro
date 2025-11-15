@@ -1,10 +1,11 @@
 ---
-import DefaultHeadLayout from "@/layouts/DefaultHeadLayout.astro";
-import DefaultBodyLayout from "src/layouts/DefaultBodyLayout.astro";
+import DefaultHead from "@/components/DefaultHead.astro";
+import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 ---
 
-<DefaultHeadLayout title="404 Not found | rowan.fyi" description="There's no page on this URL.">
-</DefaultHeadLayout>
+<!doctype html>
+<html lang="en">
+<DefaultHead title="404 Not found | rowan.fyi" description="There's no page on this URL." />
 <DefaultBodyLayout>
   <main>
     <h1>404 Not found</h1>
