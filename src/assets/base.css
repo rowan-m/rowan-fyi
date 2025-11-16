@@ -118,7 +118,7 @@ li::marker {
   text-decoration: none;
 }
 
-.button > svg  {
+.button>svg {
   width: 1rem;
   height: 1rem;
 }

@@ -2,6 +2,8 @@
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import PostCardView from "@/components/PostCardView.astro";
+import { Image } from "astro:assets";
+import imgRowanMerewood from "@/assets/rowan-merewood.jpg";
 
 import { getCollection } from "astro:content";
 
@@ -93,34 +95,19 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
     }
   </style>
   <main class="h-card">
-    <a class="u-url" href="/" style="display:none"><img class="u-photo" src="/img/rowan-merewood.jpg" alt="Rowan Merewood"/></a>
-    <p>
-      <span class="p-note"
-        >Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a
-          href="/">rowan.fyi</a
-        > is where I share my various projects and posts ranging over graphics, mathematics,
-        optical illusions, and arguably art. At work, I'm Developer Relations for
-        <a href="https://developer.chrome.com/">Chrome</a> at Google.</span>
+    <a class="u-url" href="/" style="display:none"><Image src={imgRowanMerewood} alt="Rowan Merewood" width="800" class="u-photo" /></a>
+    <p><span class="p-note">Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a>
+      is where I share my various projects and posts ranging over graphics, mathematics, optical illusions, and arguably art.
+      At work, I'm Developer Relations for <a href="https://developer.chrome.com/">Chrome</a> at Google.</span>
     </p>
     <span>You can say hello back across these various networks:</span>
     <ul class="social-list">
-      <li>
-        <a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a>
-      </li>
-      <li>
-        <a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon" ><Mastodon /> @rowan_m@mastodon.social</a>
-      </li>
-      <li>
-        <a href="https://github.com/rowan-m/" title="rowan-m on GitHub"><GitHub /> rowan-m</a>
-      </li>
-      <li>
-        <a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"><Threads /> rowan_m</a>
-      </li>
-      <li>
-        <a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a>
-      </li>
+      <li><a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a>
+      <li><a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon" ><Mastodon /> @rowan_m@mastodon.social</a>
+      <li><a href="https://github.com/rowan-m/" title="rowan-m on GitHub"><GitHub /> rowan-m</a>
+      <li><a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"><Threads /> rowan_m</a>
+      <li><a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a>
     </ul>
-
     <section class="posts">
       <h2>Posts</h2>
       <div>
