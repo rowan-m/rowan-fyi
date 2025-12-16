@@ -4,11 +4,11 @@ import Footer from "@/components/Footer.astro";
 import "@/assets/base.css";
 
 interface Props {
-  useH1HeaderHeader?: boolean;
+  useH1Header?: boolean;
 }
-const { useH1HeaderHeader } = Astro.props;
+const { useH1Header } = Astro.props;
 ---
 
-<Header useH1Header={useH1HeaderHeader} />
+<Header useH1Header={useH1Header} />
 <slot />
 <Footer />

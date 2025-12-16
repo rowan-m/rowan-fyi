@@ -5,13 +5,13 @@ import "@/assets/base.css";
 interface Props {
   title: string;
   description: string;
-  useH1HeaderHeader?: boolean;
+  useH1Header?: boolean;
 }
-const { title, description, useH1HeaderHeader } = Astro.props;
+const { title, description, useH1Header } = Astro.props;
 ---
 
 <CommonMeta />
-<link rel="icon" href="/img/icon.svg">
-<link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+<link rel="icon" href="/img/icon.svg" />
+<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
 <title>{title}</title>
-<meta name="description" content={description}>
+<meta name="description" content={description} />
