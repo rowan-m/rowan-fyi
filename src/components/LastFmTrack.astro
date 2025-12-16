@@ -1,24 +1,23 @@
 ---
-// src/components/LastFmTrack.astro
-// This component now renders a placeholder and fetches data on the client.
+
 ---
 
+<style>
+
+</style>
 <div>
-  <div>Last.fm <span>last played</span></div>
-  <a href="https://www.last.fm/music/Billy+Joel/_/Piano+Man">
-    <img
-      src="https://lastfm.freetls.fastly.net/i/u/300x300/e0684204f7d2357c903854b3a6456b1a.png"
-    />
-    <div>Piano Man</div>
-    <div>Piano Man (Legacy Edition)</div>
-    <div>Billy Joel</div>
+  <div>Last.fm <span id="track-status">last played</span></div>
+  <a id="track-url" href="#">
+    <img id="track-image" src="#" />
+    <div id="track-name">...</div>
+    <div id="track-album">...</div>
+    <div id="track-artist">...</div>
   </a>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const USERNAME = "rowan_m";
       const API_KEY = "edcf3d9e6ada6d0b9f565d83c92b6724";
       const URL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
-      const widget = document.getElementById("lastfm-widget");
 
       try {
         const response = await fetch(URL);
@@ -29,66 +28,23 @@
         const recentTrack = data.recenttracks?.track?.[0];
 
         if (recentTrack) {
-          const track = {
-            name: recentTrack.name,
-            artist: recentTrack.artist["#text"],
-            url: recentTrack.url,
-            image: recentTrack.image[2]["#text"], // 'large' image
-            nowPlaying: recentTrack["@attr"]?.nowplaying === "true",
-          };
-
-          widget.innerHTML = `
-          <a href="${track.url}" target="_blank" rel="noopener noreferrer">
-            <img src="${track.image}" alt="Album art for ${track.name} by ${track.artist}" width="100" height="100" />
-          </a>
-          <div class="track-info">
-            <p class="listening-status">${track.nowPlaying ? "Now Playing" : "Last Played"}</p>
-            <p class="track-name">
-              <a href="${track.url}" target="_blank" rel="noopener noreferrer">${track.name}</a>
-            </p>
-            <p class="artist-name">${track.artist}</p>
-          </div>
-        `;
-          widget.style.display = "flex";
+          document.getElementById("track-url").href = recentTrack.url;
+          document.getElementById("track-image").src =
+            recentTrack.image[2]["#text"];
+          document.getElementById("track-name").textContent = recentTrack.name;
+          document.getElementById("track-album").textContent =
+            recentTrack.album["#text"];
+          document.getElementById("track-artist").textContent =
+            recentTrack.artist["#text"];
+          document.getElementById("track-status").textContent = recentTrack[
+            "@attr"
+          ]?.nowplaying
+            ? "now playing"
+            : "last played";
         }
       } catch (error) {
         console.error("Could not fetch Last.fm data:", error);
-        // You could optionally display an error message in the widget here
       }
     });
   </script>
-
-  <style>
-    .lastfm-track {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      background: #f9f9f9;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      padding: 1rem;
-      font-family: sans-serif;
-    }
-    .lastfm-track img {
-      border-radius: 4px;
-    }
-    .track-info p {
-      margin: 0;
-    }
-    .listening-status {
-      font-size: 0.8rem;
-      color: #555;
-      font-style: italic;
-    }
-    .track-name {
-      font-weight: bold;
-    }
-    .track-name a {
-      text-decoration: none;
-      color: inherit;
-    }
-    .artist-name {
-      color: #333;
-    }
-  </style>
 </div>

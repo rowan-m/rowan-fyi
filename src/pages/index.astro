@@ -12,6 +12,7 @@ import GitHub from "/public/img/socials/github-fill.svg";
 import Linkedin from "/public/img/socials/linkedin-box-fill.svg";
 import Mastodon from "/public/img/socials/mastodon-fill.svg";
 import Threads from "/public/img/socials/threads-line.svg";
+import LastFmTrack from "@/components/LastFmTrack.astro";
 
 const title = "rowan.fyi";
 const description =
@@ -111,11 +112,16 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
       <li><a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"><Threads /> rowan_m</a>
       <li><a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a>
     </ul>
+    
     <section class="posts">
       <h2>Posts</h2>
       <div>
         {posts.map((post) => <PostCardView post={post} />)}
       </div>
+    </section>
+    <section>
+      <h2>Experimental widgets</h2>
+      <LastFmTrack />
     </section>
   </main>
 </DefaultBodyLayout>
