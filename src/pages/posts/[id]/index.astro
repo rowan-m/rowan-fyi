@@ -5,6 +5,7 @@ import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import NewTabIcon from "/public/img/new-tab.svg";
 
 import ShareButton from "@/components/ShareButton.astro";
+import SocialComments from "@/components/SocialComments.astro";
 interface Props {
   post: CollectionEntry<"posts">;
 }
@@ -19,6 +20,7 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 
 const articleData = {
   "@context": "https://schema.org",
@@ -94,5 +96,10 @@ const articleData = {
       <Content />
     </article>
     <ShareButton />
+    <SocialComments
+      canonicalUrl={canonicalUrl}
+      blueskyUrl={post.data.blueskyUrl}
+      mastodonUrl={post.data.mastodonUrl}
+    />
   </main>
 </DefaultBodyLayout>
