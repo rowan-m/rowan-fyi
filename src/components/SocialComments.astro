@@ -168,6 +168,26 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
   }
 
+  function unwrapUserComments(comments: Comment[]): Comment[] {
+    const MY_BSKY_HANDLE = 'rowan.fyi';
+    const MY_BSKY_DID = 'did:plc:7dtviror2bcs32dnngqsf7ay';
+    const MY_MASTODON_URL = 'https://mastodon.social/@rowan_m';
+    
+    let result: Comment[] = [];
+    for (const comment of comments) {
+      const isMe = (comment.source === 'bluesky' && (comment.authorHandle === MY_BSKY_HANDLE || comment.id.includes(MY_BSKY_DID))) ||
+                   (comment.source === 'mastodon' && comment.authorUrl === MY_MASTODON_URL);
+      if (isMe) {
+        if (comment.replies) {
+          result.push(...unwrapUserComments(comment.replies));
+        }
+      } else {
+        result.push(comment);
+      }
+    }
+    return result;
+  }
+
   async function fetchAllComments(canonicalUrl: string, locationUrl?: string, bskyUrl?: string, mastodonUrl?: string): Promise<Comment[]> {
     const promises = [];
 
@@ -179,6 +199,18 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
     const results = await Promise.all(promises);
     let allComments = results.flat();
+
+    allComments = unwrapUserComments(allComments);
+
+    // Deduplicate top-level comments by ID, preferring those with more replies
+    const uniqueMap = new Map<string, Comment>();
+    for (const c of allComments) {
+      const existing = uniqueMap.get(c.id);
+      if (!existing || (c.replies?.length || 0) > (existing.replies?.length || 0)) {
+        uniqueMap.set(c.id, c);
+      }
+    }
+    allComments = Array.from(uniqueMap.values());
 
     // Sort by date
     allComments.sort((a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime());
@@ -309,7 +341,22 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
   async function fetchMastodonComments(canonicalUrl: string, locationUrl?: string, linkedUrl?: string): Promise<Comment[]> {
     let comments: Comment[] = [];
 
-    // Search for mentions of the canonical URL and location URL on mastodon.social
+    if (linkedUrl) {
+      const urlData = parseMastodonUrl(linkedUrl);
+      if (urlData) {
+        try {
+          const thread = await fetchMastodonThread(urlData.id, urlData.host);
+          if (thread) {
+            comments.push(thread);
+          }
+        } catch (e) {
+          console.warn('Mastodon thread fetch failed for ' + linkedUrl, e);
+        }
+      }
+    }
+
+    // Search for mentions - this often fails without auth on many instances,
+    // so we only try mastodon.social as a best-effort fallback.
     const searchUrls = [canonicalUrl];
     if (locationUrl) searchUrls.push(locationUrl);
 
@@ -321,33 +368,14 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
           const data = await searchRes.json();
           const statuses = data.statuses || [];
           for (const status of statuses) {
-            // For each status, we might want its context (replies)
-            const thread = await fetchMastodonThread(status.id);
+            if (comments.find(c => c.id === status.id)) continue;
+            const thread = await fetchMastodonThread(status.id, 'mastodon.social');
             if (thread) comments.push(thread);
             else comments.push(mapMastodonStatus(status));
           }
         }
       } catch (e) {
-        console.warn('Mastodon search failed for ' + urlToSearch, e);
-      }
-    }
-
-    if (linkedUrl) {
-      try {
-        const resolveUrl = `https://mastodon.social/api/v2/search?q=${encodeURIComponent(linkedUrl)}&resolve=true&limit=1`;
-        const resolveRes = await fetch(resolveUrl);
-        if (resolveRes.ok) {
-          const data = await resolveRes.json();
-          if (data.statuses && data.statuses.length > 0) {
-            const localId = data.statuses[0].id;
-            const thread = await fetchMastodonThread(localId);
-            if (thread && !comments.find(c => c.id === thread.id)) {
-              comments.push(thread);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('Mastodon linked URL resolve failed', e);
+        // Best-effort search failed
       }
     }
 
@@ -356,23 +384,30 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return uniqueComments;
   }
 
-  async function fetchMastodonThread(id: string): Promise<Comment | null> {
+  function parseMastodonUrl(url: string) {
     try {
-      const statusRes = await fetch(`https://mastodon.social/api/v1/statuses/${id}`);
+      const u = new URL(url);
+      const host = u.host;
+      const pathParts = u.pathname.split('/').filter(Boolean);
+      const id = pathParts.pop();
+      if (!id || isNaN(Number(id)) && id.length < 10) return null; // Basic ID validation
+      return { host, id };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchMastodonThread(id: string, host: string): Promise<Comment | null> {
+    try {
+      const statusRes = await fetch(`https://${host}/api/v1/statuses/${id}`);
       if (!statusRes.ok) return null;
       const status = await statusRes.json();
 
-      const contextRes = await fetch(`https://mastodon.social/api/v1/statuses/${id}/context`);
+      const contextRes = await fetch(`https://${host}/api/v1/statuses/${id}/context`);
       if (!contextRes.ok) return mapMastodonStatus(status);
       const context = await contextRes.json();
 
       const rootComment = mapMastodonStatus(status);
-
-      // Mastodon context gives ancestors and descendants. We want descendants of this post.
-      // But context is flat. We need to build a tree.
-      // For simplicity, let's just show all descendants as replies if they are direct or indirect.
-      // Real tree building is better.
-
       const descendants = context.descendants || [];
       rootComment.replies = buildMastodonTree(id, descendants);
 
