@@ -3,6 +3,7 @@ import { type CollectionEntry, getCollection, render } from "astro:content";
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import NewTabIcon from "/public/img/new-tab.svg";
+import Comments from "/public/img/comments.svg";
 
 import ShareButton from "@/components/ShareButton.astro";
 import SocialComments from "@/components/SocialComments.astro";
@@ -86,6 +87,7 @@ const articleData = {
         )
       }
       <ShareButton />
+      <a href="#comments" class="button"><Comments /> Comments</a>
     </div>
     {
       post.data.location && (
