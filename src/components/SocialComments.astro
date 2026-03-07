@@ -14,7 +14,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 ---
 
 <section class="social-comments" data-canonical={canonicalUrl} data-location={locationUrl} data-bsky={blueskyUrl} data-mastodon={mastodonUrl}>
-  <h2>Comments</h2>
+  <h2 id="comments">Comments</h2>
   <div class="comment-actions">
     <ShareButton />
     <a href={blueskyUrl || "https://bsky.app/profile/rowan.fyi"} title="rowan@fyi on Bluesky" class="button share-button" target="_blank"><Bluesky /> Share/reply on BlueSky</a>
