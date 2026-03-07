@@ -1,0 +1,599 @@
+---
+import Bluesky from "/public/img/socials/bluesky-fill.svg";
+import Mastodon from "/public/img/socials/mastodon-fill.svg";
+import ShareButton from "@/components/ShareButton.astro";
+
+interface Props {
+  canonicalUrl: string;
+  locationUrl?: string;
+  blueskyUrl?: string;
+  mastodonUrl?: string;
+}
+
+const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
+---
+
+<section class="social-comments" data-canonical={canonicalUrl} data-location={locationUrl} data-bsky={blueskyUrl} data-mastodon={mastodonUrl}>
+  <h2 id="comments">Comments</h2>
+  <div class="comment-actions">
+    <ShareButton />
+    <a href={blueskyUrl || "https://bsky.app/profile/rowan.fyi"} title="rowan@fyi on Bluesky" class="button share-button" target="_blank"><Bluesky /> Share/reply on BlueSky</a>
+    <a href={mastodonUrl || "https://mastodon.social/@rowan_m"} title="@rowan_m on Mastodon" class="button share-button" target="_blank"><Mastodon /> Share/reply on Mastodon</a>
+  </div>
+  <div id="comments-container">
+    <p class="loading">Loading comments from Bluesky and Mastodon...</p>
+  </div>
+  
+</section>
+
+<style>
+  .comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block: 1.5rem;
+  }
+
+  .comment-actions :global(.button) {
+    font-size: 0.85rem;
+  }
+
+  #comments-container > :global(.comment) {
+    padding-top: 1.5rem;
+  }
+
+  .loading {
+    font-style: italic;
+    color: var(--sec-fg);
+  }
+
+  :global(.comment) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  :global(.comment-header) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  :global(.comment-avatar) {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  :global(.comment-author-info) {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  :global(.comment-author-name) {
+    font-weight: bold;
+    color: var(--main-fg);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+
+  :global(.comment-author-handle) {
+    font-size: 0.8rem;
+    color: var(--sec-fg);
+    text-decoration: none;
+  }
+
+  :global(.comment-content) {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--main-fg);
+  }
+
+  :global(.comment-content p) {
+    margin-block: 0.5rem;
+  }
+
+  :global(.comment-content a) {
+    color: var(--main-accent);
+  }
+
+  :global(.comment-meta) {
+    font-size: 0.75rem;
+    color: var(--sec-fg);
+  }
+
+  :global(.comment-meta a) {
+    color: var(--sec-fg);
+    text-decoration: none;
+  }
+
+  :global(.comment-replies) {
+    margin-left: 1rem;
+    padding-left: 1rem;
+    border-left: 1px solid var(--sec-border);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  :global(.comment-images) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  :global(.comment-images img) {
+    max-height: 20rem;
+  }
+</style>
+
+<script>
+  interface Comment {
+    id: string;
+    authorName: string;
+    authorHandle: string;
+    authorAvatar: string;
+    authorUrl: string;
+    content: string;
+    publishedAt: string;
+    url: string;
+    source: 'bluesky' | 'mastodon';
+    replies?: Comment[];
+    images?: { url: string; alt?: string }[];
+  }
+
+  const CACHE_KEY_PREFIX = 'social-comments-v3-';
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  async function init() {
+    const container = document.querySelector('.social-comments') as HTMLElement;
+    if (!container) return;
+
+    const canonicalUrl = container.dataset.canonical!;
+    const locationUrl = container.dataset.location;
+    const bskyUrl = container.dataset.bsky;
+    const mastodonUrl = container.dataset.mastodon;
+
+    // Use a safe key for localStorage
+    const cacheKey = CACHE_KEY_PREFIX + canonicalUrl.replace(/[^a-zA-Z0-9]/g, '-') + (locationUrl ? '-' + locationUrl.replace(/[^a-zA-Z0-9]/g, '-') : '');
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      const { timestamp, comments } = JSON.parse(cachedData);
+      if (Date.now() - timestamp < CACHE_TTL) {
+        renderComments(comments);
+        return;
+      }
+    }
+
+    try {
+      const comments = await fetchAllComments(canonicalUrl, locationUrl, bskyUrl, mastodonUrl);
+      localStorage.setItem(cacheKey, JSON.stringify({
+        timestamp: Date.now(),
+        comments
+      }));
+      renderComments(comments);
+    } catch (error) {
+      console.error('Failed to fetch comments:', error);
+      const commentsEl = document.getElementById('comments-container');
+      if (commentsEl) {
+        commentsEl.innerHTML = '<p class="error">Failed to load comments. Please try again later.</p>';
+      }
+    }
+  }
+
+  function unwrapUserComments(comments: Comment[]): Comment[] {
+    const MY_BSKY_HANDLE = 'rowan.fyi';
+    const MY_BSKY_DID = 'did:plc:7dtviror2bcs32dnngqsf7ay';
+    const MY_MASTODON_URL = 'https://mastodon.social/@rowan_m';
+    
+    let result: Comment[] = [];
+    for (const comment of comments) {
+      const isMe = (comment.source === 'bluesky' && (comment.authorHandle === MY_BSKY_HANDLE || comment.id.includes(MY_BSKY_DID))) ||
+                   (comment.source === 'mastodon' && comment.authorUrl === MY_MASTODON_URL);
+      if (isMe) {
+        if (comment.replies) {
+          result.push(...unwrapUserComments(comment.replies));
+        }
+      } else {
+        result.push(comment);
+      }
+    }
+    return result;
+  }
+
+  async function fetchAllComments(canonicalUrl: string, locationUrl?: string, bskyUrl?: string, mastodonUrl?: string): Promise<Comment[]> {
+    const promises = [];
+
+    // Bluesky
+    promises.push(fetchBlueskyComments(canonicalUrl, locationUrl, bskyUrl));
+
+    // Mastodon
+    promises.push(fetchMastodonComments(canonicalUrl, locationUrl, mastodonUrl));
+
+    const results = await Promise.all(promises);
+    let allComments = results.flat();
+
+    allComments = unwrapUserComments(allComments);
+
+    // Deduplicate top-level comments by ID, preferring those with more replies
+    const uniqueMap = new Map<string, Comment>();
+    for (const c of allComments) {
+      const existing = uniqueMap.get(c.id);
+      if (!existing || (c.replies?.length || 0) > (existing.replies?.length || 0)) {
+        uniqueMap.set(c.id, c);
+      }
+    }
+    allComments = Array.from(uniqueMap.values());
+
+    // Sort by date
+    allComments.sort((a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime());
+
+    return allComments;
+  }
+
+  async function fetchBlueskyComments(canonicalUrl: string, locationUrl?: string, linkedUrl?: string): Promise<Comment[]> {
+    let comments: Comment[] = [];
+
+    // If there's a specific linked post, fetch its thread
+    if (linkedUrl) {
+      try {
+        const thread = await fetchBlueskyThread(linkedUrl);
+        if (thread) {
+           comments.push(thread);
+        }
+      } catch (e) {
+        console.warn('BSky thread fetch failed', e);
+      }
+    }
+
+    // Search for mentions of the canonical URL and location URL
+    const searchUrls = [canonicalUrl];
+    if (locationUrl) searchUrls.push(locationUrl);
+
+    for (const urlToSearch of searchUrls) {
+      try {
+        const searchUrl = `https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(urlToSearch)}&limit=20`;
+        const searchRes = await fetch(searchUrl);
+        if (searchRes.ok) {
+          const data = await searchRes.json();
+          const searchPosts = data.posts || [];
+          for (const post of searchPosts) {
+            // If this post is the one we already fetched via linkedUrl, skip it
+            if (comments.find(c => c.id === post.uri)) continue;
+
+            // Fetch the full thread for each search result to get replies
+            try {
+              const thread = await fetchBlueskyThreadByUri(post.uri);
+              if (thread) {
+                comments.push(thread);
+                continue;
+              }
+            } catch (e) {
+              console.warn('BSky thread fetch for search result failed', e);
+            }
+            comments.push(mapBlueskyPost(post));
+          }
+        }
+      } catch (e) {
+        console.warn('BSky search failed for ' + urlToSearch, e);
+      }
+    }
+
+    return comments;
+  }
+
+  async function fetchBlueskyThread(url: string): Promise<Comment | null> {
+    // Support various formats:
+    // https://bsky.app/profile/rowan.fyi/post/3lh2k6p6q2c2b
+    // at://did:plc:xxx/app.bsky.feed.post/3lh2k6p6q2c2b
+
+    if (url.startsWith('at://')) {
+      return fetchBlueskyThreadByUri(url);
+    } else if (url.includes('bsky.app/profile/')) {
+      const parts = url.split('/');
+      const handle = parts[parts.indexOf('profile') + 1];
+      const rkey = parts[parts.indexOf('post') + 1];
+
+      try {
+        let did = handle;
+        if (!handle.startsWith('did:')) {
+          // Resolve handle to DID
+          const resolveRes = await fetch(`https://api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`);
+          if (!resolveRes.ok) return null;
+          const resolveData = await resolveRes.json();
+          did = resolveData.did;
+        }
+        const uri = `at://${did}/app.bsky.feed.post/${rkey}`;
+        return fetchBlueskyThreadByUri(uri);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  async function fetchBlueskyThreadByUri(uri: string): Promise<Comment | null> {
+    try {
+      const threadRes = await fetch(`https://api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${uri}`);
+      if (!threadRes.ok) return null;
+      const data = await threadRes.json();
+      const thread = data.thread;
+
+      return mapBlueskyThread(thread);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function mapBlueskyPost(post: any): Comment {
+    const comment: Comment = {
+      id: post.uri,
+      authorName: post.author.displayName || post.author.handle,
+      authorHandle: post.author.handle,
+      authorAvatar: post.author.avatar,
+      authorUrl: `https://bsky.app/profile/${post.author.handle}`,
+      content: post.record.text,
+      publishedAt: post.indexedAt,
+      url: `https://bsky.app/profile/${post.author.handle}/post/${post.uri.split('/').pop()}`,
+      source: 'bluesky'
+    };
+
+    if (post.embed) {
+      if (post.embed.$type === 'app.bsky.embed.images#view') {
+        comment.images = post.embed.images.map((img: any) => ({
+          url: img.thumb,
+          alt: img.alt
+        }));
+      } else if (post.embed.$type === 'app.bsky.embed.video#view') {
+        comment.images = [{
+          url: post.embed.thumbnail,
+          alt: 'Video thumbnail'
+        }];
+      } else if (post.embed.$type === 'app.bsky.embed.external#view' && (post.embed.external.uri.includes('tenor.com') || post.embed.external.uri.includes('giphy.com'))) {
+         comment.images = [{
+          url: post.embed.external.thumb || post.embed.external.uri,
+          alt: post.embed.external.title || 'GIF'
+        }];
+      }
+    }
+
+    return comment;
+  }
+
+  function mapBlueskyThread(thread: any): Comment | null {
+    if (!thread || !thread.post) return null;
+    const comment = mapBlueskyPost(thread.post);
+    if (thread.replies && thread.replies.length > 0) {
+      comment.replies = thread.replies
+        .filter((r: any) => r.post) // Ensure it's not a blocked/deleted post
+        .map(mapBlueskyThread)
+        .filter((c: any) => c !== null) as Comment[];
+    }
+    return comment;
+  }
+
+  async function fetchMastodonComments(canonicalUrl: string, locationUrl?: string, linkedUrl?: string): Promise<Comment[]> {
+    let comments: Comment[] = [];
+
+    if (linkedUrl) {
+      const urlData = parseMastodonUrl(linkedUrl);
+      if (urlData) {
+        try {
+          const thread = await fetchMastodonThread(urlData.id, urlData.host);
+          if (thread) {
+            comments.push(thread);
+          }
+        } catch (e) {
+          console.warn('Mastodon thread fetch failed for ' + linkedUrl, e);
+        }
+      }
+    }
+
+    // Search for mentions - this often fails without auth on many instances,
+    // so we only try mastodon.social as a best-effort fallback.
+    const searchUrls = [canonicalUrl];
+    if (locationUrl) searchUrls.push(locationUrl);
+
+    for (const urlToSearch of searchUrls) {
+      try {
+        const searchUrl = `https://mastodon.social/api/v2/search?q=${encodeURIComponent(urlToSearch)}&type=statuses&limit=20`;
+        const searchRes = await fetch(searchUrl);
+        if (searchRes.ok) {
+          const data = await searchRes.json();
+          const statuses = data.statuses || [];
+          for (const status of statuses) {
+            if (comments.find(c => c.id === status.id)) continue;
+            const thread = await fetchMastodonThread(status.id, 'mastodon.social');
+            if (thread) comments.push(thread);
+            else comments.push(mapMastodonStatus(status));
+          }
+        }
+      } catch (e) {
+        // Best-effort search failed
+      }
+    }
+
+    // Deduplicate
+    const uniqueComments = Array.from(new Map(comments.map(c => [c.id, c])).values());
+    return uniqueComments;
+  }
+
+  function parseMastodonUrl(url: string) {
+    try {
+      const u = new URL(url);
+      const host = u.host;
+      const pathParts = u.pathname.split('/').filter(Boolean);
+      const id = pathParts.pop();
+      if (!id || isNaN(Number(id)) && id.length < 10) return null; // Basic ID validation
+      return { host, id };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function fetchMastodonThread(id: string, host: string): Promise<Comment | null> {
+    try {
+      const statusRes = await fetch(`https://${host}/api/v1/statuses/${id}`);
+      if (!statusRes.ok) return null;
+      const status = await statusRes.json();
+
+      const contextRes = await fetch(`https://${host}/api/v1/statuses/${id}/context`);
+      if (!contextRes.ok) return mapMastodonStatus(status);
+      const context = await contextRes.json();
+
+      const rootComment = mapMastodonStatus(status);
+      const descendants = context.descendants || [];
+      rootComment.replies = buildMastodonTree(id, descendants);
+
+      return rootComment;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function buildMastodonTree(parentId: string, descendants: any[]): Comment[] {
+    return descendants
+      .filter(d => d.in_reply_to_id === parentId)
+      .map(d => {
+        const c = mapMastodonStatus(d);
+        c.replies = buildMastodonTree(d.id, descendants);
+        return c;
+      });
+  }
+
+  function mapMastodonStatus(status: any): Comment {
+    const comment: Comment = {
+      id: status.id,
+      authorName: status.account.display_name || status.account.username,
+      authorHandle: status.account.acct,
+      authorAvatar: status.account.avatar,
+      authorUrl: status.account.url,
+      content: status.content, // HTML
+      publishedAt: status.created_at,
+      url: status.url,
+      source: 'mastodon'
+    };
+
+    if (status.media_attachments) {
+      comment.images = status.media_attachments
+        .filter((m: any) => m.type === 'image' || m.type === 'gifv' || m.type === 'video')
+        .map((m: any) => ({
+          url: m.preview_url || m.url,
+          alt: m.description
+        }));
+    }
+
+    return comment;
+  }
+
+  function renderComments(comments: Comment[]) {
+    const container = document.getElementById('comments-container');
+    if (!container) return;
+
+    if (comments.length === 0) {
+      container.innerHTML = '<p>No comments found yet. Be the first to share your thoughts!</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    comments.forEach(comment => {
+      container.appendChild(createCommentElement(comment));
+    });
+  }
+
+  function createCommentElement(comment: Comment): HTMLElement {
+    const article = document.createElement('article');
+    article.className = 'comment';
+    article.id = `comment-${comment.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
+
+    const header = document.createElement('div');
+    header.className = 'comment-header';
+
+    const avatar = document.createElement('img');
+    avatar.className = 'comment-avatar';
+    avatar.src = comment.authorAvatar;
+    avatar.alt = comment.authorName;
+
+    const authorInfo = document.createElement('div');
+    authorInfo.className = 'comment-author-info';
+
+    const authorName = document.createElement('a');
+    authorName.className = 'comment-author-name';
+    authorName.href = comment.authorUrl;
+    authorName.textContent = comment.authorName;
+
+    const authorHandle = document.createElement('a');
+    authorHandle.className = 'comment-author-handle';
+    authorHandle.href = comment.authorUrl;
+    authorHandle.textContent = `@${comment.authorHandle}`;
+
+    authorInfo.appendChild(authorName);
+    authorInfo.appendChild(authorHandle);
+    header.appendChild(avatar);
+    header.appendChild(authorInfo);
+
+    const content = document.createElement('div');
+    content.className = 'comment-content';
+    if (comment.source === 'mastodon') {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(comment.content, 'text/html');
+      // Basic sanitization
+      doc.querySelectorAll('script, style, iframe, object, embed, applet, meta, link').forEach(el => el.remove());
+      // Ensure safe links
+      doc.querySelectorAll('a').forEach(a => {
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      });
+      content.innerHTML = doc.body.innerHTML;
+    } else {
+      content.textContent = comment.content;
+      // Basic linkification for Bluesky
+      content.innerHTML = content.innerHTML.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'comment-meta';
+    const dateLink = document.createElement('a');
+    dateLink.href = comment.url;
+    dateLink.target = '_blank';
+    dateLink.textContent = new Date(comment.publishedAt).toLocaleString();
+    meta.appendChild(dateLink);
+
+    article.appendChild(header);
+    article.appendChild(content);
+
+    if (comment.images && comment.images.length > 0) {
+      const imagesContainer = document.createElement('div');
+      imagesContainer.className = 'comment-images';
+      comment.images.forEach(img => {
+        const image = document.createElement('img');
+        image.src = img.url;
+        if (img.alt) image.alt = img.alt;
+        image.loading = 'lazy';
+        imagesContainer.appendChild(image);
+      });
+      article.appendChild(imagesContainer);
+    }
+
+    article.appendChild(meta);
+
+    if (comment.replies && comment.replies.length > 0) {
+      const repliesContainer = document.createElement('div');
+      repliesContainer.className = 'comment-replies';
+      comment.replies.forEach(reply => {
+        repliesContainer.appendChild(createCommentElement(reply));
+      });
+      article.appendChild(repliesContainer);
+    }
+
+    return article;
+  }
+
+  init();
+</script>

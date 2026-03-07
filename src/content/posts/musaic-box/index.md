@@ -1,6 +1,8 @@
 ---
 title: Musaic box
 location: https://rowan.fyi/made/musaic-box
+blueskyUrl: https://bsky.app/profile/rowan.fyi/post/3m5gzdwjibk2f
+mastodonUrl: https://mastodon.social/deck/@rowan_m/115537547843057826
 image: background.png
 description: Experimenting with Chrome's built-in AI APIs and Tone.js to create a vibe-based music box.
 pubDate: 2025-11-12

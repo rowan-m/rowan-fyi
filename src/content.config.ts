@@ -12,6 +12,8 @@ const posts = defineCollection({
       imageAlt: z.string().optional(),
       location: z.string().optional(),
       tags: z.array(z.string()).optional(),
+      blueskyUrl: z.string().url().optional(),
+      mastodonUrl: z.string().url().optional(),
     }),
 });
 

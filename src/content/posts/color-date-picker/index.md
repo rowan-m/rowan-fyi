@@ -1,6 +1,7 @@
 ---
 title: Color date picker
 location: https://rowan.fyi/made/color-date-picker
+blueskyUrl: https://bsky.app/profile/rowan.fyi/post/3m3hlzvr3ac2t
 image: background.png
 description: Quick and dirty entry for the Bad UX World cup where you use the system color picker to select a date.
 pubDate: 2025-10-18
