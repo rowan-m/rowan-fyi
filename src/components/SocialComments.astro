@@ -1,14 +1,15 @@
 ---
 interface Props {
   canonicalUrl: string;
+  locationUrl?: string;
   blueskyUrl?: string;
   mastodonUrl?: string;
 }
 
-const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
+const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 ---
 
-<section class="social-comments" data-canonical={canonicalUrl} data-bsky={blueskyUrl} data-mastodon={mastodonUrl}>
+<section class="social-comments" data-canonical={canonicalUrl} data-location={locationUrl} data-bsky={blueskyUrl} data-mastodon={mastodonUrl}>
   <hr />
   <h2>Comments</h2>
   <div id="comments-container">
@@ -127,7 +128,7 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
     replies?: Comment[];
   }
 
-  const CACHE_KEY_PREFIX = 'social-comments-';
+  const CACHE_KEY_PREFIX = 'social-comments-v3-';
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   async function init() {
@@ -135,11 +136,12 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
     if (!container) return;
 
     const canonicalUrl = container.dataset.canonical!;
+    const locationUrl = container.dataset.location;
     const bskyUrl = container.dataset.bsky;
     const mastodonUrl = container.dataset.mastodon;
 
     // Use a safe key for localStorage
-    const cacheKey = CACHE_KEY_PREFIX + canonicalUrl.replace(/[^a-zA-Z0-9]/g, '-');
+    const cacheKey = CACHE_KEY_PREFIX + canonicalUrl.replace(/[^a-zA-Z0-9]/g, '-') + (locationUrl ? '-' + locationUrl.replace(/[^a-zA-Z0-9]/g, '-') : '');
     const cachedData = localStorage.getItem(cacheKey);
 
     if (cachedData) {
@@ -151,7 +153,7 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
 
     try {
-      const comments = await fetchAllComments(canonicalUrl, bskyUrl, mastodonUrl);
+      const comments = await fetchAllComments(canonicalUrl, locationUrl, bskyUrl, mastodonUrl);
       localStorage.setItem(cacheKey, JSON.stringify({
         timestamp: Date.now(),
         comments
@@ -166,14 +168,14 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
   }
 
-  async function fetchAllComments(canonicalUrl: string, bskyUrl?: string, mastodonUrl?: string): Promise<Comment[]> {
+  async function fetchAllComments(canonicalUrl: string, locationUrl?: string, bskyUrl?: string, mastodonUrl?: string): Promise<Comment[]> {
     const promises = [];
 
     // Bluesky
-    promises.push(fetchBlueskyComments(canonicalUrl, bskyUrl));
+    promises.push(fetchBlueskyComments(canonicalUrl, locationUrl, bskyUrl));
 
     // Mastodon
-    promises.push(fetchMastodonComments(canonicalUrl, mastodonUrl));
+    promises.push(fetchMastodonComments(canonicalUrl, locationUrl, mastodonUrl));
 
     const results = await Promise.all(promises);
     let allComments = results.flat();
@@ -184,7 +186,7 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return allComments;
   }
 
-  async function fetchBlueskyComments(canonicalUrl: string, linkedUrl?: string): Promise<Comment[]> {
+  async function fetchBlueskyComments(canonicalUrl: string, locationUrl?: string, linkedUrl?: string): Promise<Comment[]> {
     let comments: Comment[] = [];
 
     // If there's a specific linked post, fetch its thread
@@ -199,32 +201,37 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
       }
     }
 
-    // Search for mentions of the canonical URL
-    try {
-      const searchUrl = `https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(canonicalUrl)}&limit=20`;
-      const searchRes = await fetch(searchUrl);
-      if (searchRes.ok) {
-        const data = await searchRes.json();
-        const searchPosts = data.posts || [];
-        for (const post of searchPosts) {
-          // If this post is the one we already fetched via linkedUrl, skip it
-          if (comments.find(c => c.id === post.uri)) continue;
+    // Search for mentions of the canonical URL and location URL
+    const searchUrls = [canonicalUrl];
+    if (locationUrl) searchUrls.push(locationUrl);
 
-          // Fetch the full thread for each search result to get replies
-          try {
-            const thread = await fetchBlueskyThreadByUri(post.uri);
-            if (thread) {
-              comments.push(thread);
-              continue;
+    for (const urlToSearch of searchUrls) {
+      try {
+        const searchUrl = `https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(urlToSearch)}&limit=20`;
+        const searchRes = await fetch(searchUrl);
+        if (searchRes.ok) {
+          const data = await searchRes.json();
+          const searchPosts = data.posts || [];
+          for (const post of searchPosts) {
+            // If this post is the one we already fetched via linkedUrl, skip it
+            if (comments.find(c => c.id === post.uri)) continue;
+
+            // Fetch the full thread for each search result to get replies
+            try {
+              const thread = await fetchBlueskyThreadByUri(post.uri);
+              if (thread) {
+                comments.push(thread);
+                continue;
+              }
+            } catch (e) {
+              console.warn('BSky thread fetch for search result failed', e);
             }
-          } catch (e) {
-            console.warn('BSky thread fetch for search result failed', e);
+            comments.push(mapBlueskyPost(post));
           }
-          comments.push(mapBlueskyPost(post));
         }
+      } catch (e) {
+        console.warn('BSky search failed for ' + urlToSearch, e);
       }
-    } catch (e) {
-      console.warn('BSky search failed', e);
     }
 
     return comments;
@@ -243,10 +250,14 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
       const rkey = parts[parts.indexOf('post') + 1];
 
       try {
-        // Resolve handle to DID
-        const resolveRes = await fetch(`https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`);
-        if (!resolveRes.ok) return null;
-        const { did } = await resolveRes.json();
+        let did = handle;
+        if (!handle.startsWith('did:')) {
+          // Resolve handle to DID
+          const resolveRes = await fetch(`https://api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${handle}`);
+          if (!resolveRes.ok) return null;
+          const resolveData = await resolveRes.json();
+          did = resolveData.did;
+        }
         const uri = `at://${did}/app.bsky.feed.post/${rkey}`;
         return fetchBlueskyThreadByUri(uri);
       } catch (e) {
@@ -258,7 +269,7 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
   async function fetchBlueskyThreadByUri(uri: string): Promise<Comment | null> {
     try {
-      const threadRes = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${uri}`);
+      const threadRes = await fetch(`https://api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${uri}`);
       if (!threadRes.ok) return null;
       const data = await threadRes.json();
       const thread = data.thread;
@@ -283,46 +294,60 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
     };
   }
 
-  function mapBlueskyThread(thread: any): Comment {
+  function mapBlueskyThread(thread: any): Comment | null {
+    if (!thread || !thread.post) return null;
     const comment = mapBlueskyPost(thread.post);
     if (thread.replies && thread.replies.length > 0) {
       comment.replies = thread.replies
         .filter((r: any) => r.post) // Ensure it's not a blocked/deleted post
-        .map(mapBlueskyThread);
+        .map(mapBlueskyThread)
+        .filter((c: any) => c !== null) as Comment[];
     }
     return comment;
   }
 
-  async function fetchMastodonComments(canonicalUrl: string, linkedUrl?: string): Promise<Comment[]> {
+  async function fetchMastodonComments(canonicalUrl: string, locationUrl?: string, linkedUrl?: string): Promise<Comment[]> {
     let comments: Comment[] = [];
 
-    // Search for mentions of the canonical URL on mastodon.social
-    try {
-      const searchUrl = `https://mastodon.social/api/v2/search?q=${encodeURIComponent(canonicalUrl)}&type=statuses&limit=20`;
-      const searchRes = await fetch(searchUrl);
-      if (searchRes.ok) {
-        const data = await searchRes.json();
-        const statuses = data.statuses || [];
-        for (const status of statuses) {
-          // For each status, we might want its context (replies)
-          const thread = await fetchMastodonThread(status.id);
-          if (thread) comments.push(thread);
-          else comments.push(mapMastodonStatus(status));
+    // Search for mentions of the canonical URL and location URL on mastodon.social
+    const searchUrls = [canonicalUrl];
+    if (locationUrl) searchUrls.push(locationUrl);
+
+    for (const urlToSearch of searchUrls) {
+      try {
+        const searchUrl = `https://mastodon.social/api/v2/search?q=${encodeURIComponent(urlToSearch)}&type=statuses&limit=20`;
+        const searchRes = await fetch(searchUrl);
+        if (searchRes.ok) {
+          const data = await searchRes.json();
+          const statuses = data.statuses || [];
+          for (const status of statuses) {
+            // For each status, we might want its context (replies)
+            const thread = await fetchMastodonThread(status.id);
+            if (thread) comments.push(thread);
+            else comments.push(mapMastodonStatus(status));
+          }
         }
+      } catch (e) {
+        console.warn('Mastodon search failed for ' + urlToSearch, e);
       }
-    } catch (e) {
-      console.warn('Mastodon search failed', e);
     }
 
     if (linkedUrl) {
-      const parts = linkedUrl.split('/');
-      const id = parts[parts.length - 1];
-      const thread = await fetchMastodonThread(id);
-      if (thread) {
-        // Deduplicate
-        if (!comments.find(c => c.id === thread.id)) {
-          comments.push(thread);
+      try {
+        const resolveUrl = `https://mastodon.social/api/v2/search?q=${encodeURIComponent(linkedUrl)}&resolve=true&limit=1`;
+        const resolveRes = await fetch(resolveUrl);
+        if (resolveRes.ok) {
+          const data = await resolveRes.json();
+          if (data.statuses && data.statuses.length > 0) {
+            const localId = data.statuses[0].id;
+            const thread = await fetchMastodonThread(localId);
+            if (thread && !comments.find(c => c.id === thread.id)) {
+              comments.push(thread);
+            }
+          }
         }
+      } catch (e) {
+        console.warn('Mastodon linked URL resolve failed', e);
       }
     }
 
@@ -399,7 +424,7 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
   function createCommentElement(comment: Comment): HTMLElement {
     const article = document.createElement('article');
     article.className = 'comment';
-    article.id = `comment-${comment.id}`;
+    article.id = `comment-${comment.id.replace(/[^a-zA-Z0-9]/g, '-')}`;
 
     const header = document.createElement('div');
     header.className = 'comment-header';
@@ -430,11 +455,20 @@ const { canonicalUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const content = document.createElement('div');
     content.className = 'comment-content';
     if (comment.source === 'mastodon') {
-      content.innerHTML = comment.content;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(comment.content, 'text/html');
+      // Basic sanitization
+      doc.querySelectorAll('script, style, iframe, object, embed, applet, meta, link').forEach(el => el.remove());
+      // Ensure safe links
+      doc.querySelectorAll('a').forEach(a => {
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      });
+      content.innerHTML = doc.body.innerHTML;
     } else {
       content.textContent = comment.content;
       // Basic linkification for Bluesky
-      content.innerHTML = content.innerHTML.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+      content.innerHTML = content.innerHTML.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
     }
 
     const meta = document.createElement('div');

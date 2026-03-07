@@ -71,7 +71,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             const ACTOR = "rowan.fyi";
-            const URL = `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
+            const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
 
             try {
                 const response = await fetch(URL);
