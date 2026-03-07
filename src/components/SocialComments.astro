@@ -1,4 +1,8 @@
 ---
+import Bluesky from "/public/img/socials/bluesky-fill.svg";
+import Mastodon from "/public/img/socials/mastodon-fill.svg";
+import ShareButton from "@/components/ShareButton.astro";
+
 interface Props {
   canonicalUrl: string;
   locationUrl?: string;
@@ -10,25 +14,27 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 ---
 
 <section class="social-comments" data-canonical={canonicalUrl} data-location={locationUrl} data-bsky={blueskyUrl} data-mastodon={mastodonUrl}>
-  <hr />
   <h2>Comments</h2>
+  <div class="comment-actions">
+    <ShareButton />
+    <a href={blueskyUrl || "https://bsky.app/profile/rowan.fyi"} title="rowan@fyi on Bluesky" class="button share-button"><Bluesky /> Share/reply on BlueSky</a>
+    <a href={mastodonUrl || "https://mastodon.social/@rowan_m"} title="@rowan_m on Mastodon" class="button share-button"><Mastodon /> Share/reply on Mastodon</a>
+  </div>
   <div id="comments-container">
     <p class="loading">Loading comments from Bluesky and Mastodon...</p>
   </div>
-  <p class="comment-cta">
-    Join the conversation by replying on <a href={blueskyUrl || "https://bsky.app"}>Bluesky</a> or <a href={mastodonUrl || "https://mastodon.social"}>Mastodon</a>.
-  </p>
+  
 </section>
 
 <style>
-  .social-comments {
-    margin-top: 3rem;
+  .comment-actions {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+    margin-block: 0.5rem;
   }
-
-  .social-comments h2 {
-    margin-bottom: 1.5rem;
-  }
-
   #comments-container {
     display: flex;
     flex-direction: column;
@@ -38,14 +44,6 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
   .loading {
     font-style: italic;
     color: var(--sec-fg);
-  }
-
-  .comment-cta {
-    margin-top: 2rem;
-    font-size: var(--size-step-0);
-    color: var(--sec-fg);
-    border-top: 1px solid var(--sec-border);
-    padding-top: 1rem;
   }
 
   :global(.comment) {
