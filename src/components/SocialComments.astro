@@ -113,10 +113,22 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
   :global(.comment-replies) {
     margin-left: 1rem;
     padding-left: 1rem;
+    border-left: 1px solid var(--sec-border);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
     margin-top: 1rem;
+  }
+
+  :global(.comment-images) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  :global(.comment-images img) {
+    max-height: 20rem;
   }
 </style>
 
@@ -132,6 +144,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     url: string;
     source: 'bluesky' | 'mastodon';
     replies?: Comment[];
+    images?: { url: string; alt?: string }[];
   }
 
   const CACHE_KEY_PREFIX = 'social-comments-v3-';
@@ -319,7 +332,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
   }
 
   function mapBlueskyPost(post: any): Comment {
-    return {
+    const comment: Comment = {
       id: post.uri,
       authorName: post.author.displayName || post.author.handle,
       authorHandle: post.author.handle,
@@ -330,6 +343,27 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       url: `https://bsky.app/profile/${post.author.handle}/post/${post.uri.split('/').pop()}`,
       source: 'bluesky'
     };
+
+    if (post.embed) {
+      if (post.embed.$type === 'app.bsky.embed.images#view') {
+        comment.images = post.embed.images.map((img: any) => ({
+          url: img.thumb,
+          alt: img.alt
+        }));
+      } else if (post.embed.$type === 'app.bsky.embed.video#view') {
+        comment.images = [{
+          url: post.embed.thumbnail,
+          alt: 'Video thumbnail'
+        }];
+      } else if (post.embed.$type === 'app.bsky.embed.external#view' && (post.embed.external.uri.includes('tenor.com') || post.embed.external.uri.includes('giphy.com'))) {
+         comment.images = [{
+          url: post.embed.external.thumb || post.embed.external.uri,
+          alt: post.embed.external.title || 'GIF'
+        }];
+      }
+    }
+
+    return comment;
   }
 
   function mapBlueskyThread(thread: any): Comment | null {
@@ -434,7 +468,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
   }
 
   function mapMastodonStatus(status: any): Comment {
-    return {
+    const comment: Comment = {
       id: status.id,
       authorName: status.account.display_name || status.account.username,
       authorHandle: status.account.acct,
@@ -445,6 +479,17 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       url: status.url,
       source: 'mastodon'
     };
+
+    if (status.media_attachments) {
+      comment.images = status.media_attachments
+        .filter((m: any) => m.type === 'image' || m.type === 'gifv' || m.type === 'video')
+        .map((m: any) => ({
+          url: m.preview_url || m.url,
+          alt: m.description
+        }));
+    }
+
+    return comment;
   }
 
   function renderComments(comments: Comment[]) {
@@ -522,6 +567,20 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
     article.appendChild(header);
     article.appendChild(content);
+
+    if (comment.images && comment.images.length > 0) {
+      const imagesContainer = document.createElement('div');
+      imagesContainer.className = 'comment-images';
+      comment.images.forEach(img => {
+        const image = document.createElement('img');
+        image.src = img.url;
+        if (img.alt) image.alt = img.alt;
+        image.loading = 'lazy';
+        imagesContainer.appendChild(image);
+      });
+      article.appendChild(imagesContainer);
+    }
+
     article.appendChild(meta);
 
     if (comment.replies && comment.replies.length > 0) {
