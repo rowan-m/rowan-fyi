@@ -21,11 +21,11 @@ However, I've found a current combination that hits the right notes for me: take
 
 The tl;dr of the tl;dr is just make reviews easy. That means adding more of the infrastructure I'd expect on a mature team project versus personal hobby toys. Long-term, maybe I'll finally do [Extreme Programming](http://www.extremeprogramming.org/) like it's the '90s again. Those [ultra-wide jeans](https://jnco.com/) are back in again, so anything is possible.
 
-Anyway, lets get into my (non-frosted) tips for my own environment.
+Anyway, let's get into my (non-frosted) tips for my own environment.
 
 ## Project: Fractious
 
-If you follow me on any social media then you know I post a [disproportionate number of screenshots](https://bsky.app/search?q=from%3Arowan.fyi+fractious) from my Mandelbrot fractal explorer, [Fractious](http://fractious-deep.web.app/). I need to write a proper blog post on the updates I've made, but the relevant bit here is that I'd "finished" the previous iteration but was frustrated by the limit to the zoom depth. Then [Ingvar suggested looking at BigDecimal.js](https://bsky.app/profile/rreverser.com/post/3mbw3kj4t6s2t), which I promptly did not and went straight to asking Gemini what I could do. The result was migrating from an implementation where everything was in a WebGL shader to doing the reference calculation in Wasm and then rendering out with WebGPU.
+If you follow me on any social media then you know I post a [disproportionate number of screenshots](https://bsky.app/search?q=from%3Arowan.fyi+fractious) from my Mandelbrot fractal explorer, [Fractious](https://fractious-deep.web.app/). I need to write a proper blog post on the updates I've made, but the relevant bit here is that I'd "finished" the previous iteration but was frustrated by the limit to the zoom depth. Then [Ingvar suggested looking at BigDecimal.js](https://bsky.app/profile/rreverser.com/post/3mbw3kj4t6s2t), which I promptly did not and went straight to asking Gemini what I could do. The result was migrating from an implementation where everything was in a WebGL shader to doing the reference calculation in Wasm and then rendering out with WebGPU.
 
 ![Screenshot from my Fractious app zoomed in on some psychedlic swirls](fractious.png)
 
@@ -37,7 +37,7 @@ I tend to have three terminal tabs open: one running the build/dev server, one f
 
 I've tried the VS Code integration, [Antigravity](https://antigravity.google/), etc. and at least personally, and at the moment, it more often gets in my way than helps me. The AI jumping in all the time while I'm in the middle of typing tends to derail my train of thought rather than speed it up. This also means I tend towards longer periods in one mode or another. As in, I'm either doing things myself or I'm asking Gemini to work and then I'm reviewing. I don't really work in a mixed mode where the AI is collaborating alongside me.
 
-![Screenshot from Gemini CLI where's it's suggesting some improvements to the codebase of this blog](gemini-cli.png)
+![Screenshot from Gemini CLI where it's suggesting some improvements to the codebase of this blog](gemini-cli.png)
 
 The biggest part of that in Fractious was implementing the Rust-based Wasm module. I don't know Rust and I don't know the tooling ecosystem. However, with Gemini I could get something that worked bootstrapped pretty quickly. It's much easier for me to learn and expand on a working example versus starting from a blank canvas.
 
@@ -63,9 +63,9 @@ The key aspect in all of this is that these are set up on a GitHub Action that r
 
 I'm using [Firebase Hosting](https://firebase.google.com/docs/hosting/) which has a [GitHub Actions integration](https://firebase.google.com/docs/hosting/github-integration) to, again, deploy to a preview channel on every pull request and push to `main`. The important thing for me is that this gives me a set up where I can review, test, and approve incoming changes on my phone.
 
-This is nice because now it turns into an activity I can do wherever I am rather than needing to grab my laptop. The pull request comes in. The automatic checks and tests give me a base level of confidence in the contribution. I go play with the deployed app to make sure if works the way I expected. Then I peruse the diff to see if I agree with what's coming in. If I do, I just merge - if not then it waits until I'm at my laptop.
+This is nice because now it turns into an activity I can do wherever I am rather than needing to grab my laptop. The pull request comes in. The automatic checks and tests give me a base level of confidence in the contribution. I go play with the deployed app to make sure it works the way I expected. Then I peruse the diff to see if I agree with what's coming in. If I do, I just merge - if not then it waits until I'm at my laptop.
 
-It's taken a meaningul bite out of my reflexive doomscrolling, so I view that as a good thing.
+It's taken a meaningful bite out of my reflexive doomscrolling, so I view that as a good thing.
 
 ## Jules
 
