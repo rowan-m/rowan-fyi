@@ -439,11 +439,14 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
   async function fetchMastodonThread(id: string, host: string): Promise<Comment | null> {
     try {
-      const statusRes = await fetch(`https://${host}/api/v1/statuses/${id}`);
+      const [statusRes, contextRes] = await Promise.all([
+        fetch(`https://${host}/api/v1/statuses/${id}`),
+        fetch(`https://${host}/api/v1/statuses/${id}/context`)
+      ]);
+
       if (!statusRes.ok) return null;
       const status = await statusRes.json();
 
-      const contextRes = await fetch(`https://${host}/api/v1/statuses/${id}/context`);
       if (!contextRes.ok) return mapMastodonStatus(status);
       const context = await contextRes.json();
 
