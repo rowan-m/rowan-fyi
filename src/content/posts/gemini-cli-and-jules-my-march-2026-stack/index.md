@@ -4,6 +4,7 @@ description: "Keep coding fun while learning to use AI/LLM tools that fit my wor
 pubDate: 2026-03-14
 tags: ["ai", "llm", "coding", "tools"]
 image: preview.jpg
+blueskyUrl: https://bsky.app/profile/rowan.fyi/post/3mh2fjtio6c2b
 ---
 
 Development workflow is a very personal thing. As the various AI and LLM coding tools evolve, I've been trying different things to see what fits with how I want to code. This is for my personal projects, so it's important to me that I'm actually enjoying myself - it's not necessarily about maximum efficiency. It's also about updating how I work. I'm allergic to rabid hype, so getting into tools has required resisting that eye-twitch while I read a breathless summary about how another Markdown file is going to change my life.
