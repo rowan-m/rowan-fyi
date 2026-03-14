@@ -19,6 +19,8 @@ However, I've found a current combination that hits the right notes for me. It t
 - [Gemini CLI](https://geminicli.com/) for active pair work
 - [Jules](https://jules.google/docs/) for background suggestions
 
+You can see all the code and configuration in the [`fractious` GitHub repo](https://github.com/rowan-m/fractious). 
+
 The tl;dr of the tl;dr: **make reviews easy.** That means adding more of the infrastructure I'd expect on a mature team project versus personal hobby toys. Long-term, maybe I'll finally do [Extreme Programming](http://www.extremeprogramming.org/) like it's the '90s again. Those [ultra-wide jeans](https://jnco.com/) are back in again, so anything is possible.
 
 Anyway, let's get into my (non-frosted) tips for my own environment.
@@ -51,7 +53,7 @@ I integrated a few different tools here:
 - security checks with, unsurprisingly, [`eslint-plugin-security`](https://github.com/eslint-community/eslint-plugin-security)
 - dependency checks with [Dependency cruiser](https://github.com/sverweij/dependency-cruiser?tab=readme-ov-file#dependency-cruiser-)
 
-This pipeline catches dead code, unnecessarily nested `if` statements, and "cognitive complexity" (which is mostly [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) with a fuzzier name), along with a whole bunch more.
+This pipeline catches dead code, unnecessarily nested `if` statements, and "cognitive complexity" (which I think is mostly [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) with a fuzzier name), along with a whole bunch more.
 
 Again, this is all standard infrastructure for a work project accepting contributions. In this case, the contributor just happens to be a robot.
 
