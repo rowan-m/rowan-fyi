@@ -12,24 +12,24 @@ Also, I do find it a little bit intimidating when you see other people talking a
 
 _**Full disclosure:** these are mostly Google tools. I work there, I generally try to use our stuff. I even use the Linux VM inside ChromeOS as my primary development environment. Why? That's a great question._
 
-However, I've found a current combination that hits the right notes for me: takes care of some of the tedious or non-obvious scaffolding, highlights things I wouldn't have considered, and does it in a way where I understand the implementation. The tl;dr summary is:
+However, I've found a current combination that hits the right notes for me. It takes care of tedious scaffolding, highlights edge cases I wouldn't have considered, and keeps the actual implementation legible. Here's the tl;dr of my stack:
 
 - automated tests and static analysis on pull requests
 - automated [Firebase Hosting](https://firebase.google.com/docs/hosting) deploys on pull requests
 - [Gemini CLI](https://geminicli.com/) for active pair work
 - [Jules](https://jules.google/docs/) for background suggestions
 
-The tl;dr of the tl;dr is just make reviews easy. That means adding more of the infrastructure I'd expect on a mature team project versus personal hobby toys. Long-term, maybe I'll finally do [Extreme Programming](http://www.extremeprogramming.org/) like it's the '90s again. Those [ultra-wide jeans](https://jnco.com/) are back in again, so anything is possible.
+The tl;dr of the tl;dr: **make reviews easy.** That means adding more of the infrastructure I'd expect on a mature team project versus personal hobby toys. Long-term, maybe I'll finally do [Extreme Programming](http://www.extremeprogramming.org/) like it's the '90s again. Those [ultra-wide jeans](https://jnco.com/) are back in again, so anything is possible.
 
 Anyway, let's get into my (non-frosted) tips for my own environment.
 
 ## Project: Fractious
 
-If you follow me on any social media then you know I post a [disproportionate number of screenshots](https://bsky.app/search?q=from%3Arowan.fyi+fractious) from my Mandelbrot fractal explorer, [Fractious](https://fractious-deep.web.app/). I need to write a proper blog post on the updates I've made, but the relevant bit here is that I'd "finished" the previous iteration but was frustrated by the limit to the zoom depth. Then [Ingvar suggested looking at BigDecimal.js](https://bsky.app/profile/rreverser.com/post/3mbw3kj4t6s2t), which I promptly did not and went straight to asking Gemini what I could do. The result was migrating from an implementation where everything was in a WebGL shader to doing the reference calculation in Wasm and then rendering out with WebGPU.
+If you follow me on any social media, you know I post a [disproportionate number of screenshots](https://bsky.app/search?q=from%3Arowan.fyi+fractious) from my Mandelbrot fractal explorer, [Fractious](https://fractious-deep.web.app/). I need to write a proper blog post on the updates I've made, but the relevant bit here is that I'd "finished" the previous iteration but was frustrated by the limit to the zoom depth. Then [Ingvar suggested looking at BigDecimal.js](https://bsky.app/profile/rreverser.com/post/3mbw3kj4t6s2t), which I promptly did not do, going straight to asking Gemini what I could do instead. From there we successfully migrated from an entirely WebGL shader-based implementation to doing the reference calculation in Wasm and rendering the output with WebGPU.
 
-![Screenshot from my Fractious app zoomed in on some psychedlic swirls](fractious.png)
+![Screenshot from my Fractious app zoomed in on some psychedelic swirls](fractious.png)
 
-The sweet spot here was that I knew what I wanted, I knew what a good solution would look like, but I didn't know how to get there.
+The sweet spot here was: I knew what I wanted, I knew what a good architecture looked like, but I didn't know the exact syntax or steps to get there.
 
 ## Gemini CLI
 
@@ -43,7 +43,7 @@ The biggest part of that in Fractious was implementing the Rust-based Wasm modul
 
 ## Static analysis
 
-Ditto using Gemini to figure out the myriad of config files for all the different tools and integrations. I still maintain that YAML ain't a human-readable format. (Looking at you, GitHub Actions) At least in this instance it doesn't have to be human-writable either.
+I also used Gemini to untangle the myriad of config files required for these tools. I maintain that YAML ain't a human-readable format (looking at you, GitHub Actions), but thankfully, it no longer has to be human-*writable* at least.
 
 I integrated a few different tools here:
 - general linting with [ESLint](https://eslint.org/)
@@ -51,21 +51,21 @@ I integrated a few different tools here:
 - security checks with, unsurprisingly, [`eslint-plugin-security`](https://github.com/eslint-community/eslint-plugin-security)
 - dependency checks with [Dependency cruiser](https://github.com/sverweij/dependency-cruiser?tab=readme-ov-file#dependency-cruiser-)
 
-This pulls out things like dead code, unnecessarily nested `if` statements, and "cognitive complexity" (which I think is mostly [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) with a fuzzier name).
+This pipeline catches dead code, unnecessarily nested `if` statements, and "cognitive complexity" (which is mostly [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) with a fuzzier name), along with a whole bunch more.
 
-Again, all stuff I would set up on a work project where you're accepting contributions from others. In this case, it just happens to be a robot.
+Again, this is all standard infrastructure for a work project accepting contributions. In this case, the contributor just happens to be a robot.
 
-I also dropped a basic unit test harness in there with [`vitest`](https://vitest.dev/). Yes, I'm a bad developer - I should have written the tests first. Not very extreme programming of me at all. However, with the harness there I can start dropping in tests (or getting the robot to do it) one by one.
+I also dropped in a basic unit test harness with [`vitest`](https://vitest.dev/). Yes, I'm a bad developer—I should have written the tests first. Not very Extreme Programming of me. However, having the harness in place means I can incrementally drop in tests (or ask the agent to do it) one by one.
 
-The key aspect in all of this is that these are set up on a GitHub Action that runs against every pull request and every push to `main`.
+The crucial part is that these checks run on a GitHub Action against every pull request and push to `main`.
 
 ## Preview builds
 
-I'm using [Firebase Hosting](https://firebase.google.com/docs/hosting/) which has a [GitHub Actions integration](https://firebase.google.com/docs/hosting/github-integration) to, again, deploy to a preview channel on every pull request and push to `main`. The important thing for me is that this gives me a set up where I can review, test, and approve incoming changes on my phone.
+I'm using [Firebase Hosting](https://firebase.google.com/docs/hosting/), which features a [GitHub Actions integration](https://firebase.google.com/docs/hosting/github-integration) to deploy to a preview channel on every PR. This is vital because it creates a workflow where I can review, test, and approve incoming changes directly from my phone.
 
 This is nice because now it turns into an activity I can do wherever I am rather than needing to grab my laptop. The pull request comes in. The automatic checks and tests give me a base level of confidence in the contribution. I go play with the deployed app to make sure it works the way I expected. Then I peruse the diff to see if I agree with what's coming in. If I do, I just merge - if not then it waits until I'm at my laptop.
 
-It's taken a meaningful bite out of my reflexive doomscrolling, so I view that as a good thing.
+As a bonus, reviewing PRs on my phone has taken a meaningful bite out of my reflexive doomscrolling.
 
 ## Jules
 
@@ -80,7 +80,7 @@ The provided scheduled agents are quite helpful, with templates for performance,
 
 So far this has resulted in pull requests that really are just changing one thing across 1-4 files. The performance ones often do come with a benchmark script showing the improvement. The UI improvement agent has been adding ARIA rules which do help with my unhealthy predilection for [using emojis for labels and buttons](https://github.com/rowan-m/fractious/pull/26).
 
-There are quirks to deal with as well though. I try to avoid triggering suggestions that will try working on the same part of the code at the same time as otherwise there are a bunch of merge conflicts to deal with. Sometimes when I've rejected a request, it keeps coming back in a slightly different format. I've also seen a few instances where the performance agent will suggest a change that I accept and then the security agent will come along later and want it back the old, but more robust, way.
+There are still quirks to manage. I avoid triggering multiple suggestions that touch the same code simultaneously to dodge merge conflicts. Occasionally, an agent will persistently re-suggest a change I've already rejected, just formatted slightly differently. I've also watched the performance agent optimize a block of code, only for the security agent to swing by later and revert it to the old, more robust implementation.
 
 Still, it's been pleasing getting a nice little list of improvements each morning. With the tests and preview deploys in place, there's very little effort or spin up time for me to get into looking at them. The scope of each change isn't overwhelming either - so I really can just pick up my phone and make a little progress.
 
