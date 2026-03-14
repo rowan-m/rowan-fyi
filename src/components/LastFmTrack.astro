@@ -78,7 +78,13 @@
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const USERNAME = "rowan_m";
-      const API_KEY = "edcf3d9e6ada6d0b9f565d83c92b6724";
+      const API_KEY = import.meta.env.PUBLIC_LASTFM_API_KEY;
+
+      if (!API_KEY) {
+        console.warn("Last.fm API key is missing. Skipping track fetch.");
+        return;
+      }
+
       const URL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
 
       try {
