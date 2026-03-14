@@ -1,6 +1,6 @@
 ---
 title: "Gemini CLI and Jules: my March 2026 stack"
-description: "Exploring my current development workflow using Gemini CLI and Jules."
+description: "Keep coding fun while learning to use AI/LLM tools that fit my workflow."
 pubDate: 2026-03-14
 tags: ["ai", "llm", "coding", "tools"]
 image: preview.jpg
