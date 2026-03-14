@@ -510,6 +510,102 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     });
   }
 
+  function isSafeUrl(url: string): boolean {
+    if (!url) return false;
+    const lower = url.toLowerCase().trim();
+    if (lower.startsWith('javascript:') || lower.startsWith('data:') || lower.startsWith('vbscript:')) {
+      return false;
+    }
+    return true;
+  }
+
+  function linkify(text: string): DocumentFragment {
+    const fragment = document.createDocumentFragment();
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = urlRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+      }
+
+      const url = match[0];
+      if (isSafeUrl(url)) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = url;
+        fragment.appendChild(a);
+      } else {
+        fragment.appendChild(document.createTextNode(url));
+      }
+
+      lastIndex = urlRegex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+    }
+
+    return fragment;
+  }
+
+  function sanitizeMastodonContent(html: string): DocumentFragment {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const fragment = document.createDocumentFragment();
+    const ALLOWED_TAGS = ['P', 'BR', 'A', 'SPAN', 'B', 'I', 'STRONG', 'EM', 'U', 'DEL', 'BLOCKQUOTE', 'CODE', 'PRE', 'UL', 'OL', 'LI'];
+
+    function clean(node: Node): Node | null {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return document.createTextNode(node.textContent || '');
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element;
+        const tagName = el.tagName.toUpperCase();
+        if (ALLOWED_TAGS.includes(tagName)) {
+          const newEl = document.createElement(tagName);
+          if (tagName === 'A') {
+            const href = el.getAttribute('href');
+            if (href && isSafeUrl(href)) {
+              newEl.setAttribute('href', href);
+              newEl.setAttribute('target', '_blank');
+              newEl.setAttribute('rel', 'noopener noreferrer');
+            }
+          }
+          const className = el.getAttribute('class');
+          if (className) {
+            newEl.setAttribute('class', className);
+          }
+
+          el.childNodes.forEach(child => {
+            const cleanedChild = clean(child);
+            if (cleanedChild) newEl.appendChild(cleanedChild);
+          });
+          return newEl;
+        } else {
+          // Unwrap disallowed tags
+          const innerFragment = document.createDocumentFragment();
+          el.childNodes.forEach(child => {
+            const cleanedChild = clean(child);
+            if (cleanedChild) innerFragment.appendChild(cleanedChild);
+          });
+          return innerFragment;
+        }
+      }
+      return null;
+    }
+
+    doc.body.childNodes.forEach(child => {
+      const cleanedChild = clean(child);
+      if (cleanedChild) fragment.appendChild(cleanedChild);
+    });
+
+    return fragment;
+  }
+
   function createCommentElement(comment: Comment): HTMLElement {
     const article = document.createElement('article');
     article.className = 'comment';
@@ -520,7 +616,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
     const avatar = document.createElement('img');
     avatar.className = 'comment-avatar';
-    avatar.src = comment.authorAvatar;
+    avatar.src = isSafeUrl(comment.authorAvatar) ? comment.authorAvatar : '';
     avatar.alt = comment.authorName;
 
     const authorInfo = document.createElement('div');
@@ -528,12 +624,12 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
     const authorName = document.createElement('a');
     authorName.className = 'comment-author-name';
-    authorName.href = comment.authorUrl;
+    authorName.href = isSafeUrl(comment.authorUrl) ? comment.authorUrl : '#';
     authorName.textContent = comment.authorName;
 
     const authorHandle = document.createElement('a');
     authorHandle.className = 'comment-author-handle';
-    authorHandle.href = comment.authorUrl;
+    authorHandle.href = isSafeUrl(comment.authorUrl) ? comment.authorUrl : '#';
     authorHandle.textContent = `@${comment.authorHandle}`;
 
     authorInfo.appendChild(authorName);
@@ -544,26 +640,15 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const content = document.createElement('div');
     content.className = 'comment-content';
     if (comment.source === 'mastodon') {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(comment.content, 'text/html');
-      // Basic sanitization
-      doc.querySelectorAll('script, style, iframe, object, embed, applet, meta, link').forEach(el => el.remove());
-      // Ensure safe links
-      doc.querySelectorAll('a').forEach(a => {
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-      });
-      content.innerHTML = doc.body.innerHTML;
+      content.appendChild(sanitizeMastodonContent(comment.content));
     } else {
-      content.textContent = comment.content;
-      // Basic linkification for Bluesky
-      content.innerHTML = content.innerHTML.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+      content.appendChild(linkify(comment.content));
     }
 
     const meta = document.createElement('div');
     meta.className = 'comment-meta';
     const dateLink = document.createElement('a');
-    dateLink.href = comment.url;
+    dateLink.href = isSafeUrl(comment.url) ? comment.url : '#';
     dateLink.target = '_blank';
     dateLink.textContent = new Date(comment.publishedAt).toLocaleString();
     meta.appendChild(dateLink);
@@ -575,11 +660,13 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       const imagesContainer = document.createElement('div');
       imagesContainer.className = 'comment-images';
       comment.images.forEach(img => {
-        const image = document.createElement('img');
-        image.src = img.url;
-        if (img.alt) image.alt = img.alt;
-        image.loading = 'lazy';
-        imagesContainer.appendChild(image);
+        if (isSafeUrl(img.url)) {
+          const image = document.createElement('img');
+          image.src = img.url;
+          if (img.alt) image.alt = img.alt;
+          image.loading = 'lazy';
+          imagesContainer.appendChild(image);
+        }
       });
       article.appendChild(imagesContainer);
     }
