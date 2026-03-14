@@ -263,21 +263,27 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         if (searchRes.ok) {
           const data = await searchRes.json();
           const searchPosts = data.posts || [];
-          for (const post of searchPosts) {
+          const threadPromises = searchPosts.map(async (post: any) => {
             // If this post is the one we already fetched via linkedUrl, skip it
-            if (comments.find(c => c.id === post.uri)) continue;
+            if (comments.find(c => c.id === post.uri)) return null;
 
             // Fetch the full thread for each search result to get replies
             try {
               const thread = await fetchBlueskyThreadByUri(post.uri);
               if (thread) {
-                comments.push(thread);
-                continue;
+                return thread;
               }
             } catch (e) {
               console.warn('BSky thread fetch for search result failed', e);
             }
-            comments.push(mapBlueskyPost(post));
+            return mapBlueskyPost(post);
+          });
+
+          const threads = await Promise.all(threadPromises);
+          for (const thread of threads) {
+            if (thread) {
+              comments.push(thread);
+            }
           }
         }
       } catch (e) {
@@ -407,11 +413,18 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         if (searchRes.ok) {
           const data = await searchRes.json();
           const statuses = data.statuses || [];
-          for (const status of statuses) {
-            if (comments.find(c => c.id === status.id)) continue;
+          const threadPromises = statuses.map(async (status: any) => {
+            if (comments.find(c => c.id === status.id)) return null;
             const thread = await fetchMastodonThread(status.id, 'mastodon.social');
-            if (thread) comments.push(thread);
-            else comments.push(mapMastodonStatus(status));
+            if (thread) return thread;
+            return mapMastodonStatus(status);
+          });
+
+          const threads = await Promise.all(threadPromises);
+          for (const thread of threads) {
+            if (thread) {
+              comments.push(thread);
+            }
           }
         }
       } catch (e) {
