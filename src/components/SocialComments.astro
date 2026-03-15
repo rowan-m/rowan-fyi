@@ -239,6 +239,20 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return result;
   }
 
+  function filterIgnoredAccounts(comments: Comment[]): Comment[] {
+    const IGNORED_HANDLES = ["rowan.fyi.web.brid.gy"];
+    let result: Comment[] = [];
+    for (const comment of comments) {
+      if (!IGNORED_HANDLES.includes(comment.authorHandle)) {
+        if (comment.replies) {
+          comment.replies = filterIgnoredAccounts(comment.replies);
+        }
+        result.push(comment);
+      }
+    }
+    return result;
+  }
+
   async function fetchAllComments(
     canonicalUrl: string,
     locationUrl?: string,
@@ -259,6 +273,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     let allComments = results.flat();
 
     allComments = unwrapUserComments(allComments);
+    allComments = filterIgnoredAccounts(allComments);
 
     // Deduplicate top-level comments by ID, preferring those with more replies
     const uniqueMap = new Map<string, Comment>();
