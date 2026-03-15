@@ -148,6 +148,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 </style>
 
 <script>
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   interface Comment {
     id: string;
     authorName: string;
@@ -220,7 +221,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const MY_BSKY_DID = "did:plc:7dtviror2bcs32dnngqsf7ay";
     const MY_MASTODON_URL = "https://mastodon.social/@rowan_m";
 
-    let result: Comment[] = [];
+    const result: Comment[] = [];
     for (const comment of comments) {
       const isMe =
         (comment.source === "bluesky" &&
@@ -241,7 +242,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
   function filterIgnoredAccounts(comments: Comment[]): Comment[] {
     const IGNORED_HANDLES = ["rowan.fyi.web.brid.gy"];
-    let result: Comment[] = [];
+    const result: Comment[] = [];
     for (const comment of comments) {
       if (!IGNORED_HANDLES.includes(comment.authorHandle)) {
         if (comment.replies) {
@@ -302,7 +303,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     locationUrl?: string,
     linkedUrl?: string,
   ): Promise<Comment[]> {
-    let comments: Comment[] = [];
+    const comments: Comment[] = [];
 
     // If there's a specific linked post, fetch its thread
     if (linkedUrl) {
@@ -378,6 +379,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         const uri = `at://${did}/app.bsky.feed.post/${rkey}`;
         return fetchBlueskyThreadByUri(uri);
       } catch (e) {
+        console.warn("Error fetching Bluesky thread", e);
         return null;
       }
     }
@@ -395,6 +397,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
       return mapBlueskyThread(thread);
     } catch (e) {
+      console.warn("Error in fetchBlueskyThreadByUri", e);
       return null;
     }
   }
@@ -479,7 +482,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     locationUrl?: string,
     linkedUrl?: string,
   ): Promise<Comment[]> {
-    let comments: Comment[] = [];
+    const comments: Comment[] = [];
 
     if (linkedUrl) {
       const urlData = parseMastodonUrl(linkedUrl);
@@ -519,6 +522,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         }
       } catch (e) {
         // Best-effort search failed
+        console.warn("Mastodon best-effort search failed", e);
       }
     }
 
@@ -538,6 +542,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       if (!id || (isNaN(Number(id)) && id.length < 10)) return null; // Basic ID validation
       return { host, id };
     } catch (e) {
+      console.warn("Error parsing Mastodon URL", e);
       return null;
     }
   }
@@ -564,6 +569,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
       return rootComment;
     } catch (e) {
+      console.warn("Error fetching Mastodon thread", e);
       return null;
     }
   }

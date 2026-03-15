@@ -82,7 +82,7 @@
                 const feed = data.feed || [];
 
                 // Find the first post that is NOT a repost
-                const feedItem = feed.find((item: any) => !item.reason);
+                const feedItem = feed.find((item: { reason: unknown }) => !item.reason);
 
                 if (feedItem) {
                     const post = feedItem.post;
@@ -101,7 +101,6 @@
                     const nameEl = document.getElementById("bsky-name");
                     const handleEl = document.getElementById("bsky-handle");
                     const textEl = document.getElementById("bsky-text");
-                    const statusEl = document.getElementById("bsky-status");
 
                     if (urlEl) urlEl.href = permalink;
                     if (imageEl) imageEl.src = author.avatar;

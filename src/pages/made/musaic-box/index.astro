@@ -328,7 +328,7 @@ Your tune should be approximately 20 notes or fewer.`;
       generateButt.disabled = false;
     }
 
-    async function generate(e) {
+    async function generate() {
       const vibe = document.querySelector('input[name="vibe"]').value;
       generatingStatus.classList.remove("hidden");
       playableStatus.classList.add("hidden");
@@ -391,7 +391,7 @@ Your tune should be approximately 20 notes or fewer.`;
       part.loopEnd = currentTime + 1;
     }
 
-    function playMusic(e) {
+    function playMusic() {
       if (Tone.getTransport().state !== "started") {
         Tone.getTransport().start();
         playableStatus.classList.add("playing");
