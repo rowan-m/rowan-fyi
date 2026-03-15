@@ -183,8 +183,9 @@
           catghost: "./assets/catghost.png",
         };
         this.sprite = new PIXI.Sprite(
-          PIXI.Loader.shared.resources[this.textureNames[this.textureName]]
-            .texture,
+          PIXI.Loader.shared.resources[
+            this.textureNames[this.textureName]
+          ].texture,
         );
 
         this.x = x;

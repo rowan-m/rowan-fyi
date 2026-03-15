@@ -113,6 +113,7 @@ var _self =
           for (
             var r, i = t.elements || e.querySelectorAll(t.selector), l = 0;
             (r = i[l++]);
+
           )
             C.highlightElement(r, !0 === a, t.callback);
         },

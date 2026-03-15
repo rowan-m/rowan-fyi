@@ -10,32 +10,31 @@ const madeItems = import.meta.glob("/public/made/*/index.html", {
 
 <!doctype html>
 <html lang="en">
-  <DefaultHead title="Made by Rowan" description="Things I've made" />
-  <DefaultBodyLayout>
-    <main>
-      <h1>Things I've made</h1>
-      <p>
-        This is a quick, dirty, and evolving import of projects from <a
-          href="https://glitch.com">Glitch</a
-        >. There are probably a few absolute links in here which means things
-        might not work. Feel free to ping me on your preferred social network if
-        you find something that's broken.
-      </p>
-      <ul>
-        {
-          Object.keys(madeItems).map((key) => (
-            <li>
-              <a
-                href={key
-                  .replace("/public/made/", "/made/")
-                  .replace("/index.html", "/")}
-              >
-                {key.split("/").filter(Boolean).at(-2)}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </main>
-  </DefaultBodyLayout>
-</html>
+<DefaultHead title="Made by Rowan" description="Things I've made" />
+<DefaultBodyLayout>
+  <main>
+    <h1>Things I've made</h1>
+    <p>
+      This is a quick, dirty, and evolving import of projects from <a
+        href="https://glitch.com">Glitch</a
+      >. There are probably a few absolute links in here which means things
+      might not work. Feel free to ping me on your preferred social network if
+      you find something that's broken.
+    </p>
+    <ul>
+      {
+        Object.keys(madeItems).map((key) => (
+          <li>
+            <a
+              href={key
+                .replace("/public/made/", "/made/")
+                .replace("/index.html", "/")}
+            >
+              {key.split("/").filter(Boolean).at(-2)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </main>
+</DefaultBodyLayout>
