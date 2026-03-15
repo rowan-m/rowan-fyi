@@ -53,8 +53,8 @@ The [Prompt API docs](https://developer.chrome.com/docs/ai/prompt-api) cover the
 > _`{ "note": "Fb2", "duration": ".25" }`_  
 > _Plays F flat in the second octave for a quarter second._  
 > _A valid note matches the regular expression `^[A-G][#b]?[2-9]$`_  
-> _Start with a letter from "A", "B", "C", "D", "E", "F", or "G". Then an optional "#" for sharp   notes or "b" for flat notes. End with a number from 2-9 for the octave._
-> _Your tune should be approximately 20 notes or fewer._  
+> _Start with a letter from "A", "B", "C", "D", "E", "F", or "G". Then an optional "#" for sharp notes or "b" for flat notes. End with a number from 2-9 for the octave._
+> _Your tune should be approximately 20 notes or fewer._
 
 This is where I've been learning most of the quirks and limitations of getting reliable output from the model; this is still an iterative work in progress. Most of the tweaking comes from getting it to consistently produce a valid note. In earlier iterations is would sometimes precede notes with a ".". Now it will still sometime produce notes like `Aa3` or `Cc5` rather than using only a `#` or `b`. Adding the regular expression format in there did appear to be the most effective option in constraining the format.
 
@@ -63,6 +63,7 @@ This is where I've been learning most of the quirks and limitations of getting r
 However, the best option is just using the schema to strictly type the output. In the initial version notes could be represented using the more flexible format that [Tone.js Time format](https://github.com/tonejs/tone.js/wiki/Time) which allows string like `4n` for a quarter note or `1:2` for 1 bar and 2 quarter notes. However, the model would regularly just output `quarter` or `whole` which is `whole`ly invalid syntax. Restricting `duration` to a float for the number of seconds removed all this risk.
 
 The schema itself is applied as part of each user prompt.
+
 ```javascript
 const schema = {
   type: "object",
@@ -83,7 +84,7 @@ const schema = {
 };
 const result = await model.prompt(
   `Create a melody based on the vibe: ${vibe}`,
-  { responseConstraint: { schema } }
+  { responseConstraint: { schema } },
 );
 ```
 
@@ -97,7 +98,7 @@ synth = new Tone.FMSynth({
   modulationIndex: 15,
   detune: 2400,
   envelope: { attack: 0.001, decay: 1.4, sustain: 0, release: 1.4 },
-  modulationEnvelope: { attack: 0.002, decay: 0.8, sustain: 0, release: 0.8 }
+  modulationEnvelope: { attack: 0.002, decay: 0.8, sustain: 0, release: 0.8 },
 }).toDestination();
 const eq = new Tone.EQ3({ low: -12, mid: -2, high: 10 }).toDestination();
 const delay = new Tone.PingPongDelay("16n", 0.1).toDestination();
@@ -115,6 +116,7 @@ It also acted as a learning tool since I was treating this like a code review. I
 Wholly unrelated to AI, I love that the web makes things so easily shareable. However, needing to store user data is a whole step up in terms of both infrastructure and liability. Keep the output short though, say just a series of notes, and you can stuff the whole thing in the URL instead! So, that's what I do to make the individual tunes shareable - just stringify out the JSON to the URL and push it into the history, then read it back on load.
 
 A few of the machine's creations:
+
 - [Grumpy goblins](/made/musaic-box/?vibe=Grumpy+goblins&notes=%5B%7B%22note%22%3A%22Bb3%22%2C%22duration%22%3A1%7D%2C%7B%22note%22%3A%22A3%22%2C%22duration%22%3A0.5%7D%2C%7B%22note%22%3A%22G%233%22%2C%22duration%22%3A0.75%7D%2C%7B%22note%22%3A%22G3%22%2C%22duration%22%3A0.5%7D%2C%7B%22note%22%3A%22F%233%22%2C%22duration%22%3A0.25%7D%2C%7B%22note%22%3A%22F3%22%2C%22duration%22%3A0.25%7D%2C%7B%22note%22%3A%22Eb2%22%2C%22duration%22%3A1%7D%2C%7B%22note%22%3A%22D%232%22%2C%22duration%22%3A0.5%7D%2C%7B%22note%22%3A%22D2%22%2C%22duration%22%3A0.5%7D%2C%7B%22note%22%3A%22C%232%22%2C%22duration%22%3A0.25%7D%2C%7B%22note%22%3A%22C2%22%2C%22duration%22%3A0.25%7D%2C%7B%22note%22%3A%22B1%22%2C%22duration%22%3A1%7D%2C%7B%22note%22%3A%22A1%22%2C%22duration%22%3A1%7D%2C%7B%22note%22%3A%22G%231%22%2C%22duration%22%3A0.5%7D%2C%7B%22note%22%3A%22G1%22%2C%22duration%22%3A0.5%7D%2C%7B%22note%22%3A%22F%231%22%2C%22duration%22%3A0.25%7D%2C%7B%22note%22%3A%22F1%22%2C%22duration%22%3A0.25%7D%2C%7B%22note%22%3A%22Eb1%22%2C%22duration%22%3A0.75%7D%2C%7B%22note%22%3A%22Db1%22%2C%22duration%22%3A1%7D%5D)
 - [Lazy cat napping in the sun](/made/musaic-box/?vibe=Lazy+cat+napping+in+the+sun&notes=%5B%7B%22note%22%3A%22C4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22E4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22G4%22%2C%22duration%22%3A%22.5%22%7D%2C%7B%22note%22%3A%22G4%22%2C%22duration%22%3A%22.5%22%7D%2C%7B%22note%22%3A%22E4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22C4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22D4%22%2C%22duration%22%3A%22.25%22%7D%2C%7B%22note%22%3A%22F4%22%2C%22duration%22%3A%22.25%22%7D%2C%7B%22note%22%3A%22G4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22A4%22%2C%22duration%22%3A%22.5%22%7D%2C%7B%22note%22%3A%22G4%22%2C%22duration%22%3A%22.5%22%7D%2C%7B%22note%22%3A%22E4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22C4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22C4%22%2C%22duration%22%3A%22.5%22%7D%2C%7B%22note%22%3A%22D4%22%2C%22duration%22%3A%22.5%22%7D%2C%7B%22note%22%3A%22E4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22F4%22%2C%22duration%22%3A%22.25%22%7D%2C%7B%22note%22%3A%22G4%22%2C%22duration%22%3A%22.25%22%7D%2C%7B%22note%22%3A%22C4%22%2C%22duration%22%3A%221%22%7D%2C%7B%22note%22%3A%22G3%22%2C%22duration%22%3A%221%22%7D%5D)
 

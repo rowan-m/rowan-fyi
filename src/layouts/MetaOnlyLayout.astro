@@ -10,7 +10,8 @@ const { title, description } = Astro.props;
 
 <!doctype html>
 <html lang="en">
-<CommonMeta />
-<title>{title}</title>
-<meta name="description" content={description}>
-<slot />
+  <CommonMeta />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <slot />
+</html>

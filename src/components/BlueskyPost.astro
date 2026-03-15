@@ -3,116 +3,114 @@
 ---
 
 <style>
-    div > div:first-child {
-        font-size: var(--size-step-0);
-        color: var(--sec-fg);
-    }
+  div > div:first-child {
+    font-size: var(--size-step-0);
+    color: var(--sec-fg);
+  }
 
-    #bsky-url {
-        display: grid;
-        grid-template-areas:
-            "image name"
-            "image handle"
-            "image text";
-        grid-template-columns: 4rem 1fr;
-        gap: 0 1rem;
-        border: 1px solid var(--sec-border);
-        padding: 0.5rem;
-        text-decoration: none;
-        color: var(--main-fg);
-        align-items: center;
-    }
+  #bsky-url {
+    display: grid;
+    grid-template-areas:
+      "image name"
+      "image handle"
+      "image text";
+    grid-template-columns: 4rem 1fr;
+    gap: 0 1rem;
+    border: 1px solid var(--sec-border);
+    padding: 0.5rem;
+    text-decoration: none;
+    color: var(--main-fg);
+    align-items: center;
+  }
 
-    #bsky-url:hover {
-        border-color: var(--main-accent);
-    }
+  #bsky-url:hover {
+    border-color: var(--main-accent);
+  }
 
-    #bsky-image {
-        grid-area: image;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        aspect-ratio: 1;
-    }
+  #bsky-image {
+    grid-area: image;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: 1;
+  }
 
-    #bsky-name {
-        grid-area: name;
-        font-weight: bold;
-        font-size: var(--size-step-1);
-        align-self: end;
-    }
+  #bsky-name {
+    grid-area: name;
+    font-weight: bold;
+    font-size: var(--size-step-1);
+    align-self: end;
+  }
 
-    #bsky-handle {
-        grid-area: handle;
-        font-size: var(--size-step-0);
-        color: var(--sec-fg);
-    }
+  #bsky-handle {
+    grid-area: handle;
+    font-size: var(--size-step-0);
+    color: var(--sec-fg);
+  }
 
-    #bsky-text {
-        grid-area: text;
-        font-size: var(--size-step-0);
-        color: var(--main-fg);
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        align-self: start;
-        margin-top: 0.25rem;
-    }
+  #bsky-text {
+    grid-area: text;
+    font-size: var(--size-step-0);
+    color: var(--main-fg);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    align-self: start;
+    margin-top: 0.25rem;
+  }
 </style>
 <div>
-    <div>Bluesky <span id="bsky-status">latest post</span></div>
-    <a id="bsky-url" href="#">
-        <img id="bsky-image" src="#" alt="Profile image"/>
-        <div id="bsky-name">...</div>
-        <div id="bsky-handle">...</div>
-        <div id="bsky-text">...</div>
-    </a>
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const ACTOR = "rowan.fyi";
-            const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
+  <div>Bluesky <span id="bsky-status">latest post</span></div>
+  <a id="bsky-url" href="#">
+    <img id="bsky-image" src="#" alt="Profile image" />
+    <div id="bsky-name">...</div>
+    <div id="bsky-handle">...</div>
+    <div id="bsky-text">...</div>
+  </a>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const ACTOR = "rowan.fyi";
+      const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
 
-            try {
-                const response = await fetch(URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                const feed = data.feed || [];
+      try {
+        const response = await fetch(URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const feed = data.feed || [];
 
-                // Find the first post that is NOT a repost
-                const feedItem = feed.find((item: { reason: unknown }) => !item.reason);
+        // Find the first post that is NOT a repost
+        const feedItem = feed.find((item: { reason: unknown }) => !item.reason);
 
-                if (feedItem) {
-                    const post = feedItem.post;
+        if (feedItem) {
+          const post = feedItem.post;
 
-                    const author = post.author;
-                    const record = post.record;
-                    const postId = post.uri.split("/").pop();
-                    const permalink = `https://bsky.app/profile/${author.handle}/post/${postId}`;
+          const author = post.author;
+          const record = post.record;
+          const postId = post.uri.split("/").pop();
+          const permalink = `https://bsky.app/profile/${author.handle}/post/${postId}`;
 
-                    const urlEl = document.getElementById(
-                        "bsky-url",
-                    ) as HTMLAnchorElement;
-                    const imageEl = document.getElementById(
-                        "bsky-image",
-                    ) as HTMLImageElement;
-                    const nameEl = document.getElementById("bsky-name");
-                    const handleEl = document.getElementById("bsky-handle");
-                    const textEl = document.getElementById("bsky-text");
+          const urlEl = document.getElementById(
+            "bsky-url",
+          ) as HTMLAnchorElement;
+          const imageEl = document.getElementById(
+            "bsky-image",
+          ) as HTMLImageElement;
+          const nameEl = document.getElementById("bsky-name");
+          const handleEl = document.getElementById("bsky-handle");
+          const textEl = document.getElementById("bsky-text");
 
-                    if (urlEl) urlEl.href = permalink;
-                    if (imageEl) imageEl.src = author.avatar;
-                    if (nameEl)
-                        nameEl.textContent =
-                            author.displayName || author.handle;
-                    if (handleEl) handleEl.textContent = `@${author.handle}`;
-                    if (textEl) textEl.textContent = record.text;
-                }
-            } catch (error) {
-                console.error("Could not fetch Bluesky data:", error);
-            }
-        });
-    </script>
+          if (urlEl) urlEl.href = permalink;
+          if (imageEl) imageEl.src = author.avatar;
+          if (nameEl) nameEl.textContent = author.displayName || author.handle;
+          if (handleEl) handleEl.textContent = `@${author.handle}`;
+          if (textEl) textEl.textContent = record.text;
+        }
+      } catch (error) {
+        console.error("Could not fetch Bluesky data:", error);
+      }
+    });
+  </script>
 </div>
