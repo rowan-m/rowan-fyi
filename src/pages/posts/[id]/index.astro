@@ -81,7 +81,7 @@ const articleData = {
       <a rel="author" class="p-author h-card" style="display:none" href={new URL(Astro.site)}>Rowan Merewood</a>
       {
         post.data.location && (
-          <a href={post.data.location} target="_blank" class="button">
+          <a href={post.data.location} target="_blank" rel="noopener noreferrer" class="button">
             <NewTabIcon /> Launch
           </a>
         )
