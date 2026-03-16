@@ -335,21 +335,28 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       if (searchRes.ok) {
         const data = await searchRes.json();
         const searchPosts = data.posts || [];
-        for (const post of searchPosts) {
-          // If this post is the one we already fetched via linkedUrl, skip it
-          if (comments.find((c) => c.id === post.uri)) continue;
 
-          // Fetch the full thread for each search result to get replies
+        // Track existing IDs to avoid fetching duplicates
+        const existingIds = new Set(comments.map((c) => c.id));
+
+        // ⚡ Optimization: Parallelize N+1 thread fetches instead of sequential iteration
+        const postPromises = searchPosts.map(async (post: any) => {
+          if (existingIds.has(post.uri)) return null;
+
           try {
             const thread = await fetchBlueskyThreadByUri(post.uri);
-            if (thread) {
-              comments.push(thread);
-              continue;
-            }
+            if (thread) return thread;
           } catch (e) {
             console.warn("BSky thread fetch for search result failed", e);
           }
-          comments.push(mapBlueskyPost(post));
+          return mapBlueskyPost(post);
+        });
+
+        const resolvedPosts = await Promise.all(postPromises);
+
+        // Synchronously push valid results to avoid race conditions
+        for (const p of resolvedPosts) {
+          if (p) comments.push(p);
         }
       }
     } catch (e) {
@@ -525,14 +532,26 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       if (searchRes.ok) {
         const data = await searchRes.json();
         const statuses = data.statuses || [];
-        for (const status of statuses) {
-          if (comments.find((c) => c.id === status.id)) continue;
+
+        // Track existing IDs to avoid fetching duplicates
+        const existingIds = new Set(comments.map((c) => c.id));
+
+        // ⚡ Optimization: Parallelize N+1 thread fetches instead of sequential iteration
+        const statusPromises = statuses.map(async (status: any) => {
+          if (existingIds.has(status.id)) return null;
+
           const thread = await fetchMastodonThread(
             status.id,
             "mastodon.social",
           );
-          if (thread) comments.push(thread);
-          else comments.push(mapMastodonStatus(status));
+          return thread || mapMastodonStatus(status);
+        });
+
+        const resolvedStatuses = await Promise.all(statusPromises);
+
+        // Synchronously push valid results to avoid race conditions
+        for (const p of resolvedStatuses) {
+          if (p) comments.push(p);
         }
       }
     } catch (e) {
