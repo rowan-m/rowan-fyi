@@ -11,7 +11,9 @@
     "lint:sonar": "eslint src -c eslint.sonar.config.js",
     "lint:security": "eslint src -c eslint.security.config.js",
     "depcruise": "depcruise src",
-    "check": "npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.7",
