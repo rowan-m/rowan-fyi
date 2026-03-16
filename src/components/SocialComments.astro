@@ -303,7 +303,8 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     locationUrl?: string,
     linkedUrl?: string,
   ): Promise<Comment[]> {
-    const comments: Comment[] = [];
+    let comments: Comment[] = [];
+    const seenIds = new Set<string>();
 
     // If there's a specific linked post, fetch its thread
     if (linkedUrl) {
@@ -311,6 +312,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         const thread = await fetchBlueskyThread(linkedUrl);
         if (thread) {
           comments.push(thread);
+          seenIds.add(thread.id);
         }
       } catch (e) {
         console.warn("BSky thread fetch failed", e);
@@ -321,40 +323,56 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const searchUrls = [canonicalUrl];
     if (locationUrl) searchUrls.push(locationUrl);
 
-    for (const urlToSearch of searchUrls) {
-      await searchBlueskyUrl(urlToSearch, comments);
-    }
+    // ⚡ Bolt Optimization: Parallelize search URL fetches and return nested comments
+    const nestedComments = await Promise.all(
+      searchUrls.map((url) => searchBlueskyUrl(url, seenIds)),
+    );
+    comments = comments.concat(nestedComments.flat());
 
     return comments;
   }
 
-  async function searchBlueskyUrl(urlToSearch: string, comments: Comment[]) {
+  async function searchBlueskyUrl(
+    urlToSearch: string,
+    seenIds: Set<string>,
+  ): Promise<Comment[]> {
+    const comments: Comment[] = [];
     try {
       const searchUrl = `https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(urlToSearch)}&limit=20`;
       const searchRes = await fetch(searchUrl);
       if (searchRes.ok) {
         const data = await searchRes.json();
         const searchPosts = data.posts || [];
-        for (const post of searchPosts) {
-          // If this post is the one we already fetched via linkedUrl, skip it
-          if (comments.find((c) => c.id === post.uri)) continue;
 
-          // Fetch the full thread for each search result to get replies
-          try {
-            const thread = await fetchBlueskyThreadByUri(post.uri);
-            if (thread) {
-              comments.push(thread);
-              continue;
+        // ⚡ Bolt Optimization: Parallelize N+1 thread fetches for search results
+        const newComments = await Promise.all(
+          searchPosts.map(async (post: any) => {
+            // If this post is the one we already fetched via linkedUrl, skip it
+            if (seenIds.has(post.uri)) return null;
+            seenIds.add(post.uri);
+
+            // Fetch the full thread for each search result to get replies
+            try {
+              const thread = await fetchBlueskyThreadByUri(post.uri);
+              if (thread) {
+                return thread;
+              }
+            } catch (e) {
+              console.warn("BSky thread fetch for search result failed", e);
             }
-          } catch (e) {
-            console.warn("BSky thread fetch for search result failed", e);
-          }
-          comments.push(mapBlueskyPost(post));
-        }
+            return mapBlueskyPost(post);
+          }),
+        );
+
+        // Add only the non-null resolved threads/posts in order
+        newComments.forEach((c) => {
+          if (c) comments.push(c);
+        });
       }
     } catch (e) {
       console.warn("BSky search failed for " + urlToSearch, e);
     }
+    return comments;
   }
 
   async function fetchBlueskyThread(url: string): Promise<Comment | null> {
@@ -486,7 +504,8 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     locationUrl?: string,
     linkedUrl?: string,
   ): Promise<Comment[]> {
-    const comments: Comment[] = [];
+    let comments: Comment[] = [];
+    const seenIds = new Set<string>();
 
     if (linkedUrl) {
       const urlData = parseMastodonUrl(linkedUrl);
@@ -495,6 +514,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
           const thread = await fetchMastodonThread(urlData.id, urlData.host);
           if (thread) {
             comments.push(thread);
+            seenIds.add(thread.id);
           }
         } catch (e) {
           console.warn("Mastodon thread fetch failed for " + linkedUrl, e);
@@ -507,9 +527,11 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const searchUrls = [canonicalUrl];
     if (locationUrl) searchUrls.push(locationUrl);
 
-    for (const urlToSearch of searchUrls) {
-      await searchMastodonUrl(urlToSearch, comments);
-    }
+    // ⚡ Bolt Optimization: Parallelize search URL fetches and return nested comments
+    const nestedComments = await Promise.all(
+      searchUrls.map((url) => searchMastodonUrl(url, seenIds)),
+    );
+    comments = comments.concat(nestedComments.flat());
 
     // Deduplicate
     const uniqueComments = Array.from(
@@ -518,27 +540,43 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return uniqueComments;
   }
 
-  async function searchMastodonUrl(urlToSearch: string, comments: Comment[]) {
+  async function searchMastodonUrl(
+    urlToSearch: string,
+    seenIds: Set<string>,
+  ): Promise<Comment[]> {
+    const comments: Comment[] = [];
     try {
       const searchUrl = `https://mastodon.social/api/v2/search?q=${encodeURIComponent(urlToSearch)}&type=statuses&limit=20`;
       const searchRes = await fetch(searchUrl);
       if (searchRes.ok) {
         const data = await searchRes.json();
         const statuses = data.statuses || [];
-        for (const status of statuses) {
-          if (comments.find((c) => c.id === status.id)) continue;
-          const thread = await fetchMastodonThread(
-            status.id,
-            "mastodon.social",
-          );
-          if (thread) comments.push(thread);
-          else comments.push(mapMastodonStatus(status));
-        }
+
+        // ⚡ Bolt Optimization: Parallelize N+1 thread fetches for Mastodon search results
+        const newComments = await Promise.all(
+          statuses.map(async (status: any) => {
+            if (seenIds.has(status.id)) return null;
+            seenIds.add(status.id);
+
+            const thread = await fetchMastodonThread(
+              status.id,
+              "mastodon.social",
+            );
+            if (thread) return thread;
+            else return mapMastodonStatus(status);
+          }),
+        );
+
+        // Add only the non-null resolved threads/posts in order
+        newComments.forEach((c) => {
+          if (c) comments.push(c);
+        });
       }
     } catch (e) {
       // Best-effort search failed
       console.warn("Mastodon best-effort search failed", e);
     }
+    return comments;
   }
 
   function parseMastodonUrl(url: string) {
