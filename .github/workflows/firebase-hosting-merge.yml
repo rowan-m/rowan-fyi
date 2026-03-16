@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      - run: npm run format:check
       - run: npm run build
       - run: npm run check
       - uses: FirebaseExtended/action-hosting-deploy@v0
