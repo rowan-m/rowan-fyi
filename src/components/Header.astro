@@ -7,10 +7,17 @@ const { useH1Header } = Astro.props;
 ---
 
 <header>
-{ useH1Header ? (
-  <h1 class="logo"><a href="/" aria-label="rowan.fyi" title="rowan.fyi"><Logo /></a></h1>
-) : (
-  <a href="/" class="logo" aria-label="rowan.fyi" title="rowan.fyi"><Logo /></a>
-)
-}
+  {
+    useH1Header ? (
+      <h1 class="logo">
+        <a href="/" aria-label="rowan.fyi" title="rowan.fyi">
+          <Logo />
+        </a>
+      </h1>
+    ) : (
+      <a href="/" class="logo" aria-label="rowan.fyi" title="rowan.fyi">
+        <Logo />
+      </a>
+    )
+  }
 </header>

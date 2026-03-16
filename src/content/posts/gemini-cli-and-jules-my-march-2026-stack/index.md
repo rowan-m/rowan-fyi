@@ -21,7 +21,7 @@ However, I've found a current combination that hits the right notes for me. It t
 - [Gemini CLI](https://geminicli.com/) for active pair work
 - [Jules](https://jules.google/docs/) for background suggestions
 
-You can see all the code and configuration in the [`fractious` GitHub repo](https://github.com/rowan-m/fractious). 
+You can see all the code and configuration in the [`fractious` GitHub repo](https://github.com/rowan-m/fractious).
 
 The tl;dr of the tl;dr: **make reviews easy.** That means adding more of the infrastructure I'd expect on a mature team project versus personal hobby toys. Long-term, maybe I'll finally do [Extreme Programming](http://www.extremeprogramming.org/) like it's the '90s again. Those [ultra-wide jeans](https://jnco.com/) are back in again, so anything is possible.
 
@@ -47,9 +47,10 @@ The biggest part of that in Fractious was implementing the Rust-based Wasm modul
 
 ## Static analysis
 
-I also used Gemini to untangle the myriad of config files required for these tools. I maintain that YAML ain't a human-readable format (looking at you, GitHub Actions), but thankfully, it no longer has to be human-*writable* at least.
+I also used Gemini to untangle the myriad of config files required for these tools. I maintain that YAML ain't a human-readable format (looking at you, GitHub Actions), but thankfully, it no longer has to be human-_writable_ at least.
 
 I integrated a few different tools here:
+
 - general linting with [ESLint](https://eslint.org/)
 - complexity and other checks with the [SonarJS plugin for ESLint](https://github.com/SonarSource/SonarJS/blob/master/packages/jsts/src/rules/README.md)
 - security checks with, unsurprisingly, [`eslint-plugin-security`](https://github.com/eslint-community/eslint-plugin-security)
@@ -76,6 +77,7 @@ As a bonus, reviewing PRs on my phone has taken a meaningful bite out of my refl
 So, "where are these AI contributions coming from?" I hear my rare reader ask. [Jules](https://jules.google/docs/) is a hosted agent that runs a bit more autonomously. It has a Suggestions feature and scheduled tasks that go through the codebase and look for issues, improvements, changes, etc. I go through these suggestions in the web interface and tell it to get started on the ones I'm interested in and then a bit later I get a pull request.
 
 The provided scheduled agents are quite helpful, with templates for performance, security, and UI improvements. It's useful looking through the prompts provided to see what those aspects are. For example, the performance agent includes:
+
 - _"identify and implement ONE small performance improvement"_
 - _"never sacrifice code readability for micro-optimizations"_
 - _"measure the impact, add benchmark comments"_
