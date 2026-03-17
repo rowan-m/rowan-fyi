@@ -1,4 +1,5 @@
-import pluginSecurity from "eslint-plugin-security";
+import pluginSecurityDefault from "eslint-plugin-security";
+const pluginSecurity = pluginSecurityDefault.default || pluginSecurityDefault;
 import pluginNoUnsanitized from "eslint-plugin-no-unsanitized";
 import baseConfig from "./eslint.config.js";
 
