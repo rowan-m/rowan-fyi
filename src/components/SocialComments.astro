@@ -594,7 +594,17 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
       const rootComment = mapMastodonStatus(status);
       const descendants = context.descendants || [];
-      rootComment.replies = buildMastodonTree(id, descendants);
+
+      // ⚡ Optimization: Pre-group descendants by parent ID (O(N)) to avoid O(N^2) recursive filtering
+      const descendantsByParent = new Map<string, any[]>();
+      for (const d of descendants) {
+        if (!d.in_reply_to_id) continue;
+        const list = descendantsByParent.get(d.in_reply_to_id) || [];
+        list.push(d);
+        descendantsByParent.set(d.in_reply_to_id, list);
+      }
+
+      rootComment.replies = buildMastodonTree(id, descendantsByParent);
 
       return rootComment;
     } catch (e) {
@@ -603,14 +613,16 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
   }
 
-  function buildMastodonTree(parentId: string, descendants: any[]): Comment[] {
-    return descendants
-      .filter((d) => d.in_reply_to_id === parentId)
-      .map((d) => {
-        const c = mapMastodonStatus(d);
-        c.replies = buildMastodonTree(d.id, descendants);
-        return c;
-      });
+  function buildMastodonTree(
+    parentId: string,
+    descendantsByParent: Map<string, any[]>,
+  ): Comment[] {
+    const children = descendantsByParent.get(parentId) || [];
+    return children.map((d) => {
+      const c = mapMastodonStatus(d);
+      c.replies = buildMastodonTree(d.id, descendantsByParent);
+      return c;
+    });
   }
 
   function mapMastodonStatus(status: any): Comment {
