@@ -35,7 +35,11 @@ const { post } = Astro.props;
 </style>
 <div class="card">
   <a href={"/posts/" + post.id + "/"}>
-    <Image src={post.data.image} alt="Preview" width="800" />
+    <Image
+      src={post.data.image}
+      alt={post.data.imageAlt || `Preview for ${post.data.title}`}
+      width="800"
+    />
   </a>
   <a href={"/posts/" + post.id + "/"}>
     <h3>{post.data.title}</h3>
