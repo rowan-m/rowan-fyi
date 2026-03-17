@@ -113,7 +113,12 @@ const articleData = {
         >
         {
           post.data.location && (
-            <a href={post.data.location} target="_blank" class="button">
+            <a
+              href={post.data.location}
+              target="_blank"
+              rel="noopener"
+              class="button"
+            >
               <NewTabIcon /> Launch
             </a>
           )
