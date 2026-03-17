@@ -28,14 +28,14 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       title="rowan@fyi on Bluesky"
       class="button share-button"
       target="_blank"
-      rel="noopener noreferrer"><Bluesky /> Share/reply on Bluesky</a
+      rel="noopener"><Bluesky /> Share/reply on Bluesky</a
     >
     <a
       href={mastodonUrl || "https://mastodon.social/@rowan_m"}
       title="@rowan_m on Mastodon"
       class="button share-button"
       target="_blank"
-      rel="noopener noreferrer"><Mastodon /> Share/reply on Mastodon</a
+      rel="noopener"><Mastodon /> Share/reply on Mastodon</a
     >
   </div>
   <div id="comments-container">
@@ -671,7 +671,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         const a = document.createElement("a");
         a.href = url;
         a.target = "_blank";
-        a.rel = "noopener noreferrer";
+        a.rel = "noopener";
         a.textContent = url;
         fragment.appendChild(a);
       } else {
@@ -738,7 +738,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         const a = document.createElement("a");
         a.href = url;
         a.target = "_blank";
-        a.rel = "noopener noreferrer";
+        a.rel = "noopener";
         a.textContent = linkText;
         fragment.appendChild(a);
       } else {
@@ -794,7 +794,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
             if (href && isSafeUrl(href)) {
               newEl.setAttribute("href", href);
               newEl.setAttribute("target", "_blank");
-              newEl.setAttribute("rel", "noopener noreferrer");
+              newEl.setAttribute("rel", "noopener");
             }
           }
           const className = el.getAttribute("class");
@@ -872,7 +872,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const dateLink = document.createElement("a");
     dateLink.href = isSafeUrl(comment.url) ? comment.url : "#";
     dateLink.target = "_blank";
-    dateLink.rel = "noopener noreferrer";
+    dateLink.rel = "noopener";
     dateLink.textContent = new Date(comment.publishedAt).toLocaleString();
     meta.appendChild(dateLink);
 
