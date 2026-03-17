@@ -13,7 +13,8 @@
     "depcruise": "depcruise src",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise"
+    "test": "vitest run",
+    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise && npm run test"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.7",
@@ -24,6 +25,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^25.5.0",
+    "@vitest/coverage-v8": "^4.1.0",
     "dependency-cruiser": "^17.3.9",
     "eslint": "^10.0.3",
     "eslint-plugin-astro": "^1.6.0",
@@ -33,6 +36,7 @@
     "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript-eslint": "^8.57.0"
+    "typescript-eslint": "^8.57.0",
+    "vitest": "^4.1.0"
   }
 }
