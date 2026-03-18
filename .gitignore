@@ -24,4 +24,4 @@ coverage/
 .firebase/
 firebase-debug.log
 
-tmp
+tmp*.log
