@@ -69,10 +69,10 @@
     <div id="bsky-text">...</div>
   </a>
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const ACTOR = "rowan.fyi";
-      const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
+    const ACTOR = "rowan.fyi";
+    const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
 
+    async function loadBlueskyPost() {
       try {
         const response = await fetch(URL);
         if (!response.ok) {
@@ -111,6 +111,25 @@
       } catch (error) {
         console.error("Could not fetch Bluesky data:", error);
       }
-    });
+    }
+
+    // ⚡ Bolt Optimization: Lazy-load below-the-fold Bluesky API call using IntersectionObserver
+    // Expected Impact: Saves ~2 network requests and client-side processing on initial page load
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadBlueskyPost();
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: "200px" },
+    );
+
+    const container = document.getElementById("bsky-url");
+    if (container) {
+      observer.observe(container);
+    }
   </script>
 </div>

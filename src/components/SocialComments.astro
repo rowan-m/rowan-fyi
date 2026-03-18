@@ -939,5 +939,22 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return article;
   }
 
-  init();
+  // ⚡ Bolt Optimization: Lazy-load below-the-fold Mastodon/Bluesky comments using IntersectionObserver
+  // Expected Impact: Saves ~1-2 network requests per post page and defers heavy DOM building/sanitization
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          init();
+          observer.disconnect();
+        }
+      });
+    },
+    { rootMargin: "200px" },
+  );
+
+  const container = document.querySelector(".social-comments");
+  if (container) {
+    observer.observe(container);
+  }
 </script>
