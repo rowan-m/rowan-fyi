@@ -34,7 +34,7 @@ const { post } = Astro.props;
   }
 </style>
 <div class="card">
-  <a href={"/posts/" + post.id + "/"}>
+  <a href={"/posts/" + post.id + "/"} tabindex="-1" aria-hidden="true">
     <Image
       src={post.data.image}
       alt={post.data.imageAlt || `Preview for ${post.data.title}`}
