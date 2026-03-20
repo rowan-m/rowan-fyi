@@ -671,15 +671,12 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
   function isSafeUrl(url: string): boolean {
     if (!url) return false;
-    const lower = url.toLowerCase().trim();
-    if (
-      lower.startsWith("javascript:") ||
-      lower.startsWith("data:") ||
-      lower.startsWith("vbscript:")
-    ) {
+    try {
+      const parsed = new URL(url, "http://example.com");
+      return ["http:", "https:", "mailto:", "tel:"].includes(parsed.protocol);
+    } catch {
       return false;
     }
-    return true;
   }
 
   function linkify(text: string): DocumentFragment {
