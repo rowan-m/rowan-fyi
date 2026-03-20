@@ -939,5 +939,22 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return article;
   }
 
-  init();
+  // ⚡ Optimization: Lazy load comments only when they approach the viewport
+  // to save initial network requests and processing.
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          init();
+          obs.disconnect(); // Only run once
+        }
+      });
+    },
+    { rootMargin: "200px" },
+  );
+
+  const container = document.querySelector(".social-comments");
+  if (container) {
+    observer.observe(container);
+  }
 </script>
