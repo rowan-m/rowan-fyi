@@ -76,37 +76,59 @@
     <div id="track-artist">...</div>
   </a>
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const USERNAME = "rowan_m";
-      const API_KEY = "edcf3d9e6ada6d0b9f565d83c92b6724";
-      const URL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlEl = document.getElementById("track-url") as HTMLAnchorElement;
+      if (!urlEl) return;
 
-      try {
-        const response = await fetch(URL);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        const recentTrack = data.recenttracks?.track?.[0];
+      const loadLastFmTrack = async () => {
+        const USERNAME = "rowan_m";
+        const API_KEY = "edcf3d9e6ada6d0b9f565d83c92b6724";
+        const URL = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=1`;
 
-        if (recentTrack) {
-          document.getElementById("track-url").href = recentTrack.url;
-          document.getElementById("track-image").src =
-            recentTrack.image[2]["#text"];
-          document.getElementById("track-name").textContent = recentTrack.name;
-          document.getElementById("track-album").textContent =
-            recentTrack.album["#text"];
-          document.getElementById("track-artist").textContent =
-            recentTrack.artist["#text"];
-          document.getElementById("track-status").textContent = recentTrack[
-            "@attr"
-          ]?.nowplaying
-            ? "now playing"
-            : "last played";
+        try {
+          const response = await fetch(URL);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          const recentTrack = data.recenttracks?.track?.[0];
+
+          if (recentTrack) {
+            urlEl.href = recentTrack.url;
+            (document.getElementById("track-image") as HTMLImageElement).src =
+              recentTrack.image[2]["#text"];
+            document.getElementById("track-name")!.textContent =
+              recentTrack.name;
+            document.getElementById("track-album")!.textContent =
+              recentTrack.album["#text"];
+            document.getElementById("track-artist")!.textContent =
+              recentTrack.artist["#text"];
+            document.getElementById("track-status")!.textContent = recentTrack[
+              "@attr"
+            ]?.nowplaying
+              ? "now playing"
+              : "last played";
+          }
+        } catch (error) {
+          console.error("Could not fetch Last.fm data:", error);
         }
-      } catch (error) {
-        console.error("Could not fetch Last.fm data:", error);
-      }
+      };
+
+      // ⚡ Optimization: Lazy load below-the-fold third-party API call
+      // Saves network request on initial page load if component is unseen
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadLastFmTrack();
+              observer.disconnect(); // Only load once
+            }
+          });
+        },
+        { rootMargin: "200px" },
+      );
+
+      observer.observe(urlEl);
     });
   </script>
 </div>

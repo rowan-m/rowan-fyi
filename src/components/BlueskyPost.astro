@@ -69,48 +69,69 @@
     <div id="bsky-text">...</div>
   </a>
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const ACTOR = "rowan.fyi";
-      const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
+    document.addEventListener("DOMContentLoaded", () => {
+      const urlEl = document.getElementById("bsky-url") as HTMLAnchorElement;
+      if (!urlEl) return;
 
-      try {
-        const response = await fetch(URL);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      const loadBlueskyPost = async () => {
+        const ACTOR = "rowan.fyi";
+        const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
+
+        try {
+          const response = await fetch(URL);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          const feed = data.feed || [];
+
+          // Find the first post that is NOT a repost
+          const feedItem = feed.find(
+            (item: { reason: unknown }) => !item.reason,
+          );
+
+          if (feedItem) {
+            const post = feedItem.post;
+
+            const author = post.author;
+            const record = post.record;
+            const postId = post.uri.split("/").pop();
+            const permalink = `https://bsky.app/profile/${author.handle}/post/${postId}`;
+
+            const imageEl = document.getElementById(
+              "bsky-image",
+            ) as HTMLImageElement;
+            const nameEl = document.getElementById("bsky-name");
+            const handleEl = document.getElementById("bsky-handle");
+            const textEl = document.getElementById("bsky-text");
+
+            if (urlEl) urlEl.href = permalink;
+            if (imageEl) imageEl.src = author.avatar;
+            if (nameEl)
+              nameEl.textContent = author.displayName || author.handle;
+            if (handleEl) handleEl.textContent = `@${author.handle}`;
+            if (textEl) textEl.textContent = record.text;
+          }
+        } catch (error) {
+          console.error("Could not fetch Bluesky data:", error);
         }
-        const data = await response.json();
-        const feed = data.feed || [];
+      };
 
-        // Find the first post that is NOT a repost
-        const feedItem = feed.find((item: { reason: unknown }) => !item.reason);
+      // ⚡ Optimization: Lazy load below-the-fold third-party API call
+      // Saves network request on initial page load if component is unseen
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadBlueskyPost();
+              observer.disconnect(); // Only load once
+            }
+          });
+        },
+        { rootMargin: "200px" },
+      );
 
-        if (feedItem) {
-          const post = feedItem.post;
-
-          const author = post.author;
-          const record = post.record;
-          const postId = post.uri.split("/").pop();
-          const permalink = `https://bsky.app/profile/${author.handle}/post/${postId}`;
-
-          const urlEl = document.getElementById(
-            "bsky-url",
-          ) as HTMLAnchorElement;
-          const imageEl = document.getElementById(
-            "bsky-image",
-          ) as HTMLImageElement;
-          const nameEl = document.getElementById("bsky-name");
-          const handleEl = document.getElementById("bsky-handle");
-          const textEl = document.getElementById("bsky-text");
-
-          if (urlEl) urlEl.href = permalink;
-          if (imageEl) imageEl.src = author.avatar;
-          if (nameEl) nameEl.textContent = author.displayName || author.handle;
-          if (handleEl) handleEl.textContent = `@${author.handle}`;
-          if (textEl) textEl.textContent = record.text;
-        }
-      } catch (error) {
-        console.error("Could not fetch Bluesky data:", error);
-      }
+      observer.observe(urlEl);
     });
   </script>
 </div>

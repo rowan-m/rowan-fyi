@@ -169,10 +169,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
   const CACHE_KEY_PREFIX = "social-comments-v3-";
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  async function init() {
-    const container = document.querySelector(".social-comments") as HTMLElement;
-    if (!container) return;
-
+  async function loadComments(container: HTMLElement) {
     const canonicalUrl = container.dataset.canonical!;
     const locationUrl = container.dataset.location;
     const bskyUrl = container.dataset.bsky;
@@ -216,6 +213,27 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
           '<p class="error">Failed to load comments. Please try again later.</p>';
       }
     }
+  }
+
+  function init() {
+    const container = document.querySelector(".social-comments") as HTMLElement;
+    if (!container) return;
+
+    // ⚡ Optimization: Lazy load comments when they approach the viewport
+    // This defers heavy DOM building/sanitization and saves network requests on initial page load
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadComments(container);
+            observer.disconnect(); // Only load once
+          }
+        });
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(container);
   }
 
   function unwrapUserComments(comments: Comment[]): Comment[] {
