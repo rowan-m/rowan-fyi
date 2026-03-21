@@ -212,8 +212,11 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       console.error("Failed to fetch comments:", error);
       const commentsEl = document.getElementById("comments-container");
       if (commentsEl) {
-        commentsEl.innerHTML =
-          '<p class="error">Failed to load comments. Please try again later.</p>';
+        commentsEl.textContent = "";
+        const p = document.createElement("p");
+        p.className = "error";
+        p.textContent = "Failed to load comments. Please try again later.";
+        commentsEl.appendChild(p);
       }
     }
   }
@@ -658,12 +661,15 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     if (!container) return;
 
     if (comments.length === 0) {
-      container.innerHTML =
-        "<p>No comments found yet. Be the first to share your thoughts!</p>";
+      container.textContent = "";
+      const p = document.createElement("p");
+      p.textContent =
+        "No comments found yet. Be the first to share your thoughts!";
+      container.appendChild(p);
       return;
     }
 
-    container.innerHTML = "";
+    container.textContent = "";
     comments.forEach((comment) => {
       container.appendChild(createCommentElement(comment));
     });
@@ -702,7 +708,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         const a = document.createElement("a");
         a.href = url;
         a.target = "_blank";
-        a.rel = "noopener";
+        a.rel = "noopener noreferrer";
         a.textContent = url;
         fragment.appendChild(a);
       } else {
@@ -769,7 +775,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         const a = document.createElement("a");
         a.href = url;
         a.target = "_blank";
-        a.rel = "noopener";
+        a.rel = "noopener noreferrer";
         a.textContent = linkText;
         fragment.appendChild(a);
       } else {
@@ -810,6 +816,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       "OL",
       "LI",
     ];
+    const DISCARD_TAGS = ["SCRIPT", "STYLE", "IFRAME", "SVG", "MATH"];
 
     function clean(node: Node): Node | null {
       if (node.nodeType === Node.TEXT_NODE) {
@@ -818,6 +825,9 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       if (node.nodeType === Node.ELEMENT_NODE) {
         const el = node as Element;
         const tagName = el.tagName.toUpperCase();
+        if (DISCARD_TAGS.includes(tagName)) {
+          return null;
+        }
         if (ALLOWED_TAGS.includes(tagName)) {
           const newEl = document.createElement(tagName);
           if (tagName === "A") {
@@ -825,7 +835,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
             if (href && isSafeUrl(href)) {
               newEl.setAttribute("href", href);
               newEl.setAttribute("target", "_blank");
-              newEl.setAttribute("rel", "noopener");
+              newEl.setAttribute("rel", "noopener noreferrer");
             }
           }
           const className = el.getAttribute("class");
@@ -903,7 +913,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const dateLink = document.createElement("a");
     dateLink.href = isSafeUrl(comment.url) ? comment.url : "#";
     dateLink.target = "_blank";
-    dateLink.rel = "noopener";
+    dateLink.rel = "noopener noreferrer";
     dateLink.textContent = new Date(comment.publishedAt).toLocaleString();
     meta.appendChild(dateLink);
 
