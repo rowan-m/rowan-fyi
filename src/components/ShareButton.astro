@@ -5,12 +5,15 @@
 import ShareIcon from "/public/img/share.svg";
 ---
 
-<button class="button share-button">
+<button class="button share-button" style="display: none;">
   <ShareIcon /><span>Share</span>
 </button>
 
 <script>
   document.querySelectorAll("button.share-button").forEach((button) => {
+    if (navigator.share) {
+      (button as HTMLElement).style.display = "";
+    }
     button.addEventListener("click", async () => {
       if (navigator.share) {
         try {
