@@ -69,7 +69,7 @@
     <div id="bsky-text">...</div>
   </a>
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
+    async function loadBlueskyPost() {
       const ACTOR = "rowan.fyi";
       const URL = `https://api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${ACTOR}&limit=10`;
 
@@ -111,6 +111,26 @@
       } catch (error) {
         console.error("Could not fetch Bluesky data:", error);
       }
-    });
+    }
+
+    // ⚡ Optimization: Lazy-load below-the-fold third-party API calls using IntersectionObserver
+    // Defers heavy DOM building/sanitization and saves network requests on initial page load
+    const bskyElement = document.getElementById("bsky-url");
+    if (bskyElement && "IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(
+        (entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadBlueskyPost();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: "200px" },
+      );
+      observer.observe(bskyElement);
+    } else {
+      document.addEventListener("DOMContentLoaded", loadBlueskyPost);
+    }
   </script>
 </div>

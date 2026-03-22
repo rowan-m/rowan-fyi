@@ -7,3 +7,8 @@
 
 **Learning:** When building nested UI trees from a flat array (like threaded social media posts), filtering the entire array recursively to find children results in an O(N²) performance bottleneck. This scales poorly with large threads.
 **Action:** Optimize this pattern by pre-processing the flat array once into a `Map` keyed by the parent ID (an O(N) operation). Then, during recursion, perform an O(1) hash map lookup to find children, dropping the overall time complexity to O(N).
+
+## 2025-05-18 - [Lazy-load below-the-fold third-party API components]
+
+**Learning:** Initializing third-party API components (like social comment threads or embedded widgets) eagerly on `DOMContentLoaded` triggers network requests and heavy DOM operations unnecessarily for elements the user may never scroll to, increasing initial page load latency.
+**Action:** Use `IntersectionObserver` (e.g., with `rootMargin: '200px'`) to lazy-load these components. This deferral saves network requests and DOM building/sanitization costs until the element is actually near the viewport.

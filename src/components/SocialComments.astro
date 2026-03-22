@@ -939,5 +939,24 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return article;
   }
 
-  init();
+  // ⚡ Optimization: Lazy-load below-the-fold third-party API calls using IntersectionObserver
+  // Defers heavy DOM building/sanitization and saves network requests on initial page load
+  const container = document.querySelector(".social-comments");
+  if (container && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            init();
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(container);
+  } else {
+    // Fallback if IntersectionObserver is not supported or container not found (though init handles missing container)
+    init();
+  }
 </script>
