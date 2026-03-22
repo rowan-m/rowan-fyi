@@ -2,21 +2,47 @@
 > out-out@0.0.1 dev
 > astro dev
 
+▶ Astro collects anonymous usage data.
+  This information helps us improve Astro.
+  Run "astro telemetry disable" to opt-out.
+  https://astro.build/telemetry
+
 [vite] connected.
-00:06:46 [types] Generated 1ms
+00:00:47 [types] Generated 1ms
 [vite] connected.
-00:06:46 [content] Syncing content
-00:06:48 [content] Synced content
-00:06:48 [vite] Re-optimizing dependencies because vite config has changed
- astro  v6.0.5 ready in 4500 ms
+00:00:48 [content] Syncing content
+00:00:51 [content] Synced content
+ astro  v6.0.5 ready in 5462 ms
 ┃ Local    http://localhost:4321/
 ┃ Network  use --host to expose
-00:06:48 watching for file changes...
-00:07:17 [200] /posts/form-and-function/ 195ms
-00:07:17 [vite] ✨ new dependencies optimized: astro/runtime/client/dev-toolbar/entrypoint.js
-00:07:17 [vite] ✨ optimized dependencies changed. reloading
-00:07:37 [200] /posts/modern-noise/ 11ms
-00:07:37 [200] /_image 57ms
-00:07:37 [200] /_image 101ms
-07:24:10 [watch] /src/pages/posts/[id]/index.astro?astro&type=style&index=0&lang.css
-07:24:23 [watch] src/components/SocialComments.astro
+00:00:51 watching for file changes...
+00:01:25 [WARN] [router] A `getStaticPaths()` route pattern was matched, but no matching static path was found for requested path `/posts/test-post-if-exists`.
+
+Possible dynamic routes being matched: src/pages/posts/[id]/index.astro.
+00:01:25 [404] /posts/test-post-if-exists 91ms
+00:01:25 [vite] ✨ new dependencies optimized: astro/runtime/client/dev-toolbar/entrypoint.js
+00:01:25 [vite] ✨ optimized dependencies changed. reloading
+00:01:26 [200] / 31ms
+00:01:26 [200] / 14ms
+00:01:26 [200] /_image 191ms
+00:01:27 [200] /_image 339ms
+00:01:27 [200] /_image 342ms
+00:01:27 [200] /_image 387ms
+00:01:27 [200] /_image 407ms
+00:01:27 [200] /_image 330ms
+00:01:27 [200] /_image 630ms
+00:01:27 [200] / 18ms
+00:01:27 [200] /_image 353ms
+00:01:27 [200] /_image 387ms
+00:01:27 [200] /_image 447ms
+00:01:27 [200] /_image 443ms
+00:01:27 [200] /_image 336ms
+00:01:27 [200] /_image 209ms
+00:01:27 [200] /_image 273ms
+00:01:27 [200] /_image 298ms
+00:01:27 [200] /_image 417ms
+00:01:27 [200] /posts/gemini-cli-and-jules-my-march-2026-stack/ 92ms
+00:01:28 [200] /_image 331ms
+00:01:28 [200] /_image 167ms
+00:01:28 [200] /_image 626ms
+00:01:28 [200] /_image 236ms
