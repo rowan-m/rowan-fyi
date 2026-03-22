@@ -212,8 +212,11 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       console.error("Failed to fetch comments:", error);
       const commentsEl = document.getElementById("comments-container");
       if (commentsEl) {
-        commentsEl.innerHTML =
-          '<p class="error">Failed to load comments. Please try again later.</p>';
+        const errorMsg = document.createElement("p");
+        errorMsg.className = "error";
+        errorMsg.textContent =
+          "Failed to load comments. Please try again later.";
+        commentsEl.replaceChildren(errorMsg);
       }
     }
   }
@@ -658,12 +661,14 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     if (!container) return;
 
     if (comments.length === 0) {
-      container.innerHTML =
-        "<p>No comments found yet. Be the first to share your thoughts!</p>";
+      const msg = document.createElement("p");
+      msg.textContent =
+        "No comments found yet. Be the first to share your thoughts!";
+      container.replaceChildren(msg);
       return;
     }
 
-    container.innerHTML = "";
+    container.replaceChildren();
     comments.forEach((comment) => {
       container.appendChild(createCommentElement(comment));
     });
@@ -810,6 +815,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       "OL",
       "LI",
     ];
+    const DISCARD_TAGS = ["SCRIPT", "STYLE", "IFRAME", "SVG", "MATH"];
 
     function clean(node: Node): Node | null {
       if (node.nodeType === Node.TEXT_NODE) {
@@ -818,6 +824,9 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       if (node.nodeType === Node.ELEMENT_NODE) {
         const el = node as Element;
         const tagName = el.tagName.toUpperCase();
+        if (DISCARD_TAGS.includes(tagName)) {
+          return null; // Aggressively drop dangerous elements
+        }
         if (ALLOWED_TAGS.includes(tagName)) {
           const newEl = document.createElement(tagName);
           if (tagName === "A") {
