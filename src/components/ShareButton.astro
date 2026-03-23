@@ -5,14 +5,19 @@
 import ShareIcon from "/public/img/share.svg";
 ---
 
-<button class="button share-button">
+<button class="button share-button" style="display: none;">
   <ShareIcon /><span>Share</span>
 </button>
 
 <script>
-  document.querySelectorAll("button.share-button").forEach((button) => {
-    button.addEventListener("click", async () => {
-      if (navigator.share) {
+  if (navigator.share) {
+    document.querySelectorAll("button.share-button").forEach((button) => {
+      // Reveal the button if the feature is supported
+      if (button instanceof HTMLElement) {
+        button.style.display = "";
+      }
+
+      button.addEventListener("click", async () => {
         try {
           await navigator.share({
             title: document.title,
@@ -21,7 +26,7 @@ import ShareIcon from "/public/img/share.svg";
         } catch (error) {
           console.error("Error sharing:", error);
         }
-      }
+      });
     });
-  });
+  }
 </script>

@@ -9,3 +9,8 @@
 
 **Learning:** Found a common accessibility pattern in PostCardView.astro where an image and title sequentially linked to the exact same destination. This redundancy can be annoying and repetitive for screen reader users, forcing them to navigate through identical sequential destinations.
 **Action:** Used `tabindex="-1"` and `aria-hidden="true"` on the redundant image link to remove it from the keyboard tab order and the accessibility tree, leaving the title link as the single semantically meaningful, accessible anchor, without altering the visual structure or existing grid/flex layouts.
+
+## 2025-05-18 - Progressive Enhancement for Browser APIs
+
+**Learning:** Components relying on browser-specific APIs (like `navigator.share` in `ShareButton.astro`) can result in dead UI elements on unsupported browsers if rendered unconditionally, causing confusion for users when clicks do nothing.
+**Action:** Implemented a progressive enhancement pattern by hiding the element by default (`style="display: none;"`) and only revealing it via client-side JavaScript (`button.style.display = ""`) if the required API (`navigator.share`) is supported.
