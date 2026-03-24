@@ -212,8 +212,11 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       console.error("Failed to fetch comments:", error);
       const commentsEl = document.getElementById("comments-container");
       if (commentsEl) {
-        commentsEl.innerHTML =
-          '<p class="error">Failed to load comments. Please try again later.</p>';
+        commentsEl.textContent = "";
+        const p = document.createElement("p");
+        p.className = "error";
+        p.textContent = "Failed to load comments. Please try again later.";
+        commentsEl.appendChild(p);
       }
     }
   }
@@ -658,12 +661,15 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     if (!container) return;
 
     if (comments.length === 0) {
-      container.innerHTML =
-        "<p>No comments found yet. Be the first to share your thoughts!</p>";
+      container.textContent = "";
+      const p = document.createElement("p");
+      p.textContent =
+        "No comments found yet. Be the first to share your thoughts!";
+      container.appendChild(p);
       return;
     }
 
-    container.innerHTML = "";
+    container.textContent = "";
     comments.forEach((comment) => {
       container.appendChild(createCommentElement(comment));
     });
