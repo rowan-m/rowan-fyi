@@ -7,3 +7,8 @@
 
 **Learning:** When building nested UI trees from a flat array (like threaded social media posts), filtering the entire array recursively to find children results in an O(N²) performance bottleneck. This scales poorly with large threads.
 **Action:** Optimize this pattern by pre-processing the flat array once into a `Map` keyed by the parent ID (an O(N) operation). Then, during recursion, perform an O(1) hash map lookup to find children, dropping the overall time complexity to O(N).
+
+## 2026-03-24 - [Defer Below-The-Fold Widgets with Intersection Observer]
+
+**Learning:** Third-party widgets and API requests (like Last.fm, Bluesky feeds, or complex social comment threads) block page load if they trigger immediately on DOMContentLoaded.
+**Action:** Use `IntersectionObserver` to wrap the fetch and render logic. Disconnect the observer as soon as the element intersects to lazily evaluate these network operations only when the user scrolls them into view, preserving initial page load performance.

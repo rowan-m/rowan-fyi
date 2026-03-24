@@ -173,49 +173,64 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const container = document.querySelector(".social-comments") as HTMLElement;
     if (!container) return;
 
-    const canonicalUrl = container.dataset.canonical!;
-    const locationUrl = container.dataset.location;
-    const bskyUrl = container.dataset.bsky;
-    const mastodonUrl = container.dataset.mastodon;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(async (entry) => {
+          if (entry.isIntersecting) {
+            observer.disconnect();
 
-    // Use a safe key for localStorage
-    const cacheKey =
-      CACHE_KEY_PREFIX +
-      canonicalUrl.replace(/[^a-zA-Z0-9]/g, "-") +
-      (locationUrl ? "-" + locationUrl.replace(/[^a-zA-Z0-9]/g, "-") : "");
-    const cachedData = localStorage.getItem(cacheKey);
+            const canonicalUrl = container.dataset.canonical!;
+            const locationUrl = container.dataset.location;
+            const bskyUrl = container.dataset.bsky;
+            const mastodonUrl = container.dataset.mastodon;
 
-    if (cachedData) {
-      const { timestamp, comments } = JSON.parse(cachedData);
-      if (Date.now() - timestamp < CACHE_TTL) {
-        renderComments(comments);
-        return;
-      }
-    }
+            // Use a safe key for localStorage
+            const cacheKey =
+              CACHE_KEY_PREFIX +
+              canonicalUrl.replace(/[^a-zA-Z0-9]/g, "-") +
+              (locationUrl
+                ? "-" + locationUrl.replace(/[^a-zA-Z0-9]/g, "-")
+                : "");
+            const cachedData = localStorage.getItem(cacheKey);
 
-    try {
-      const comments = await fetchAllComments(
-        canonicalUrl,
-        locationUrl,
-        bskyUrl,
-        mastodonUrl,
-      );
-      localStorage.setItem(
-        cacheKey,
-        JSON.stringify({
-          timestamp: Date.now(),
-          comments,
-        }),
-      );
-      renderComments(comments);
-    } catch (error) {
-      console.error("Failed to fetch comments:", error);
-      const commentsEl = document.getElementById("comments-container");
-      if (commentsEl) {
-        commentsEl.innerHTML =
-          '<p class="error">Failed to load comments. Please try again later.</p>';
-      }
-    }
+            if (cachedData) {
+              const { timestamp, comments } = JSON.parse(cachedData);
+              if (Date.now() - timestamp < CACHE_TTL) {
+                renderComments(comments);
+                return;
+              }
+            }
+
+            try {
+              const comments = await fetchAllComments(
+                canonicalUrl,
+                locationUrl,
+                bskyUrl,
+                mastodonUrl,
+              );
+              localStorage.setItem(
+                cacheKey,
+                JSON.stringify({
+                  timestamp: Date.now(),
+                  comments,
+                }),
+              );
+              renderComments(comments);
+            } catch (error) {
+              console.error("Failed to fetch comments:", error);
+              const commentsEl = document.getElementById("comments-container");
+              if (commentsEl) {
+                commentsEl.innerHTML =
+                  '<p class="error">Failed to load comments. Please try again later.</p>';
+              }
+            }
+          }
+        });
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(container);
   }
 
   function unwrapUserComments(comments: Comment[]): Comment[] {
