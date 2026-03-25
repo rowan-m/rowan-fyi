@@ -326,14 +326,22 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const searchUrls = [canonicalUrl];
     if (locationUrl) searchUrls.push(locationUrl);
 
-    for (const urlToSearch of searchUrls) {
-      await searchBlueskyUrl(urlToSearch, comments);
-    }
+    const searchResults = await Promise.all(
+      searchUrls.map((urlToSearch) => searchBlueskyUrl(urlToSearch, comments)),
+    );
 
-    return comments;
+    const allComments = [...comments, ...searchResults.flat()];
+    const uniqueComments = Array.from(
+      new Map(allComments.map((c) => [c.id, c])).values(),
+    );
+    return uniqueComments;
   }
 
-  async function searchBlueskyUrl(urlToSearch: string, comments: Comment[]) {
+  async function searchBlueskyUrl(
+    urlToSearch: string,
+    comments: Comment[],
+  ): Promise<Comment[]> {
+    const newComments: Comment[] = [];
     try {
       const searchUrl = `https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(urlToSearch)}&limit=20`;
       const searchRes = await fetch(searchUrl);
@@ -361,12 +369,13 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
         // Synchronously push valid results to avoid race conditions
         for (const p of resolvedPosts) {
-          if (p) comments.push(p);
+          if (p) newComments.push(p);
         }
       }
     } catch (e) {
       console.warn("BSky search failed for " + urlToSearch, e);
     }
+    return newComments;
   }
 
   async function fetchBlueskyThread(url: string): Promise<Comment | null> {
@@ -519,18 +528,21 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const searchUrls = [canonicalUrl];
     if (locationUrl) searchUrls.push(locationUrl);
 
-    for (const urlToSearch of searchUrls) {
-      await searchMastodonUrl(urlToSearch, comments);
-    }
+    const searchResults = await Promise.all(
+      searchUrls.map((urlToSearch) => searchMastodonUrl(urlToSearch)),
+    );
+
+    const allComments = [...comments, ...searchResults.flat()];
 
     // Deduplicate
     const uniqueComments = Array.from(
-      new Map(comments.map((c) => [c.id, c])).values(),
+      new Map(allComments.map((c) => [c.id, c])).values(),
     );
     return uniqueComments;
   }
 
-  async function searchMastodonUrl(urlToSearch: string, comments: Comment[]) {
+  async function searchMastodonUrl(urlToSearch: string): Promise<Comment[]> {
+    const newComments: Comment[] = [];
     try {
       const searchUrl = `https://mastodon.social/api/v2/search?q=${encodeURIComponent(urlToSearch)}&type=statuses&limit=20`;
       const searchRes = await fetch(searchUrl);
@@ -556,13 +568,14 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
         // Synchronously push valid results to avoid race conditions
         for (const p of resolvedStatuses) {
-          if (p) comments.push(p);
+          if (p) newComments.push(p);
         }
       }
     } catch (e) {
       // Best-effort search failed
       console.warn("Mastodon best-effort search failed", e);
     }
+    return newComments;
   }
 
   function parseMastodonUrl(url: string) {
