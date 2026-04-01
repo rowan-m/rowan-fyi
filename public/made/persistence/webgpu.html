@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Persistence of Memory</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#e0ebeb" />
+
+    <link rel="stylesheet" href="/made/persistence/core.css" />
+    <link
+      rel="stylesheet"
+      href="/made/persistence/day.css"
+      media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+    />
+    <link
+      rel="stylesheet"
+      href="/made/persistence/night.css"
+      media="(prefers-color-scheme: dark)"
+    />
+    <style>
+      .casing {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>La persistencia de la memoria (WebGPU)</h1>
+    </header>
+    <main class="watch">
+      <button class="start" type="button"> Apply gravity</button>
+      <div class="crown"></div>
+      <div class="casing">
+        <div class="face">
+          <div class="hour-numbers">
+            <span class="hour-num num-1"><span>1</span></span>
+            <span class="hour-num num-2"><span>2</span></span>
+            <span class="hour-num num-3"><span>3</span></span>
+            <span class="hour-num num-4"><span>4</span></span>
+            <span class="hour-num num-5"><span>5</span></span>
+            <span class="hour-num num-6"><span>6</span></span>
+            <span class="hour-num num-7"><span>7</span></span>
+            <span class="hour-num num-8"><span>8</span></span>
+            <span class="hour-num num-9"><span>9</span></span>
+            <span class="hour-num num-10"><span>10</span></span>
+            <span class="hour-num num-11"><span>11</span></span>
+            <span class="hour-num num-12"><span>12</span></span>
+          </div>
+          <canvas
+            class="watch-hands"
+            width="1000"
+            height="1000"
+            style="position: absolute; top: 0; left: 0"
+          ></canvas>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <nav>
+        <dark-mode-toggle
+          id="dmt"
+          appearance="switch"
+          dark="Night"
+          light="Day"
+          remember="Permanent"
+        ></dark-mode-toggle>
+        <a href="https://en.wikipedia.org/wiki/The_Persistence_of_Memory"
+          >🖼️ Salvador Dalí</a
+        >
+        <a href="https://glitch.com/edit/#!/persistence">💻 Code</a>
+        <a href=" https://twitter.com/rowan_m">🖤 @rowan_m</a><br />
+        <a href="/made/persistence/">🎨 Canvas version</a>
+        <a href="/made/persistence/svg.html">🖋️ SVG version</a>
+      </nav>
+    </footer>
+
+    <script src="/made/persistence/page.js"></script>
+    <script src="/made/persistence/shared.js"></script>
+    <script
+      type="module"
+      src="https://googlechromelabs.github.io/dark-mode-toggle/src/dark-mode-toggle.mjs"
+    ></script>
+    <script src="/made/persistence/webgpu-watch.js"></script>
+  </body>
+</html>
