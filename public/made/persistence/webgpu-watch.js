@@ -26,8 +26,8 @@ async function initWebGPU() {
 
   // Load shaders
   const [computeWGSL, renderWGSL] = await Promise.all([
-    fetch("compute.wgsl").then((r) => r.text()),
-    fetch("render.wgsl").then((r) => r.text()),
+    fetch("/made/persistence/compute.wgsl").then((r) => r.text()),
+    fetch("/made/persistence/render.wgsl").then((r) => r.text()),
   ]);
 
   const computeModule = device.createShaderModule({ code: computeWGSL });
