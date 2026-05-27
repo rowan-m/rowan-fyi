@@ -79,13 +79,19 @@ fn vs_main(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) in
     out.uv = uv;
     
     // Colors
-    var col = vec3f(0.2);
+    var col = vec3f(0.0);
     if (uniforms.theme == 1u) { // night
-        if (hand_type == 2u) { col = vec3f(0.18, 0.74, 0.55); } // hsl(156,90%,55%) roughly
-        else { col = vec3f(0.18, 0.74, 0.55); } 
+        if (hand_type == 2u) {
+            col = vec3f(0.15, 0.95, 0.47); // hsl(156, 90%, 55%)
+        } else {
+            col = vec3f(0.53, 0.98, 0.71); // hsl(156, 90%, 75%)
+        }
     } else { // day
-        if (hand_type == 2u) { col = vec3f(0.93, 0.4, 0.4); } // #e66
-        else { col = vec3f(0.4, 0.4, 0.4); } // #666
+        if (hand_type == 2u) {
+            col = vec3f(0.93, 0.6, 0.6); // #e99
+        } else {
+            col = vec3f(0.6, 0.6, 0.6); // #999
+        }
     }
     out.color = col;
     

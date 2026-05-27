@@ -75,7 +75,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
                 
                 if (total_inv_m > 0.0) {
                     let correction = (dir * err) / total_inv_m;
-                    // multiply by 0.5 for jelly-like springiness instead of rigid rope
+                    // Use a stiffness factor for jelly-like springiness
                     let stiffness = 0.8; 
                     p1.pos -= correction * inv_m1 * stiffness;
                     p2.pos += correction * inv_m2 * stiffness;

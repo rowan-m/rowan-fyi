@@ -33,35 +33,19 @@ async function initWebGPU() {
   const computeModule = device.createShaderModule({ code: computeWGSL });
   const renderModule = device.createShaderModule({ code: renderWGSL });
 
-  // Uniform buffer: gravity (vec2f), padding(vec2f), angles (vec4f), dt (f32), theme (u32), canvasSize(vec2f)
-  // Sizes: gravity=8, pad=8, angles=16, dt=4, theme=4, canvasSize=8 -> 48 bytes. Let's make it 64 to be safe.
+  // Uniform buffer layout:
+  // gravity: vec2f, angles: vec4f (hour, minute, second, padding),
+  // dt: f32, theme: u32, canvasSize: vec2f
   const uniformBufferSize = 64;
   const uniformBuffer = device.createBuffer({
     size: uniformBufferSize,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
-  // Particle buffer setup. 3 hands * 20 particles = 60 particles.
-  // Struct: pos(vec2), prev_pos(vec2), dist(f32), radius(f32), pinned(f32), pad(vec3) -> 8+8+4+4+4+12 = 40 bytes per particle
-  // Wait, vec2 is 8 bytes. vec3 is 12 bytes.
-  // Let's explicitly define offsets.
-  // pos (2xf32 = 8 bytes)
-  // prev_pos (2xf32 = 8 bytes)
-  // dist_from_center (1xf32 = 4 bytes)
-  // radius (1xf32 = 4 bytes)
-  // is_pinned (1xf32 = 4 bytes)
-  // padding (3xf32 = 12 bytes)
-  // Total = 40 bytes? Wait, align(16) for array elements. 40 is not a multiple of 16.
-  // Let's use 4xf32 for padding to make it 16 bytes. Total = 8+8+4+4+4+16 = 44 bytes...
-  // In WGSL:
-  // pos: vec2f (align 8, size 8) -> offset 0
-  // prev_pos: vec2f (align 8, size 8) -> offset 8
-  // dist_from_center: f32 (align 4, size 4) -> offset 16
-  // radius: f32 (align 4, size 4) -> offset 20
-  // is_pinned: f32 (align 4, size 4) -> offset 24
-  // padding: vec3f (align 16, size 12) -> offset 32.
-  // Total size = 32 + 16 (because vec3 align is 16) = 48 bytes.
-  // Yes, 48 bytes per particle.
+  // Particle buffer setup: 3 hands * 20 particles = 60 particles.
+  // Each particle (48 bytes):
+  // pos: vec2f (0), prev_pos: vec2f (8), dist: f32 (16),
+  // radius: f32 (20), is_pinned: f32 (24), padding: vec3f (32)
   const particleSize = 48;
   const numParticles = 60;
   const initialParticleData = new ArrayBuffer(numParticles * particleSize);
@@ -239,9 +223,9 @@ async function initWebGPU() {
       (_2PI / 12 / 60 / 60) * second +
       (_2PI / 12 / 60 / 60 / 1000) * millis;
 
-    // Update Uniforms: gravity: vec2f, padding: vec2f, angles: vec4f, dt: f32, theme: u32, canvasSize: vec2f
+    // Update Uniforms: gravity, angles (hour, minute, second), dt, theme, canvasSize
     uniformView.setFloat32(0, currentAccel.x, true);
-    uniformView.setFloat32(4, currentAccel.y, true); // Actually wait, device orientation y is inverted compared to canvas? Canvas y is down.
+    uniformView.setFloat32(4, currentAccel.y, true);
 
     uniformView.setFloat32(16, hourAngle, true);
     uniformView.setFloat32(20, minuteAngle, true);
