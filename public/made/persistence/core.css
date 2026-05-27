@@ -76,6 +76,7 @@ nav > a {
 }
 
 .face {
+  position: relative;
   border-radius: 50%;
   width: 100%;
   height: 100%;
@@ -154,7 +155,11 @@ nav > a {
   will-change: transform;
 }
 
-svg.watch-hands {
+svg.watch-hands,
+canvas.watch-hands {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border-radius: 50%;
