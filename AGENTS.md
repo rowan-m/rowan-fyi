@@ -28,13 +28,16 @@ Welcome, Agent. You are contributing to a personal portfolio and blog built with
 ## 🛠 Development Workflow
 
 ### Standard Commands
+
 - `npm run dev`: Start local development server.
 - `npm run build`: Build for production.
 - `npm run format`: Format code with Prettier.
 - `npm run check`: Run all quality checks (Lints, Tests, DepCruise). **Always run this before finishing a task.**
 
 ### Linting Details
+
 We take code quality seriously. There are specialized linting configurations:
+
 - `npm run lint:sonar`: Checks for code smells and maintainability.
 - `npm run lint:security`: Checks for common security vulnerabilities.
 
@@ -48,7 +51,9 @@ We take code quality seriously. There are specialized linting configurations:
 6. **Tests:** All new logic should include corresponding tests in Vitest.
 
 ## 🚦 Quality Gate
+
 Your changes are considered complete only when `npm run check` passes entirely. This includes:
+
 - Prettier formatting.
 - Standard ESLint.
 - SonarJS & Security Lints.
@@ -56,5 +61,6 @@ Your changes are considered complete only when `npm run check` passes entirely. 
 - Vitest execution.
 
 ## 💡 Proactive Advice
+
 - If you notice "nasty" code (as mentioned in README.md), prioritize refactoring it into cleaner, more maintainable patterns while staying within the scope of your task.
 - Check `src/content.config.ts` for schema definitions before adding or modifying blog posts.
