@@ -8,19 +8,19 @@ Make sure you have `npm` installed.
 
 On first run, install dependencies as per the lock file:
 
-```
+```bash
 npm ci
 ```
 
 The `build` command will build the Astro site for deploy.
 
-```
+```bash
 npm run build
 ```
 
 The `dev` command will start the local Vite dev server with hot reloading.
 
-```
+```bash
 npm run dev
 ```
 
@@ -30,25 +30,25 @@ Before committing or submitting code, make sure you run the following commands t
 
 Format the HTML, CSS, and JavaScript `format` command.
 
-```
+```bash
 npm run format
 ```
 
 You can validate code is formatted correctly with the `format:check` command.
 
-```
+```bash
 npm run format:check
 ```
 
 Various linting and quality checking tools can be invoked via the `check` command.
 
-```
+```bash
 npm run check
 ```
 
 If you add new dependencies, make sure you run a full install and commit the lock file.
 
-```
+```bash
 npm run i
-git add package.json package-lock.json`
+git add package.json package-lock.json
 ```
