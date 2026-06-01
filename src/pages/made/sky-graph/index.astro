@@ -212,7 +212,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         let cursor = null;
 
         try {
-          // Fetch likes with pagination
           while (allLikes.length < maxLikes) {
             const url = new URL(`${API_BASE}/app.bsky.feed.getLikes`);
             url.searchParams.set("uri", uri);
@@ -357,7 +356,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         );
         this.controls.enableDamping = true;
 
-        this.camera.position.z = 20;
+        this.camera.position.z = 30;
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambientLight);
@@ -367,6 +366,9 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 
         this.nodeMeshes = new Map(); // id -> Mesh
         this.edgeLines = new Map(); // id -> Line
+        this.targetScales = new Map(); // id -> number
+        this.targetPositions = new Map(); // id -> Vector3
+        this.visibleNodes = new Set();
 
         window.addEventListener("resize", () => this.onWindowResize());
       }
@@ -384,9 +386,12 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           color,
           emissive: color,
           emissiveIntensity: node.type === "root" ? 0.5 : 0.2,
+          transparent: true,
+          opacity: 0,
         });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(0, 0, 0); // Start at center
+        mesh.position.set(0, 0, 0);
+        mesh.scale.setScalar(0.001);
 
         this.scene.add(mesh);
         this.nodeMeshes.set(node.id, mesh);
@@ -397,7 +402,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         const material = new THREE.LineBasicMaterial({
           color: COLORS[type.toUpperCase()] || 0x444444,
           transparent: true,
-          opacity: 0.4,
+          opacity: 0,
         });
         const geometry = new THREE.BufferGeometry().setFromPoints([
           sourcePos,
@@ -410,16 +415,17 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 
       update(network, visibleNodeIds) {
         const spread = 5;
-        const processed = new Set();
-        const nodeScales = new Map();
+        this.visibleNodes = visibleNodeIds;
 
-        // Pre-calculate scales for all visible nodes
+        const nodeScales = new Map();
         for (const nodeId of visibleNodeIds) {
           const node = network.nodes.get(nodeId);
           if (!node) continue;
-          const s =
-            (node.type === "root" ? 1.5 : 0.8) + node.metrics.likes * 0.05;
-          nodeScales.set(nodeId, s);
+          const baseRadius = node.type === "root" ? 1.5 : 0.8;
+          const baseVolume = Math.pow(baseRadius, 3);
+          const likeWeight = 0.5;
+          const totalVolume = baseVolume + node.metrics.likes * likeWeight;
+          nodeScales.set(nodeId, Math.pow(totalVolume, 1 / 3));
         }
 
         const positionNode = (
@@ -434,15 +440,10 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           let mesh = this.nodeMeshes.get(nodeId);
           if (!mesh) mesh = this.createNodeMesh(node);
 
-          if (node.type === "root") {
-            mesh.position.set(0, 0, 0);
-          }
-
-          const s = nodeScales.get(nodeId);
-          mesh.scale.setScalar(s);
-          mesh.visible = true;
-
-          processed.add(nodeId);
+          const targetPos =
+            node.type === "root" ? new THREE.Vector3(0, 0, 0) : parentPos;
+          this.targetPositions.set(nodeId, targetPos.clone());
+          this.targetScales.set(nodeId, nodeScales.get(nodeId));
 
           const children = node.connections.filter((id) =>
             visibleNodeIds.has(id),
@@ -454,48 +455,36 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           const step = arc / count;
 
           children.forEach((childId, i) => {
-            const childNode = network.nodes.get(childId);
-            const childScale = nodeScales.get(childId) || 0.8;
             const angle = angleRange[0] + i * step + step / 2;
-
-            // Distance accounts for both parent and child radius plus a base spread
-            const minDistance = (s + childScale) * 0.5 + 1.0;
+            const childScale = nodeScales.get(childId) || 0.8;
+            const parentScale = nodeScales.get(nodeId);
+            const minDistance = (parentScale + childScale) * 0.5 + 1.0;
             const distance = minDistance + spread / (depth + 1);
 
-            const x = mesh.position.x + Math.cos(angle) * distance;
-            const y = mesh.position.y + Math.sin(angle) * distance;
+            const x = targetPos.x + Math.cos(angle) * distance;
+            const y = targetPos.y + Math.sin(angle) * distance;
 
-            // Use a deterministic offset based on the node ID string to avoid jitter
             let hash = 0;
             for (let j = 0; j < childId.length; j++) {
               hash = (hash << 5) - hash + childId.charCodeAt(j);
               hash |= 0;
             }
-            const z = mesh.position.z + ((hash % 100) / 100 - 0.5) * distance;
+            const z = targetPos.z + ((hash % 100) / 100 - 0.5) * distance;
 
-            let childMesh = this.nodeMeshes.get(childId);
-            if (!childMesh) childMesh = this.createNodeMesh(childNode);
-            childMesh.position.set(x, y, z);
-
-            // Update or create line
-            const edgeId = `${nodeId}-${childId}`;
-            const line = this.edgeLines.get(edgeId);
-            if (!line) {
-              this.createEdgeLine(
-                edgeId,
-                mesh.position,
-                childMesh.position,
-                childNode.type,
-              );
-            } else {
-              line.geometry.setFromPoints([mesh.position, childMesh.position]);
-              line.visible = true;
-            }
-
-            positionNode(childId, childMesh.position, depth + 1, [
+            positionNode(childId, new THREE.Vector3(x, y, z), depth + 1, [
               angle - step / 2,
               angle + step / 2,
             ]);
+
+            const edgeId = `${nodeId}-${childId}`;
+            if (!this.edgeLines.has(edgeId)) {
+              this.createEdgeLine(
+                edgeId,
+                mesh.position,
+                this.nodeMeshes.get(childId)?.position || targetPos,
+                network.nodes.get(childId).type,
+              );
+            }
           });
         };
 
@@ -505,23 +494,49 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         if (rootId) {
           positionNode(rootId, new THREE.Vector3(), 0);
         }
-
-        // Hide nodes/lines that shouldn't be visible
-        for (const [id, mesh] of this.nodeMeshes) {
-          if (!processed.has(id)) {
-            mesh.visible = false;
-          }
-        }
-        for (const [id, line] of this.edgeLines) {
-          const [sourceId, targetId] = id.split("-");
-          if (!processed.has(sourceId) || !processed.has(targetId)) {
-            line.visible = false;
-          }
-        }
       }
 
       animate() {
         requestAnimationFrame(() => this.animate());
+
+        for (const [id, mesh] of this.nodeMeshes) {
+          const isVisible = this.visibleNodes.has(id);
+          const targetS = isVisible ? this.targetScales.get(id) || 0.8 : 0.001;
+          const targetP = this.targetPositions.get(id) || new THREE.Vector3();
+          const targetO = isVisible ? 1.0 : 0.0;
+
+          mesh.position.lerp(targetP, 0.1);
+          mesh.scale.lerp(new THREE.Vector3(targetS, targetS, targetS), 0.1);
+          mesh.material.opacity = THREE.MathUtils.lerp(
+            mesh.material.opacity,
+            targetO,
+            0.1,
+          );
+          mesh.visible = mesh.material.opacity > 0.01;
+        }
+
+        for (const [id, line] of this.edgeLines) {
+          const [sourceId, targetId] = id.split("-");
+          const isVisible =
+            this.visibleNodes.has(sourceId) && this.visibleNodes.has(targetId);
+          const targetO = isVisible ? 0.4 : 0.0;
+
+          line.material.opacity = THREE.MathUtils.lerp(
+            line.material.opacity,
+            targetO,
+            0.1,
+          );
+          line.visible = line.material.opacity > 0.01;
+
+          if (line.visible) {
+            const sMesh = this.nodeMeshes.get(sourceId);
+            const tMesh = this.nodeMeshes.get(targetId);
+            if (sMesh && tMesh) {
+              line.geometry.setFromPoints([sMesh.position, tMesh.position]);
+            }
+          }
+        }
+
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
       }
@@ -598,7 +613,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           this.setStatus("Fetching thread...");
           const threadData = await this.client.getThread(uri);
 
-          // Collect all posts in the thread to fetch their interactions
           const allPosts = [];
           const collect = (t) => {
             if (t.post) allPosts.push(t.post);
@@ -610,13 +624,11 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
             `Fetching interactions for ${allPosts.length} posts...`,
           );
           const interactionMap = new Map();
-          // Limit total parallel post fetches, but get more likes for the ones we do fetch
           const postsToFetch = allPosts.slice(0, 40);
           await Promise.all(
             postsToFetch.map(async (p, i) => {
               try {
-                // Fetch more likes for the root post (i=0) to show historical growth
-                const max = i === 0 ? 500 : 100;
+                const max = i === 0 ? 1000 : 100;
                 const inter = await this.client.getInteractions(p.uri, max);
                 interactionMap.set(p.uri, inter);
               } catch (e) {
@@ -640,10 +652,10 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         this.network = new InteractionNetwork();
 
         const root = rootThread.post;
-        this.timeline.setStart(root.record?.createdAt || root.indexedAt);
+        const rootCreated = root.record?.createdAt || root.indexedAt;
+        this.timeline.setStart(rootCreated);
 
         const processPost = (post, parentUri = null) => {
-          // Use record.createdAt for user intent time, fallback to indexedAt
           const postTimestamp = post.record?.createdAt || post.indexedAt;
           const postTime = new Date(postTimestamp).getTime();
 
@@ -660,10 +672,8 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
             this.timeline.addEvent("root", post, postTimestamp);
           }
 
-          // Process this post's specific interactions (likes, quotes)
           const interactions = interactionMap.get(post.uri);
           if (interactions) {
-            // Quotes of this post
             for (const quote of interactions.quotes.posts || []) {
               const qTimestamp = quote.record?.createdAt || quote.indexedAt;
               const qTime = new Date(qTimestamp).getTime();
@@ -671,9 +681,32 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
               this.network.addEdge(post.uri, quote.uri);
               this.timeline.addEvent("quote", quote, qTimestamp, post.uri);
             }
-            // Likes of this post
-            for (const like of interactions.likes.likes || []) {
+            const fetchedLikes = interactions.likes.likes || [];
+            for (const like of fetchedLikes) {
               this.timeline.addEvent("like", like, like.createdAt, post.uri);
+            }
+
+            if (post.likeCount > fetchedLikes.length) {
+              const missingCount = post.likeCount - fetchedLikes.length;
+              const earliestFetchedTime = fetchedLikes.length
+                ? new Date(
+                    fetchedLikes[fetchedLikes.length - 1].createdAt,
+                  ).getTime()
+                : Date.now();
+
+              const postStartTime = new Date(postTimestamp).getTime();
+              const gapDuration = earliestFetchedTime - postStartTime;
+
+              for (let i = 0; i < missingCount; i++) {
+                const syntheticTime =
+                  postStartTime + gapDuration * (i / missingCount);
+                this.timeline.addEvent(
+                  "like",
+                  { user: { did: "synthetic" } },
+                  new Date(syntheticTime).toISOString(),
+                  post.uri,
+                );
+              }
             }
           }
         };
@@ -714,18 +747,12 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       play() {
         if (!this.isPlaying) return;
 
-        const events = this.timeline.events;
-        const currentEvent = events[this.currentStep];
-
-        // Structural events (new nodes) take longer to admire (400ms)
-        // Metric events (growth) are faster (50ms)
-        const isStructural =
-          currentEvent &&
-          ["root", "reply", "quote"].includes(currentEvent.type);
-        const stepDelay = isStructural ? 400 : 50;
+        // Constant fluid rate: 1 event every 100ms
+        const stepDelay = 100;
 
         const now = Date.now();
         if (!this.lastStepTime || now - this.lastStepTime > stepDelay) {
+          const events = this.timeline.events;
           if (this.currentStep < events.length - 1) {
             this.currentStep++;
             this.lastStepTime = now;
