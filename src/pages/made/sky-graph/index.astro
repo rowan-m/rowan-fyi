@@ -13,7 +13,9 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js",
+        "ngraph.graph": "https://cdn.jsdelivr.net/npm/ngraph.graph@20.0.1/+esm",
+        "ngraph.forcelayout": "https://cdn.jsdelivr.net/npm/ngraph.forcelayout@3.3.1/+esm"
       }
     }
   </script>
@@ -180,6 +182,8 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   <script type="module">
     import * as THREE from "three";
     import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.174.0/examples/jsm/controls/OrbitControls.js";
+    import createGraph from "ngraph.graph";
+    import createLayout from "ngraph.forcelayout";
 
     // --- Configuration & Constants ---
     const API_BASE = "https://api.bsky.app/xrpc";
@@ -241,7 +245,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         try {
           const url = new URL(urlStr);
           const parts = url.pathname.split("/");
-          // Expected: /profile/[handle]/post/[postId]
           const handle = parts[2];
           const postId = parts[4];
           return { handle, postId };
@@ -327,11 +330,13 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 
       addEdge(sourceId, targetId) {
         this.edges.push({ source: sourceId, target: targetId });
-        this.nodes.get(sourceId).connections.push(targetId);
+        if (this.nodes.has(sourceId)) {
+          this.nodes.get(sourceId).connections.push(targetId);
+        }
       }
     }
 
-    // --- Visualizer (Three.js) ---
+    // --- Visualizer (Three.js + ngraph) ---
     class Visualizer {
       constructor(container) {
         this.container = container;
@@ -340,7 +345,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           75,
           window.innerWidth / window.innerHeight,
           0.1,
-          1000,
+          2000,
         );
         this.renderer = new THREE.WebGLRenderer({
           antialias: true,
@@ -356,19 +361,29 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         );
         this.controls.enableDamping = true;
 
-        this.camera.position.z = 30;
+        this.camera.position.z = 100;
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         this.scene.add(ambientLight);
         const pointLight = new THREE.PointLight(0xffffff, 1);
-        pointLight.position.set(10, 10, 10);
+        pointLight.position.set(50, 50, 50);
         this.scene.add(pointLight);
 
         this.nodeMeshes = new Map(); // id -> Mesh
         this.edgeLines = new Map(); // id -> Line
         this.targetScales = new Map(); // id -> number
-        this.targetPositions = new Map(); // id -> Vector3
         this.visibleNodes = new Set();
+
+        // ngraph Physics
+        this.physicsGraph = createGraph();
+        this.physicsLayout = createLayout(this.physicsGraph, {
+          dimensions: 3,
+          springLength: 20,
+          springCoefficient: 0.001,
+          dragCoefficient: 0.02,
+          gravity: -0.8,
+          theta: 0.8,
+        });
 
         window.addEventListener("resize", () => this.onWindowResize());
       }
@@ -390,7 +405,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           opacity: 0,
         });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(0, 0, 0);
         mesh.scale.setScalar(0.001);
 
         this.scene.add(mesh);
@@ -398,113 +412,80 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         return mesh;
       }
 
-      createEdgeLine(id, sourcePos, targetPos, type) {
+      createEdgeLine(id, type) {
         const material = new THREE.LineBasicMaterial({
           color: COLORS[type.toUpperCase()] || 0x444444,
           transparent: true,
           opacity: 0,
         });
-        const geometry = new THREE.BufferGeometry().setFromPoints([
-          sourcePos,
-          targetPos,
-        ]);
+        const geometry = new THREE.BufferGeometry();
         const line = new THREE.Line(geometry, material);
         this.scene.add(line);
         this.edgeLines.set(id, line);
+        return line;
       }
 
       update(network, visibleNodeIds) {
-        const spread = 5;
         this.visibleNodes = visibleNodeIds;
 
-        const nodeScales = new Map();
         for (const nodeId of visibleNodeIds) {
           const node = network.nodes.get(nodeId);
           if (!node) continue;
+
+          // Volume-based growth
           const baseRadius = node.type === "root" ? 1.5 : 0.8;
           const baseVolume = Math.pow(baseRadius, 3);
-          const likeWeight = 0.5;
-          const totalVolume = baseVolume + node.metrics.likes * likeWeight;
-          nodeScales.set(nodeId, Math.pow(totalVolume, 1 / 3));
-        }
+          const totalVolume = baseVolume + node.metrics.likes * 0.5;
+          this.targetScales.set(nodeId, Math.pow(totalVolume, 1 / 3));
 
-        const positionNode = (
-          nodeId,
-          parentPos,
-          depth,
-          angleRange = [0, Math.PI * 2],
-        ) => {
-          const node = network.nodes.get(nodeId);
-          if (!node || !visibleNodeIds.has(nodeId)) return;
+          if (!this.nodeMeshes.has(nodeId)) {
+            this.createNodeMesh(node);
+            this.physicsGraph.addNode(nodeId);
 
-          let mesh = this.nodeMeshes.get(nodeId);
-          if (!mesh) mesh = this.createNodeMesh(node);
+            // Set initial position near parent with deterministic offset
+            const edge = network.edges.find((e) => e.target === nodeId);
+            if (edge) {
+              const pPos = this.physicsLayout.getNodePosition(edge.source);
 
-          const targetPos =
-            node.type === "root" ? new THREE.Vector3(0, 0, 0) : parentPos;
-          this.targetPositions.set(nodeId, targetPos.clone());
-          this.targetScales.set(nodeId, nodeScales.get(nodeId));
+              let hash = 0;
+              for (let j = 0; j < nodeId.length; j++) {
+                hash = (hash << 5) - hash + nodeId.charCodeAt(j);
+                hash |= 0;
+              }
 
-          const children = node.connections.filter((id) =>
-            visibleNodeIds.has(id),
-          );
-          const count = children.length;
-          if (count === 0) return;
-
-          const arc = angleRange[1] - angleRange[0];
-          const step = arc / count;
-
-          children.forEach((childId, i) => {
-            const angle = angleRange[0] + i * step + step / 2;
-            const childScale = nodeScales.get(childId) || 0.8;
-            const parentScale = nodeScales.get(nodeId);
-            const minDistance = (parentScale + childScale) * 0.5 + 1.0;
-            const distance = minDistance + spread / (depth + 1);
-
-            const x = targetPos.x + Math.cos(angle) * distance;
-            const y = targetPos.y + Math.sin(angle) * distance;
-
-            let hash = 0;
-            for (let j = 0; j < childId.length; j++) {
-              hash = (hash << 5) - hash + childId.charCodeAt(j);
-              hash |= 0;
-            }
-            const z = targetPos.z + ((hash % 100) / 100 - 0.5) * distance;
-
-            positionNode(childId, new THREE.Vector3(x, y, z), depth + 1, [
-              angle - step / 2,
-              angle + step / 2,
-            ]);
-
-            const edgeId = `${nodeId}-${childId}`;
-            if (!this.edgeLines.has(edgeId)) {
-              this.createEdgeLine(
-                edgeId,
-                mesh.position,
-                this.nodeMeshes.get(childId)?.position || targetPos,
-                network.nodes.get(childId).type,
+              this.physicsLayout.setNodePosition(
+                nodeId,
+                pPos.x + ((hash % 100) / 100 - 0.5) * 5,
+                pPos.y + (((hash >> 8) % 100) / 100 - 0.5) * 5,
+                pPos.z + (((hash >> 16) % 100) / 100 - 0.5) * 5,
               );
+              this.physicsGraph.addLink(edge.source, nodeId);
+              this.createEdgeLine(`${edge.source}-${nodeId}`, node.type);
+            } else if (node.type === "root") {
+              this.physicsLayout.setNodePosition(nodeId, 0, 0, 0);
+              const gNode = this.physicsGraph.getNode(nodeId);
+              if (gNode) this.physicsLayout.pinNode(gNode, true);
             }
-          });
-        };
-
-        const rootId = Array.from(network.nodes.keys()).find(
-          (id) => network.nodes.get(id).type === "root",
-        );
-        if (rootId) {
-          positionNode(rootId, new THREE.Vector3(), 0);
+          }
         }
       }
 
       animate() {
         requestAnimationFrame(() => this.animate());
 
+        // Step physics multiple times for stability
+        for (let i = 0; i < 3; i++) {
+          this.physicsLayout.step();
+        }
+
+        // Update meshes
         for (const [id, mesh] of this.nodeMeshes) {
           const isVisible = this.visibleNodes.has(id);
+          const pos = this.physicsLayout.getNodePosition(id);
           const targetS = isVisible ? this.targetScales.get(id) || 0.8 : 0.001;
-          const targetP = this.targetPositions.get(id) || new THREE.Vector3();
           const targetO = isVisible ? 1.0 : 0.0;
 
+          const targetP = new THREE.Vector3(pos.x, pos.y, pos.z || 0);
           mesh.position.lerp(targetP, 0.1);
           mesh.scale.lerp(new THREE.Vector3(targetS, targetS, targetS), 0.1);
           mesh.material.opacity = THREE.MathUtils.lerp(
@@ -515,6 +496,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           mesh.visible = mesh.material.opacity > 0.01;
         }
 
+        // Update curved edges
         for (const [id, line] of this.edgeLines) {
           const [sourceId, targetId] = id.split("-");
           const isVisible =
@@ -532,7 +514,28 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
             const sMesh = this.nodeMeshes.get(sourceId);
             const tMesh = this.nodeMeshes.get(targetId);
             if (sMesh && tMesh) {
-              line.geometry.setFromPoints([sMesh.position, tMesh.position]);
+              const start = sMesh.position;
+              const end = tMesh.position;
+
+              // Quadratic Bezier: Control point is midpoint offset by normal
+              const mid = new THREE.Vector3()
+                .addVectors(start, end)
+                .multiplyScalar(0.5);
+              const dir = new THREE.Vector3().subVectors(end, start);
+
+              // Simple deterministic normal for the curve
+              const normal = new THREE.Vector3(-dir.y, dir.x, dir.z * 0.5)
+                .normalize()
+                .multiplyScalar(dir.length() * 0.15);
+              const control = new THREE.Vector3().addVectors(mid, normal);
+
+              const curve = new THREE.QuadraticBezierCurve3(
+                start,
+                control,
+                end,
+              );
+              const points = curve.getPoints(16);
+              line.geometry.setFromPoints(points);
             }
           }
         }
@@ -747,7 +750,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       play() {
         if (!this.isPlaying) return;
 
-        // Constant fluid rate: 1 event every 100ms
+        // Fluid rate: 1 step every 100ms
         const stepDelay = 100;
 
         const now = Date.now();
