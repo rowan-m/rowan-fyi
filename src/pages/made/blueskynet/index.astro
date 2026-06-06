@@ -1197,8 +1197,7 @@ import previewImg from "./blueskynet-preview.jpg";
         this.visualizer.onTourChange = (enabled) => this.updateTourBtn(enabled);
         this.isPlaying = false;
         this.currentStep = 0;
-        this.lastStepTime = 0;
-        this.stepDelay = 50;
+        this.playbackStartTime = 0;
         this.setupEventListeners();
         this.visualizer.animate();
         this.checkUrlParams();
@@ -1446,12 +1445,6 @@ import previewImg from "./blueskynet-preview.jpg";
         threads.forEach((t) => walkThread(t));
         this.timeline.sort();
         this.currentStep = 0;
-
-        // Calculate play step delay so that the overall animation duration is constant at ~30 seconds
-        const maxAnimationTime = 30000; // 30 seconds
-        const totalSteps = this.timeline.events.length - 1;
-        this.stepDelay = totalSteps > 0 ? maxAnimationTime / totalSteps : 50;
-
         this.updateUI();
         this.visualize();
         this.visualizer.startAutoTour();
@@ -1496,39 +1489,72 @@ import previewImg from "./blueskynet-preview.jpg";
       }
       togglePlayback() {
         this.isPlaying = !this.isPlaying;
+        if (this.isPlaying) {
+          const maxAnimationTime = 30000; // 30 seconds
+          const totalSteps = this.timeline.events.length - 1;
+          const currentProgress =
+            totalSteps > 0 ? this.currentStep / totalSteps : 0;
+          this.playbackStartTime =
+            Date.now() - currentProgress * maxAnimationTime;
+          this.play();
+        }
         this.updatePlayPauseBtn();
-        if (this.isPlaying) this.play();
       }
       play() {
         if (!this.isPlaying) return;
         const now = Date.now();
-        if (!this.lastStepTime || now - this.lastStepTime > this.stepDelay) {
-          const events = this.timeline.events;
-          if (this.currentStep < events.length - 1) {
-            this.currentStep++;
-            const event = events[this.currentStep];
+        const maxAnimationTime = 30000; // 30 seconds
+        const totalSteps = this.timeline.events.length - 1;
+        if (totalSteps <= 0) {
+          this.isPlaying = false;
+          this.updatePlayPauseBtn();
+          return;
+        }
+
+        const elapsed = now - this.playbackStartTime;
+        const targetStep = Math.floor(
+          (elapsed / maxAnimationTime) * totalSteps,
+        );
+
+        if (targetStep > this.currentStep) {
+          const startStep = this.currentStep;
+          const endStep = Math.min(targetStep, totalSteps);
+
+          for (let step = startStep + 1; step <= endStep; step++) {
+            this.currentStep = step;
+            const event = this.timeline.events[step];
             if (
+              event &&
               (event.type === "like" || event.type === "repost") &&
               event.parentId
-            )
+            ) {
               this.visualizer.spawnInteractionParticle(
                 event.parentId,
                 event.type,
               );
-            this.lastStepTime = now;
-            this.visualize();
-            this.updateUI();
-          } else {
-            this.isPlaying = false;
-            this.updatePlayPauseBtn();
+            }
           }
+          this.visualize();
+          this.updateUI();
         }
+
+        if (this.currentStep >= totalSteps) {
+          this.isPlaying = false;
+          this.updatePlayPauseBtn();
+        }
+
         if (this.isPlaying) requestAnimationFrame(() => this.play());
       }
       seek(percent) {
-        this.currentStep = Math.floor(
-          (percent / 1000) * (this.timeline.events.length - 1),
-        );
+        const totalSteps = this.timeline.events.length - 1;
+        this.currentStep = Math.floor((percent / 1000) * totalSteps);
+        if (this.isPlaying) {
+          const maxAnimationTime = 30000;
+          const currentProgress =
+            totalSteps > 0 ? this.currentStep / totalSteps : 0;
+          this.playbackStartTime =
+            Date.now() - currentProgress * maxAnimationTime;
+        }
         this.visualize();
         this.updateUI();
       }
