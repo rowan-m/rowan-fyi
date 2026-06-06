@@ -1147,6 +1147,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         this.isPlaying = false;
         this.currentStep = 0;
         this.lastStepTime = 0;
+        this.stepDelay = 50;
         this.setupEventListeners();
         this.visualizer.animate();
         this.checkUrlParams();
@@ -1394,6 +1395,16 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         threads.forEach((t) => walkThread(t));
         this.timeline.sort();
         this.currentStep = 0;
+
+        // Calculate play step delay, capping total animation time to ~30 seconds for larger threads
+        const baseStepDelay = 50;
+        const maxAnimationTime = 30000; // 30 seconds
+        const totalSteps = this.timeline.events.length - 1;
+        this.stepDelay =
+          totalSteps > 0
+            ? Math.min(baseStepDelay, maxAnimationTime / totalSteps)
+            : baseStepDelay;
+
         this.updateUI();
         this.visualize();
         this.visualizer.startAutoTour();
@@ -1443,9 +1454,8 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       }
       play() {
         if (!this.isPlaying) return;
-        const stepDelay = 50;
         const now = Date.now();
-        if (!this.lastStepTime || now - this.lastStepTime > stepDelay) {
+        if (!this.lastStepTime || now - this.lastStepTime > this.stepDelay) {
           const events = this.timeline.events;
           if (this.currentStep < events.length - 1) {
             this.currentStep++;
