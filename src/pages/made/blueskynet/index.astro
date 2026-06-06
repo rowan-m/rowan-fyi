@@ -1,5 +1,6 @@
 ---
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import previewImg from "./blueskynet-preview.jpg";
 ---
 
 <MetaOnlyLayout
@@ -16,7 +17,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   <meta
     name="image"
     property="og:image"
-    content={new URL("made/blueskynet/blueskynet-preview.jpg", Astro.site)}
+    content={new URL(previewImg.src, Astro.site)}
   />
   <meta name="twitter:card" content="summary_large_image" />
   <meta property="twitter:domain" content="rowan.fyi" />
@@ -29,10 +30,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     name="twitter:description"
     content="Pick a post, any Bluesky post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
   />
-  <meta
-    name="twitter:image"
-    content={new URL("made/blueskynet/blueskynet-preview.jpg", Astro.site)}
-  />
+  <meta name="twitter:image" content={new URL(previewImg.src, Astro.site)} />
 
   <link
     rel="icon"
