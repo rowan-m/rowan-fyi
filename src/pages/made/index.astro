@@ -1,33 +1,51 @@
 ---
+import fs from "node:fs";
+import path from "node:path";
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 
-// Glob static HTML-based glitch projects
-const staticItems = import.meta.glob("/public/made/*/index.html");
+// Read static directories inside public/made/
+let staticDirs: string[] = [];
+try {
+  const staticPath = path.resolve("public/made");
+  staticDirs = fs.readdirSync(staticPath).filter((file) => {
+    return fs.statSync(path.join(staticPath, file)).isDirectory();
+  });
+} catch (e) {
+  console.warn("Could not read public/made directory", e);
+}
 
-// Glob Astro-based projects
-const astroItems = import.meta.glob("/src/pages/made/*/index.astro");
+// Read Astro directories inside src/pages/made/
+let astroDirs: string[] = [];
+try {
+  const astroPath = path.resolve("src/pages/made");
+  astroDirs = fs.readdirSync(astroPath).filter((file) => {
+    return (
+      file !== "index.astro" &&
+      fs.statSync(path.join(astroPath, file)).isDirectory()
+    );
+  });
+} catch (e) {
+  console.warn("Could not read src/pages/made directory", e);
+}
 
-// Map static items to layout-compatible format
-const staticList = Object.keys(staticItems).map((key) => {
-  const slug = key.split("/").filter(Boolean).at(-2) || "";
-  return {
-    name: slug,
-    href: `/made/${slug}/`,
-  };
-});
+// Map both lists to a common structure
+const staticList = staticDirs.map((slug) => ({
+  name: slug,
+  href: `/made/${slug}/`,
+}));
 
-// Map Astro-based items to layout-compatible format
-const astroList = Object.keys(astroItems).map((key) => {
-  const slug = key.split("/").filter(Boolean).at(-2) || "";
-  return {
-    name: slug,
-    href: `/made/${slug}/`,
-  };
-});
+const astroList = astroDirs.map((slug) => ({
+  name: slug,
+  href: `/made/${slug}/`,
+}));
 
-// Merge both static and Astro-based lists
-const mergedList = [...astroList, ...staticList];
+// Merge both static and Astro-based lists, deduplicating by folder name (slug)
+const mergedMap = new Map();
+for (const item of [...astroList, ...staticList]) {
+  mergedMap.set(item.name, item);
+}
+const mergedList = Array.from(mergedMap.values());
 
 // Sort alphabetically by name
 mergedList.sort((a, b) => a.name.localeCompare(b.name));
