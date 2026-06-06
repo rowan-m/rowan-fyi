@@ -204,6 +204,39 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       }
     }
 
+    .app-footer {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 2rem;
+      display: flex;
+      gap: 1.25rem;
+      z-index: 10;
+      pointer-events: auto; /* Ensure links are clickable inside the overlay */
+      transition: all 0.3s ease;
+    }
+
+    .app-footer a {
+      color: #888;
+      font-size: 0.75rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .app-footer a:hover {
+      color: var(--accent-color);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 600px) {
+      .app-footer {
+        left: 1rem;
+        bottom: 1rem;
+      }
+    }
+
     .hidden {
       display: none !important;
     }
@@ -248,6 +281,31 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     >
       Enter a Bluesky post URL to begin
     </div>
+
+    <footer class="app-footer">
+      <a
+        href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/blueskynet"
+        target="_blank"
+        rel="noopener"><span aria-hidden="true">🧑‍💻</span> Code</a
+      >
+      <a href="https://rowan.fyi" target="_blank" rel="noopener"
+        ><span aria-hidden="true">🌐</span> rowan.fyi</a
+      >
+      <a
+        href="https://bsky.app/profile/rowan.fyi"
+        target="_blank"
+        rel="noopener"
+        aria-label="Bluesky profile rowan.fyi"
+        ><span aria-hidden="true">🦋</span> rowan.fyi</a
+      >
+      <a
+        href="https://mastodon.social/@rowan_m"
+        target="_blank"
+        rel="noopener"
+        aria-label="Mastodon profile rowan_m@mastodon.social"
+        ><span aria-hidden="true">🦣</span> rowan_m</a
+      >
+    </footer>
   </div>
 
   <script type="module">
@@ -863,6 +921,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
             this.placeholderTextures.REPLY,
           transparent: true,
           opacity: 0,
+          depthWrite: false, // Prevent depth-sorting sorting artifacts and clipping
         });
         const sprite = new THREE.Sprite(mat);
         sprite.scale.setScalar(0.001);
@@ -1122,6 +1181,9 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
                   offsetEnd,
                 ).getPoints(16),
               );
+              // Recalculate bounding box and sphere to prevent frustum culling bugs when rotating camera
+              line.geometry.computeBoundingSphere();
+              line.geometry.computeBoundingBox();
             }
           }
         }
