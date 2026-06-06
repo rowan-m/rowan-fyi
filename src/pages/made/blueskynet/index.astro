@@ -923,7 +923,9 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
             this.physicsGraph.addNode(nodeId);
 
             const edge = network.edges.find((e) => e.target === nodeId);
-            if (edge) {
+            const parentInPhysics =
+              edge && this.physicsGraph.getNode(edge.source);
+            if (edge && parentInPhysics) {
               const pPos = this.physicsLayout.getNodePosition(edge.source);
               let hash = 0;
               for (let j = 0; j < nodeId.length; j++) {
@@ -943,17 +945,37 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
               const parentMesh = this.nodeMeshes.get(edge.source);
               if (parentMesh) mesh.position.copy(parentMesh.position);
               else mesh.position.set(pPos.x, pPos.y, pPos.z || 0);
-
-              this.physicsGraph.addLink(edge.source, nodeId);
-              this.createEdgeLine(`${edge.source}-${nodeId}`, node.type);
-              this.edgeDiscoveryTimes.set(
-                `${edge.source}-${nodeId}`,
-                Date.now(),
-              );
-            } else if (node.type === "root") {
+            } else {
               this.physicsLayout.setNodePosition(nodeId, 0, 0, 0);
-              const gNode = this.physicsGraph.getNode(nodeId);
-              if (gNode) this.physicsLayout.pinNode(gNode, true);
+              if (node.type === "root") {
+                const gNode = this.physicsGraph.getNode(nodeId);
+                if (gNode) this.physicsLayout.pinNode(gNode, true);
+              }
+            }
+          }
+        }
+
+        // Ensure all edges between visible nodes are linked in the physics graph dynamically
+        for (const edge of network.edges) {
+          if (
+            visibleNodeIds.has(edge.source) &&
+            visibleNodeIds.has(edge.target)
+          ) {
+            const edgeId = `${edge.source}-${edge.target}`;
+            const sourceInPhysics = this.physicsGraph.getNode(edge.source);
+            const targetInPhysics = this.physicsGraph.getNode(edge.target);
+            if (
+              !this.edgeLines.has(edgeId) &&
+              sourceInPhysics &&
+              targetInPhysics
+            ) {
+              this.physicsGraph.addLink(edge.source, edge.target);
+              const targetNode = network.nodes.get(edge.target);
+              this.createEdgeLine(
+                edgeId,
+                targetNode ? targetNode.type : "reply",
+              );
+              this.edgeDiscoveryTimes.set(edgeId, Date.now());
             }
           }
         }
