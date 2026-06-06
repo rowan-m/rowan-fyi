@@ -205,14 +205,12 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     }
 
     .app-footer {
-      position: absolute;
-      bottom: 1.5rem;
-      left: 2rem;
       display: flex;
-      gap: 1.25rem;
-      z-index: 10;
-      pointer-events: auto; /* Ensure links are clickable inside the overlay */
-      transition: all 0.3s ease;
+      justify-content: center;
+      gap: 1.5rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #222;
+      width: 100%;
     }
 
     .app-footer a {
@@ -228,13 +226,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     .app-footer a:hover {
       color: var(--accent-color);
       transform: translateY(-1px);
-    }
-
-    @media (max-width: 600px) {
-      .app-footer {
-        left: 1rem;
-        bottom: 1rem;
-      }
     }
 
     .hidden {
@@ -274,6 +265,31 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
         <span id="loading-spinner" class="spinner hidden"></span>
         <div id="status-message" class="status-text">Ready to visualize</div>
       </div>
+
+      <footer class="app-footer">
+        <a
+          href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/blueskynet"
+          target="_blank"
+          rel="noopener"><span aria-hidden="true">🧑‍💻</span> Code</a
+        >
+        <a href="https://rowan.fyi" target="_blank" rel="noopener"
+          ><span aria-hidden="true">🌐</span> rowan.fyi</a
+        >
+        <a
+          href="https://bsky.app/profile/rowan.fyi"
+          target="_blank"
+          rel="noopener"
+          aria-label="Bluesky profile rowan.fyi"
+          ><span aria-hidden="true">🦋</span> rowan.fyi</a
+        >
+        <a
+          href="https://mastodon.social/@rowan_m"
+          target="_blank"
+          rel="noopener"
+          aria-label="Mastodon profile rowan_m@mastodon.social"
+          ><span aria-hidden="true">🦣</span> rowan_m</a
+        >
+      </footer>
     </div>
     <div
       id="initial-status"
@@ -281,31 +297,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     >
       Enter a Bluesky post URL to begin
     </div>
-
-    <footer class="app-footer">
-      <a
-        href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/blueskynet"
-        target="_blank"
-        rel="noopener"><span aria-hidden="true">🧑‍💻</span> Code</a
-      >
-      <a href="https://rowan.fyi" target="_blank" rel="noopener"
-        ><span aria-hidden="true">🌐</span> rowan.fyi</a
-      >
-      <a
-        href="https://bsky.app/profile/rowan.fyi"
-        target="_blank"
-        rel="noopener"
-        aria-label="Bluesky profile rowan.fyi"
-        ><span aria-hidden="true">🦋</span> rowan.fyi</a
-      >
-      <a
-        href="https://mastodon.social/@rowan_m"
-        target="_blank"
-        rel="noopener"
-        aria-label="Mastodon profile rowan_m@mastodon.social"
-        ><span aria-hidden="true">🦣</span> rowan_m</a
-      >
-    </footer>
   </div>
 
   <script type="module">
