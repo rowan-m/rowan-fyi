@@ -1,0 +1,1497 @@
+---
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout
+  title="BlueSkynet"
+  description="Pick a post, any Bluesky post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
+>
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="BlueSkynet" />
+  <meta
+    property="og:description"
+    content="Pick a post, any Bluesky post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
+  />
+  <meta
+    name="image"
+    property="og:image"
+    content={new URL("made/blueskynet/blueskynet-preview.jpg", Astro.site)}
+  />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="twitter:domain" content="rowan.fyi" />
+  <meta
+    property="twitter:url"
+    content={new URL(Astro.url.pathname, Astro.site)}
+  />
+  <meta name="twitter:title" content="BlueSkynet" />
+  <meta
+    name="twitter:description"
+    content="Pick a post, any Bluesky post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
+  />
+  <meta
+    name="twitter:image"
+    content={new URL("made/blueskynet/blueskynet-preview.jpg", Astro.site)}
+  />
+
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>"
+  />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.174.0/examples/jsm/",
+        "ngraph.graph": "https://cdn.jsdelivr.net/npm/ngraph.graph@20.0.1/+esm",
+        "ngraph.forcelayout": "https://cdn.jsdelivr.net/npm/ngraph.forcelayout@3.3.1/+esm"
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-color: #050505;
+      --fg-color: #ffffff;
+      --accent-color: #0085ff;
+      --ui-bg: rgba(20, 20, 20, 0.8);
+      --font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: var(--bg-color);
+      color: var(--fg-color);
+      font-family: var(--font-family);
+    }
+
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ui-overlay {
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    .ui-overlay > * {
+      pointer-events: auto;
+    }
+
+    .top-bar {
+      display: flex;
+      gap: 0.5rem;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: var(--ui-bg);
+      color: white;
+      backdrop-filter: blur(8px);
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 133, 255, 0.3);
+      background: rgba(0, 133, 255, 0.15);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      backdrop-filter: blur(8px);
+    }
+
+    button:hover:not(:disabled) {
+      background: rgba(0, 133, 255, 0.25);
+      border-color: var(--accent-color);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 133, 255, 0.3);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #444;
+      border: none;
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .bottom-bar {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--ui-bg);
+      backdrop-filter: blur(8px);
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .timeline {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent-color);
+    }
+
+    .time-display {
+      font-variant-numeric: tabular-nums;
+      min-width: 80px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .status-text {
+      font-size: 0.8rem;
+      color: #888;
+      text-align: center;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--accent-color);
+      animation: spin 1s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+
+  <div id="canvas-container"></div>
+
+  <div class="ui-overlay">
+    <div class="top-bar">
+      <input
+        type="text"
+        id="post-url"
+        placeholder="Enter Bluesky post URL (e.g. https://bsky.app/profile/...)"
+      />
+      <button id="load-btn"><span aria-hidden="true">🌐</span> Visualize</button
+      >
+    </div>
+
+    <div class="bottom-bar hidden" id="playback-bar">
+      <div class="controls hidden" id="playback-controls">
+        <button id="play-pause-btn"
+          ><span aria-hidden="true">▶️</span> Play</button
+        >
+        <button id="tour-btn"
+          ><span aria-hidden="true">🔄</span> Tour: On</button
+        >
+        <div class="timeline">
+          <input type="range" id="time-slider" min="0" max="1000" value="0" />
+          <div class="time-display" id="time-text">0:00</div>
+        </div>
+      </div>
+      <div
+        style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%;"
+      >
+        <span id="loading-spinner" class="spinner hidden"></span>
+        <div id="status-message" class="status-text">Ready to visualize</div>
+      </div>
+    </div>
+    <div
+      id="initial-status"
+      style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #444; font-size: 1.2rem; pointer-events: none;"
+    >
+      Enter a Bluesky post URL to begin
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { TrackballControls } from "three/addons/controls/TrackballControls.js";
+    import createGraph from "ngraph.graph";
+    import createLayout from "ngraph.forcelayout";
+
+    // --- Configuration & Constants ---
+    const API_BASE = "https://api.bsky.app/xrpc";
+    const COLORS = {
+      ROOT: 0x0085ff,
+      REPLY: 0xffffff,
+      QUOTE: 0xffaa00,
+      LIKE: 0xff0055,
+      REPOST: 0x00ff88,
+    };
+
+    const safeRandom = () => {
+      const array = new Uint32Array(1);
+      self.crypto.getRandomValues(array);
+      return array[0] / 4294967296;
+    };
+
+    // --- Data Engine ---
+    class BskyClient {
+      constructor() {
+        this.abortController = null;
+      }
+
+      reset() {
+        if (this.abortController) {
+          this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+      }
+
+      get signal() {
+        return this.abortController ? this.abortController.signal : null;
+      }
+
+      async resolveHandle(handle) {
+        const resp = await fetch(
+          `${API_BASE}/com.atproto.identity.resolveHandle?handle=${handle}`,
+          { signal: this.signal },
+        );
+        const data = await resp.json();
+        return data.did;
+      }
+
+      async getThread(uri) {
+        const resp = await fetch(
+          `${API_BASE}/app.bsky.feed.getPostThread?uri=${uri}&depth=10`,
+          { signal: this.signal },
+        );
+        return await resp.json();
+      }
+
+      async getInteractions(uri, maxCount = 100) {
+        const fetchCollection = async (endpoint, key) => {
+          let items = [];
+          let cursor = null;
+          try {
+            while (items.length < maxCount) {
+              const url = new URL(`${API_BASE}/${endpoint}`);
+              url.searchParams.set("uri", uri);
+              url.searchParams.set("limit", "100");
+              if (cursor) url.searchParams.set("cursor", cursor);
+
+              const resp = await fetch(url.toString(), { signal: this.signal });
+              const data = await resp.json();
+              if (!data[key] || data[key].length === 0) break;
+
+              items = items.concat(data[key]);
+              cursor = data.cursor;
+              if (!cursor) break;
+            }
+          } catch (e) {
+            if (e.name !== "AbortError") {
+              console.warn(`Error fetching ${key} for ${uri}`, e);
+            }
+          }
+          return items;
+        };
+
+        const [likes, reposts] = await Promise.all([
+          fetchCollection("app.bsky.feed.getLikes", "likes"),
+          fetchCollection("app.bsky.feed.getRepostedBy", "repostedBy"),
+        ]);
+
+        const quotesResp = await fetch(
+          `${API_BASE}/app.bsky.feed.getQuotes?uri=${uri}&limit=50`,
+          { signal: this.signal },
+        ).then((r) => r.json());
+
+        return { quotes: quotesResp, likes: { likes }, reposts: { reposts } };
+      }
+
+      parseUrl(urlStr) {
+        try {
+          const url = new URL(urlStr);
+          const parts = url.pathname.split("/");
+          const handle = parts[2];
+          const postId = parts[4];
+          return { handle, postId };
+        } catch {
+          return null;
+        }
+      }
+    }
+
+    // --- Timeline & Event Management ---
+    class EventTimeline {
+      constructor() {
+        this.events = [];
+        this.startTime = Infinity;
+        this.endTime = -Infinity;
+        this._eventCounter = 0;
+      }
+
+      setStart(timestamp) {
+        this.startTime = new Date(timestamp).getTime();
+      }
+
+      addEvent(type, data, timestamp, parentId = null) {
+        let time = new Date(timestamp).getTime();
+        if (isNaN(time)) time = Date.now();
+
+        this.startTime = Math.min(this.startTime, time);
+        this.endTime = Math.max(this.endTime, time);
+
+        const event = {
+          type,
+          data,
+          time,
+          parentId,
+          id:
+            data.uri ||
+            `${data.did || data.handle || "anon"}-${time}-${this._eventCounter++}`,
+        };
+        this.events.push(event);
+        return event;
+      }
+
+      sort() {
+        const priority = { root: 0, reply: 1, quote: 1, like: 2, repost: 2 };
+        this.events.sort((a, b) => {
+          if (a.time !== b.time) return a.time - b.time;
+          if (priority[a.type] !== priority[b.type])
+            return priority[a.type] - priority[b.type];
+          return a.id < b.id ? -1 : 1;
+        });
+      }
+
+      get duration() {
+        return this.endTime - this.startTime;
+      }
+    }
+
+    // --- Network Structure (Logical) ---
+    class InteractionNetwork {
+      constructor() {
+        this.nodes = new Map();
+        this.edges = [];
+      }
+
+      addNode(id, type, time, data) {
+        if (this.nodes.has(id)) return this.nodes.get(id);
+        const node = {
+          id,
+          type,
+          time,
+          data,
+          connections: [],
+          metrics: { likes: 0, reposts: 0 },
+          scale: 1,
+        };
+        this.nodes.set(id, node);
+        return node;
+      }
+
+      addEdge(sourceId, targetId) {
+        this.edges.push({ source: sourceId, target: targetId });
+        if (this.nodes.has(sourceId)) {
+          this.nodes.get(sourceId).connections.push(targetId);
+        }
+      }
+    }
+
+    // --- Visualizer (Three.js + ngraph) ---
+    class Visualizer {
+      constructor(container) {
+        this.container = container;
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          2000,
+        );
+        this.renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+        });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(this.renderer.domElement);
+
+        this.controls = new TrackballControls(
+          this.camera,
+          this.renderer.domElement,
+        );
+        this.controls.rotateSpeed = 2.0;
+        this.controls.zoomSpeed = 1.2;
+        this.controls.panSpeed = 0.8;
+        this.controls.staticMoving = false;
+        this.controls.dynamicDampingFactor = 0.1;
+        this.camera.position.z = 100;
+
+        this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(50, 50, 50);
+        this.scene.add(pointLight);
+
+        this.nodeMeshes = new Map(); // id -> Sprite
+        this.haloMeshes = new Map(); // id -> Sprite (glow)
+        this.edgeLines = new Map();
+        this.targetScales = new Map();
+        this.visibleNodes = new Set();
+
+        this.textureLoader = new THREE.TextureLoader();
+        this.textureLoader.setCrossOrigin("anonymous");
+        this.textureCache = new Map();
+        this.placeholderTextures = this.createPlaceholders();
+        this.haloTexture = this.createHaloTexture();
+        this.heartTexture = this.createEmojiTexture("❤️");
+        this.repostTexture = this.createEmojiTexture("♻️");
+        this.activeParticles = [];
+        this.nodeDiscoveryTimes = new Map();
+        this.edgeDiscoveryTimes = new Map();
+        this.nodeInteractionTimes = new Map(); // id -> { time, type }
+
+        // Physics Cooling state
+        this.physicsAwakeUntil = Date.now() + 5000;
+
+        // Auto Tour state
+        this.onTourChange = null;
+        this.autoTour = false;
+        this.autoTourTime = 0;
+        this.tourCurrentVelocity = new THREE.Vector3();
+        this.tourTargetVelocity = new THREE.Vector3();
+        this.tourRotation = new THREE.Quaternion();
+        this.tourSpeedChangeTimer = 0;
+        this.graphBoundingBox = new THREE.Box3();
+        this.graphCenter = new THREE.Vector3();
+        this.currentTourTarget = new THREE.Vector3();
+        this.graphRadius = 100;
+
+        this._scratchVec3_1 = new THREE.Vector3();
+        this._scratchVec3_2 = new THREE.Vector3();
+
+        this.controls.addEventListener("start", () => this.stopAutoTour());
+
+        // ngraph Physics
+        this.physicsGraph = createGraph();
+        this.physicsLayout = createLayout(this.physicsGraph, {
+          dimensions: 3,
+          springLength: 8,
+          springCoefficient: 0.005,
+          dragCoefficient: 0.04,
+          gravity: -1.2,
+          theta: 0.8,
+        });
+
+        window.addEventListener("resize", () => this.onWindowResize());
+      }
+
+      wakePhysics(duration = 5000) {
+        this.physicsAwakeUntil = Date.now() + duration;
+      }
+
+      startAutoTour() {
+        if (this.autoTour) return;
+        this.autoTour = true;
+        this.autoTourTime = 0;
+        this.tourCurrentVelocity.set(0, 0, 0);
+        this.tourTargetVelocity.set(0, 0, 0);
+        this.tourSpeedChangeTimer = 0; // Trigger immediately
+
+        // Capture current state to transition smoothly
+        this.currentTourTarget = this.controls.target.clone();
+
+        // Initialize rotation based on current camera offset
+        const offset = new THREE.Vector3().subVectors(
+          this.camera.position,
+          this.currentTourTarget,
+        );
+
+        const defaultLook = new THREE.Vector3(0, 0, 1);
+        this.tourRotation.setFromUnitVectors(
+          defaultLook,
+          offset.clone().normalize(),
+        );
+
+        if (this.onTourChange) this.onTourChange(true);
+      }
+
+      stopAutoTour() {
+        if (!this.autoTour) return;
+        this.autoTour = false;
+        if (this.onTourChange) this.onTourChange(false);
+      }
+
+      _updateAutoTourBounds() {
+        if (this.visibleNodes.size > 0) {
+          this.graphBoundingBox.makeEmpty();
+          for (const nodeId of this.visibleNodes) {
+            const mesh = this.nodeMeshes.get(nodeId);
+            if (mesh) {
+              this.graphBoundingBox.expandByPoint(mesh.position);
+            }
+          }
+          this.graphBoundingBox.getCenter(this.graphCenter);
+          const size = this._scratchVec3_2;
+          this.graphBoundingBox.getSize(size);
+          let radius = size.length() * 0.5;
+          if (isNaN(radius) || radius <= 0 || !isFinite(radius)) {
+            radius = 100;
+          }
+          this.graphRadius = radius + 2;
+        }
+      }
+
+      _updateAutoTour(delta) {
+        if (this.autoTour && this.graphCenter) {
+          this.autoTourTime += delta;
+          this.tourSpeedChangeTimer -= delta;
+
+          if (this.tourSpeedChangeTimer <= 0) {
+            this.tourTargetVelocity.set(
+              safeRandom() * 0.4 - 0.2,
+              safeRandom() * 0.4 - 0.2,
+              safeRandom() * 0.4 - 0.2,
+            );
+            this.tourSpeedChangeTimer = 8.0 + safeRandom() * 4.0;
+          }
+
+          this.tourCurrentVelocity.lerp(this.tourTargetVelocity, delta * 0.5);
+
+          const frameRotation = new THREE.Quaternion().setFromEuler(
+            new THREE.Euler(
+              this.tourCurrentVelocity.x * delta,
+              this.tourCurrentVelocity.y * delta,
+              this.tourCurrentVelocity.z * delta,
+              "XYZ",
+            ),
+          );
+
+          this.tourRotation.multiply(frameRotation);
+
+          const radius = this.graphRadius * 3;
+          const offset = new THREE.Vector3(0, 0, radius).applyQuaternion(
+            this.tourRotation,
+          );
+
+          this._scratchVec3_1.copy(this.graphCenter).add(offset);
+          this.currentTourTarget.lerp(this.graphCenter, delta * 2.0);
+          this.controls.target.copy(this.currentTourTarget);
+
+          this.camera.position.lerp(this._scratchVec3_1, delta * 1.5);
+
+          const upVector = new THREE.Vector3(0, 1, 0).applyQuaternion(
+            this.tourRotation,
+          );
+          this.camera.up.copy(upVector);
+
+          this.camera.lookAt(this.currentTourTarget);
+          this.camera.updateMatrixWorld();
+
+          let minX = Infinity,
+            maxX = -Infinity;
+          let minY = Infinity,
+            maxY = -Infinity;
+
+          const viewMatrix = this.camera.matrixWorldInverse;
+          const tempVec = this._scratchVec3_2;
+
+          for (const nodeId of this.visibleNodes) {
+            const mesh = this.nodeMeshes.get(nodeId);
+            if (!mesh) continue;
+            tempVec.copy(mesh.position).applyMatrix4(viewMatrix);
+            minX = Math.min(minX, tempVec.x);
+            maxX = Math.max(maxX, tempVec.x);
+            minY = Math.min(minY, tempVec.y);
+            maxY = Math.max(maxY, tempVec.y);
+          }
+
+          const width = Math.max(0.1, maxX - minX);
+          const height = Math.max(0.1, maxY - minY);
+
+          // Calculate perspective frustum size at the current distance to fit bounds
+          const dist = this.camera.position.distanceTo(this.currentTourTarget);
+          const frustumHeight =
+            2 * dist * Math.tan((this.camera.fov * Math.PI) / 360);
+          const frustumWidth = frustumHeight * this.camera.aspect;
+
+          // Increased padding (especially vertically) to keep nodes clear of top/bottom UI overlays
+          const paddingX = 1.4; // 40% margin horizontally
+          const paddingY = 1.8; // 80% margin vertically to clear HUD elements
+          const targetZoomX = frustumWidth / (width * paddingX);
+          const targetZoomY = frustumHeight / (height * paddingY);
+
+          let targetZoom = Math.min(targetZoomX, targetZoomY);
+          targetZoom = Math.min(targetZoom, 10.0);
+
+          // Smoothly interpolate zoom
+          this.camera.zoom += (targetZoom - this.camera.zoom) * delta * 2.0;
+          this.camera.updateProjectionMatrix();
+        } else {
+          this.controls.update();
+        }
+      }
+
+      clear() {
+        this.stopAutoTour();
+
+        // Dispose active particles
+        for (const p of this.activeParticles) {
+          this.scene.remove(p.sprite);
+          if (p.sprite.material) p.sprite.material.dispose();
+          if (p.sprite.geometry) p.sprite.geometry.dispose();
+        }
+        this.activeParticles = [];
+
+        // Dispose node meshes
+        for (const [, mesh] of this.nodeMeshes) {
+          this.scene.remove(mesh);
+          if (mesh.material) mesh.material.dispose();
+          if (mesh.geometry) mesh.geometry.dispose();
+        }
+        this.nodeMeshes.clear();
+
+        // Dispose halo meshes
+        for (const [, halo] of this.haloMeshes) {
+          this.scene.remove(halo);
+          if (halo.material) halo.material.dispose();
+          if (halo.geometry) halo.geometry.dispose();
+        }
+        this.haloMeshes.clear();
+
+        // Dispose edge lines
+        for (const [, line] of this.edgeLines) {
+          this.scene.remove(line);
+          if (line.material) line.material.dispose();
+          if (line.geometry) line.geometry.dispose();
+        }
+        this.edgeLines.clear();
+
+        this.targetScales.clear();
+        this.visibleNodes.clear();
+        this.nodeDiscoveryTimes.clear();
+        this.edgeDiscoveryTimes.clear();
+        this.nodeInteractionTimes.clear();
+
+        this.tourCurrentVelocity.set(0, 0, 0);
+        this.tourTargetVelocity.set(0, 0, 0);
+        this.tourRotation.set(0, 0, 0, 1);
+        this.tourSpeedChangeTimer = 0;
+        this.graphBoundingBox.makeEmpty();
+        this.graphCenter.set(0, 0, 0);
+        this.currentTourTarget.set(0, 0, 0);
+        this.graphRadius = 100;
+
+        // Re-initialize physics graph & layout
+        this.physicsGraph = createGraph();
+        this.physicsLayout = createLayout(this.physicsGraph, {
+          dimensions: 3,
+          springLength: 8,
+          springCoefficient: 0.005,
+          dragCoefficient: 0.04,
+          gravity: -1.2,
+          theta: 0.8,
+        });
+
+        // Reset camera and controls
+        this.camera.position.set(0, 0, 100);
+        this.controls.target.set(0, 0, 0);
+        this.controls.update();
+
+        this.wakePhysics();
+      }
+
+      createPlaceholders() {
+        const create = (color) => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 64;
+          canvas.height = 64;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = `#${color.toString(16).padStart(6, "0")}`;
+          ctx.beginPath();
+          ctx.arc(32, 32, 30, 0, Math.PI * 2);
+          ctx.fill();
+          return new THREE.CanvasTexture(canvas);
+        };
+        return {
+          ROOT: create(COLORS.ROOT),
+          REPLY: create(COLORS.REPLY),
+          QUOTE: create(COLORS.QUOTE),
+        };
+      }
+
+      createHaloTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext("2d");
+        const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 60);
+        grad.addColorStop(0, "rgba(255, 255, 255, 1.0)");
+        grad.addColorStop(0.4, "rgba(255, 255, 255, 0.4)");
+        grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 128, 128);
+        return new THREE.CanvasTexture(canvas);
+      }
+
+      createEmojiTexture(emoji) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext("2d");
+        ctx.font = "48px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(emoji, 32, 32);
+        return new THREE.CanvasTexture(canvas);
+      }
+
+      spawnInteractionParticle(nodeId, type) {
+        const now = Date.now();
+        const existing = this.nodeInteractionTimes.get(nodeId);
+
+        // Prevent strobe/white-out:
+        // If already pulsing, only refresh if it's past the peak to sustain the glow smoothly.
+        const duration = 1500;
+        if (!existing || now - existing.time > duration / 2) {
+          this.nodeInteractionTimes.set(nodeId, {
+            time: now,
+            type: existing && existing.type === "repost" ? "repost" : type,
+          });
+          this.wakePhysics();
+        }
+
+        const nodeMesh = this.nodeMeshes.get(nodeId);
+        if (!nodeMesh || !nodeMesh.visible) return;
+
+        // Cap active particles for this node to prevent white-out
+        const nodeParticles = this.activeParticles.filter(
+          (p) => p.nodeId === nodeId,
+        );
+        if (nodeParticles.length > 2) return;
+
+        const material = new THREE.SpriteMaterial({
+          map: type === "like" ? this.heartTexture : this.repostTexture,
+          transparent: true,
+          opacity: 1,
+        });
+        const sprite = new THREE.Sprite(material);
+        sprite.position.copy(nodeMesh.position);
+        sprite.position.y += nodeMesh.scale.y * 0.5;
+        sprite.scale.setScalar(4);
+        this.scene.add(sprite);
+
+        this.activeParticles.push({
+          sprite,
+          startTime: now,
+          duration: 1500,
+          startY: sprite.position.y,
+          nodeId,
+        });
+      }
+
+      onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      async loadAvatarTexture(url, nodeId) {
+        const proxiedUrl = `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=256&h=256&fit=cover&mask=circle`;
+        if (this.textureCache.has(proxiedUrl)) {
+          this.updateNodeTexture(nodeId, this.textureCache.get(proxiedUrl));
+          return;
+        }
+        this.textureLoader.load(proxiedUrl, (texture) => {
+          this.textureCache.set(proxiedUrl, texture);
+          this.updateNodeTexture(nodeId, texture);
+        });
+      }
+
+      updateNodeTexture(nodeId, texture) {
+        const sprite = this.nodeMeshes.get(nodeId);
+        if (sprite) {
+          sprite.material.map = texture;
+          sprite.material.needsUpdate = true;
+        }
+      }
+
+      createNodeMesh(node) {
+        // Main Avatar
+        const mat = new THREE.SpriteMaterial({
+          map:
+            this.placeholderTextures[node.type.toUpperCase()] ||
+            this.placeholderTextures.REPLY,
+          transparent: true,
+          opacity: 0,
+        });
+        const sprite = new THREE.Sprite(mat);
+        sprite.scale.setScalar(0.001);
+        this.scene.add(sprite);
+        this.nodeMeshes.set(node.id, sprite);
+
+        // Halo (Glow) - localized additive mesh
+        const haloMat = new THREE.SpriteMaterial({
+          map: this.haloTexture,
+          transparent: true,
+          opacity: 0,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const halo = new THREE.Sprite(haloMat);
+        this.scene.add(halo);
+        this.haloMeshes.set(node.id, halo);
+
+        const avatar = node.data?.author?.avatar;
+        if (avatar) this.loadAvatarTexture(avatar, node.id);
+
+        return sprite;
+      }
+
+      createEdgeLine(id, type) {
+        const material = new THREE.LineBasicMaterial({
+          color: COLORS[type.toUpperCase()] || 0x444444,
+          transparent: true,
+          opacity: 0,
+        });
+        const line = new THREE.Line(new THREE.BufferGeometry(), material);
+        line.userData.type = type;
+        this.scene.add(line);
+        this.edgeLines.set(id, line);
+        return line;
+      }
+
+      update(network, visibleNodeIds) {
+        const oldSize = this.visibleNodes.size;
+        this.visibleNodes = visibleNodeIds;
+        if (visibleNodeIds.size !== oldSize) {
+          this.wakePhysics();
+        }
+
+        for (const nodeId of visibleNodeIds) {
+          const node = network.nodes.get(nodeId);
+          if (!node) continue;
+
+          const baseRadius = node.type === "root" ? 8.0 : 5.0;
+          const totalVolume =
+            Math.pow(baseRadius, 3) +
+            (node.metrics.likes + node.metrics.reposts) * 10.0;
+          this.targetScales.set(nodeId, Math.pow(totalVolume, 1 / 3));
+
+          if (!this.nodeMeshes.has(nodeId)) {
+            const mesh = this.createNodeMesh(node);
+            this.nodeDiscoveryTimes.set(nodeId, Date.now());
+            this.physicsGraph.addNode(nodeId);
+
+            const edge = network.edges.find((e) => e.target === nodeId);
+            if (edge) {
+              const pPos = this.physicsLayout.getNodePosition(edge.source);
+              let hash = 0;
+              for (let j = 0; j < nodeId.length; j++) {
+                hash = (hash << 5) - hash + nodeId.charCodeAt(j);
+                hash |= 0;
+              }
+              const offsetX = ((hash % 100) / 100 - 0.5) * 5;
+              const offsetY = (((hash >> 8) % 100) / 100 - 0.5) * 5;
+              const offsetZ = (((hash >> 16) % 100) / 100 - 0.5) * 5;
+
+              this.physicsLayout.setNodePosition(
+                nodeId,
+                pPos.x + offsetX,
+                pPos.y + offsetY,
+                pPos.z + offsetZ,
+              );
+              const parentMesh = this.nodeMeshes.get(edge.source);
+              if (parentMesh) mesh.position.copy(parentMesh.position);
+              else mesh.position.set(pPos.x, pPos.y, pPos.z || 0);
+
+              this.physicsGraph.addLink(edge.source, nodeId);
+              this.createEdgeLine(`${edge.source}-${nodeId}`, node.type);
+              this.edgeDiscoveryTimes.set(
+                `${edge.source}-${nodeId}`,
+                Date.now(),
+              );
+            } else if (node.type === "root") {
+              this.physicsLayout.setNodePosition(nodeId, 0, 0, 0);
+              const gNode = this.physicsGraph.getNode(nodeId);
+              if (gNode) this.physicsLayout.pinNode(gNode, true);
+            }
+          }
+        }
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        const now = Date.now();
+        const delta = this._lastFrameTime
+          ? (now - this._lastFrameTime) / 1000
+          : 0.016;
+        this._lastFrameTime = now;
+
+        for (let i = this.activeParticles.length - 1; i >= 0; i--) {
+          const pData = this.activeParticles[i];
+          const elapsed = now - pData.startTime;
+          const p = elapsed / pData.duration;
+          if (p >= 1) {
+            this.scene.remove(pData.sprite);
+            pData.sprite.material.dispose();
+            this.activeParticles.splice(i, 1);
+          } else {
+            pData.sprite.position.y = pData.startY + p * 15;
+            pData.sprite.material.opacity = 1 - p;
+            pData.sprite.position.x += Math.sin(p * 10) * 0.05;
+          }
+        }
+
+        // Only step physics if awake
+        if (now < this.physicsAwakeUntil) {
+          for (let i = 0; i < 3; i++) this.physicsLayout.step();
+        }
+
+        for (const [id, mesh] of this.nodeMeshes) {
+          const isVisible = this.visibleNodes.has(id);
+          const pos = this.physicsLayout.getNodePosition(id);
+          const halo = this.haloMeshes.get(id);
+
+          let discPulse = 0;
+          if (isVisible && this.nodeDiscoveryTimes.has(id)) {
+            const elapsed = now - this.nodeDiscoveryTimes.get(id);
+            if (elapsed < 1200)
+              discPulse = Math.sin((elapsed / 1200) * Math.PI);
+            else this.nodeDiscoveryTimes.delete(id);
+          }
+
+          let intPulse = 0;
+          let intType = null;
+          if (this.nodeInteractionTimes.has(id)) {
+            const data = this.nodeInteractionTimes.get(id);
+            const elapsed = now - data.time;
+            if (elapsed < 1500) {
+              intPulse = Math.sin((elapsed / 1500) * Math.PI);
+              intType = data.type;
+            } else this.nodeInteractionTimes.delete(id);
+          }
+
+          const baseS = isVisible ? this.targetScales.get(id) || 3.0 : 0.001;
+          const targetS = baseS * (1 + discPulse * 0.3 + intPulse * 0.1);
+          const targetO = isVisible ? 1.0 : 0.0;
+
+          const targetP = new THREE.Vector3(pos.x, pos.y, pos.z || 0);
+          mesh.position.lerp(targetP, 0.1);
+          mesh.scale.lerp(new THREE.Vector3(targetS, targetS, 1.0), 0.1);
+          mesh.material.opacity = THREE.MathUtils.lerp(
+            mesh.material.opacity,
+            targetO,
+            0.1,
+          );
+          mesh.visible = mesh.material.opacity > 0.01;
+
+          // Update Halo (localized glow)
+          if (halo) {
+            halo.position.copy(mesh.position);
+            halo.scale.copy(mesh.scale).multiplyScalar(2.2);
+            if (intPulse > 0) {
+              // Extremely subtle additive glow
+              halo.material.opacity = intPulse * 0.35;
+              if (intType === "like") halo.material.color.setHex(COLORS.LIKE);
+              else halo.material.color.setHex(COLORS.REPOST);
+              halo.visible = mesh.visible;
+            } else if (discPulse > 0) {
+              halo.material.opacity = discPulse * 0.25;
+              halo.material.color.setHex(0xffffff);
+              halo.visible = mesh.visible;
+            } else {
+              halo.visible = false;
+            }
+          }
+        }
+
+        for (const [id, line] of this.edgeLines) {
+          const [sourceId, targetId] = id.split("-");
+          const isVisible =
+            this.visibleNodes.has(sourceId) && this.visibleNodes.has(targetId);
+          let pulse = 0;
+          if (isVisible && this.edgeDiscoveryTimes.has(id)) {
+            const elapsed = now - this.edgeDiscoveryTimes.get(id);
+            if (elapsed < 1200) pulse = Math.sin((elapsed / 1200) * Math.PI);
+            else this.edgeDiscoveryTimes.delete(id);
+          }
+          const targetO = isVisible ? 0.3 + pulse * 0.7 : 0.0;
+          if (pulse > 0) line.material.color.setRGB(1, 1, 1);
+          else {
+            const baseColor = new THREE.Color(
+              COLORS[(line.userData.type || "REPLY").toUpperCase()] || 0x444444,
+            );
+            line.material.color.lerp(baseColor, 0.1);
+          }
+          line.material.opacity = THREE.MathUtils.lerp(
+            line.material.opacity,
+            targetO,
+            0.1,
+          );
+          line.visible = line.material.opacity > 0.01;
+          if (line.visible) {
+            const sMesh = this.nodeMeshes.get(sourceId);
+            const tMesh = this.nodeMeshes.get(targetId);
+            if (sMesh && tMesh) {
+              const start = sMesh.position.clone();
+              const end = tMesh.position.clone();
+              const mid = new THREE.Vector3()
+                .addVectors(start, end)
+                .multiplyScalar(0.5);
+              const dir = new THREE.Vector3().subVectors(end, start);
+              const normal = new THREE.Vector3(-dir.y, dir.x, dir.z * 0.5)
+                .normalize()
+                .multiplyScalar(dir.length() * 0.15);
+              const control = new THREE.Vector3().addVectors(mid, normal);
+              const rS = sMesh.scale.x * 0.5;
+              const rT = tMesh.scale.x * 0.5;
+              const dirToControl = new THREE.Vector3()
+                .subVectors(control, start)
+                .normalize();
+              const offsetStart = start.add(dirToControl.multiplyScalar(rS));
+              const dirFromControl = new THREE.Vector3()
+                .subVectors(end, control)
+                .normalize();
+              const offsetEnd = end.sub(dirFromControl.multiplyScalar(rT));
+              line.geometry.setFromPoints(
+                new THREE.QuadraticBezierCurve3(
+                  offsetStart,
+                  control,
+                  offsetEnd,
+                ).getPoints(16),
+              );
+            }
+          }
+        }
+        if (this.autoTour) {
+          this._updateAutoTourBounds();
+          this._updateAutoTour(delta);
+        } else {
+          this.controls.update();
+        }
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    class AppController {
+      constructor() {
+        this.client = new BskyClient();
+        this.timeline = new EventTimeline();
+        this.network = new InteractionNetwork();
+        this.visualizer = new Visualizer(
+          document.getElementById("canvas-container"),
+        );
+        this.visualizer.onTourChange = (enabled) => this.updateTourBtn(enabled);
+        this.isPlaying = false;
+        this.currentStep = 0;
+        this.lastStepTime = 0;
+        this.setupEventListeners();
+        this.visualizer.animate();
+        this.checkUrlParams();
+      }
+      setupEventListeners() {
+        document
+          .getElementById("load-btn")
+          .addEventListener("click", () => this.loadFromInput());
+        document.getElementById("post-url").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") this.loadFromInput();
+        });
+        document
+          .getElementById("play-pause-btn")
+          .addEventListener("click", () => this.togglePlayback());
+        document
+          .getElementById("tour-btn")
+          .addEventListener("click", () => this.toggleTour());
+        document
+          .getElementById("time-slider")
+          .addEventListener("input", () =>
+            this.seek(parseFloat(document.getElementById("time-slider").value)),
+          );
+      }
+      async checkUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const url = params.get("url");
+        if (url) {
+          document.getElementById("post-url").value = url;
+          this.load(url);
+        }
+      }
+      async loadFromInput() {
+        const url = document.getElementById("post-url").value;
+        if (!url) return;
+        const params = new URLSearchParams(window.location.search);
+        params.set("url", url);
+        window.history.replaceState(
+          {},
+          "",
+          `${window.location.pathname}?${params.toString()}`,
+        );
+        this.load(url);
+      }
+      async load(urlStr) {
+        const parsed = this.client.parseUrl(urlStr);
+        if (!parsed) {
+          this.setStatus("Invalid URL format");
+          return;
+        }
+
+        // Reset client abort controller and clear existing visualizer graph
+        this.client.reset();
+        this.visualizer.clear();
+        document.title = "BlueSkynet";
+
+        this.setStatus("Resolving handle...", true);
+        try {
+          const did = await this.client.resolveHandle(parsed.handle);
+          const uri = `at://${did}/app.bsky.feed.post/${parsed.postId}`;
+          this.setStatus("Fetching thread tree...", true);
+          const threadData = await this.client.getThread(uri);
+          const interactionMap = new Map();
+          const processedUris = new Set();
+          const allThreads = [threadData.thread];
+
+          const delay = (ms) =>
+            new Promise((resolve) => setTimeout(resolve, ms));
+
+          const fetchInteractionsRecursively = async (thread) => {
+            const uri = thread.post?.uri;
+            if (!uri || processedUris.has(uri)) return;
+            processedUris.add(uri);
+            if (processedUris.size < 250) {
+              try {
+                // Add a small delay to throttle requests
+                await delay(50);
+                const inter = await this.client.getInteractions(
+                  uri,
+                  processedUris.size === 1 ? 1000 : 100,
+                );
+                interactionMap.set(uri, inter);
+                if (inter.quotes.posts && inter.quotes.posts.length > 0) {
+                  await Promise.all(
+                    inter.quotes.posts.slice(0, 15).map(async (q) => {
+                      if (processedUris.size >= 250 || processedUris.has(q.uri))
+                        return;
+                      try {
+                        // Slight throttle before resolving child quotes
+                        await delay(100);
+                        const qThread = await this.client.getThread(q.uri);
+                        allThreads.push(qThread.thread);
+                        await fetchInteractionsRecursively(qThread.thread);
+                      } catch (e) {
+                        if (e.name !== "AbortError") {
+                          console.warn(
+                            `Could not fetch thread for quote ${q.uri}`,
+                            e,
+                          );
+                        }
+                      }
+                    }),
+                  );
+                }
+              } catch (e) {
+                if (e.name !== "AbortError") {
+                  console.warn(`Could not fetch interactions for ${uri}`, e);
+                }
+              }
+            }
+            if (thread.replies)
+              await Promise.all(
+                thread.replies.map((r) => fetchInteractionsRecursively(r)),
+              );
+          };
+          await fetchInteractionsRecursively(threadData.thread);
+          this.processData(allThreads, interactionMap);
+          this.setStatus("Visualization ready", false);
+        } catch (e) {
+          if (e.name === "AbortError") {
+            console.log("Load operation aborted.");
+          } else {
+            console.error(e);
+            this.setStatus("Error loading data", false);
+          }
+        }
+      }
+      processData(threads, interactionMap) {
+        document.getElementById("playback-controls").classList.remove("hidden");
+        document.getElementById("initial-status").classList.add("hidden");
+        this.timeline = new EventTimeline();
+        this.network = new InteractionNetwork();
+        const rootPost = threads[0].post;
+
+        // Dynamically append the author's handle to the browser tab title
+        if (rootPost.author?.handle) {
+          document.title = `BlueSkynet - @${rootPost.author.handle}`;
+        }
+
+        this.timeline.setStart(
+          rootPost.record?.createdAt || rootPost.indexedAt,
+        );
+        const processPost = (post, parentUri = null) => {
+          const postTimestamp = post.record?.createdAt || post.indexedAt;
+          const postTime = new Date(postTimestamp).getTime();
+          const isNew = !this.network.nodes.has(post.uri);
+          this.network.addNode(
+            post.uri,
+            parentUri ? "reply" : "root",
+            postTime,
+            post,
+          );
+          if (parentUri) {
+            this.network.addEdge(parentUri, post.uri);
+            this.timeline.addEvent("reply", post, postTimestamp, parentUri);
+          } else if (isNew) {
+            this.timeline.addEvent("root", post, postTimestamp);
+          }
+          const interactions = interactionMap.get(post.uri);
+          if (interactions) {
+            for (const quote of interactions.quotes.posts || []) {
+              const qTimestamp = quote.record?.createdAt || quote.indexedAt;
+              this.network.addNode(
+                quote.uri,
+                "quote",
+                new Date(qTimestamp).getTime(),
+                quote,
+              );
+              this.network.addEdge(post.uri, quote.uri);
+              this.timeline.addEvent("quote", quote, qTimestamp, post.uri);
+            }
+            for (const like of interactions.likes.likes || [])
+              this.timeline.addEvent("like", like, like.createdAt, post.uri);
+            const reposts = interactions.reposts.reposts || [];
+            if (reposts.length > 0) {
+              const start = new Date(postTimestamp).getTime();
+              const likes = (interactions.likes.likes || [])
+                .map((l) => new Date(l.createdAt).getTime())
+                .sort((a, b) => a - b);
+              const end =
+                likes.length > 0
+                  ? likes[likes.length - 1]
+                  : Math.min(Date.now(), start + 24 * 3600 * 1000);
+              reposts.forEach((r, idx) => {
+                let time;
+                if (likes.length > 1) {
+                  const s = Math.floor(safeRandom() * (likes.length - 1));
+                  time = likes[s] + safeRandom() * (likes[s + 1] - likes[s]);
+                } else {
+                  time = start + (end - start) * (idx / reposts.length);
+                }
+                this.timeline.addEvent(
+                  "repost",
+                  r,
+                  new Date(time).toISOString(),
+                  post.uri,
+                );
+              });
+            }
+            const total = post.likeCount + (post.repostCount || 0);
+            const fetched =
+              (interactions.likes.likes?.length || 0) +
+              (interactions.reposts.reposts?.length || 0);
+            if (total > fetched) {
+              const start = new Date(postTimestamp).getTime();
+              // Find the maximum timestamp in the current visualization set to spread events naturally
+              let threadMaxTime = start;
+              threads.forEach((t) => {
+                if (t.post) {
+                  const pt = new Date(
+                    t.post.record?.createdAt || t.post.indexedAt,
+                  ).getTime();
+                  if (pt > threadMaxTime) threadMaxTime = pt;
+                }
+              });
+
+              // Ensure we spread at least over 2 hours if thread is very new
+              const spreadEnd = Math.max(
+                threadMaxTime,
+                start + 2 * 3600 * 1000,
+              );
+              const duration = spreadEnd - start;
+
+              // Cap synthetic events to 100 per post to prevent visual drowning
+              const missing = Math.min(total - fetched, 100);
+              for (let i = 0; i < missing; i++) {
+                const time = start + safeRandom() * duration;
+                const type = safeRandom() > 0.2 ? "like" : "repost";
+                this.timeline.addEvent(
+                  type,
+                  { did: "synthetic" },
+                  new Date(time).toISOString(),
+                  post.uri,
+                );
+              }
+            }
+          }
+        };
+        const walkThread = (thread, parentUri = null) => {
+          if (thread.post) {
+            processPost(thread.post, parentUri);
+            if (thread.replies)
+              for (const r of thread.replies) walkThread(r, thread.post.uri);
+          }
+        };
+        threads.forEach((t) => walkThread(t));
+        this.timeline.sort();
+        this.currentStep = 0;
+        this.updateUI();
+        this.visualize();
+        this.visualizer.startAutoTour();
+      }
+      setStatus(msg, isLoading = false) {
+        document.getElementById("status-message").textContent = msg;
+        document.getElementById("playback-bar").classList.remove("hidden");
+        const spinner = document.getElementById("loading-spinner");
+        if (spinner) {
+          if (isLoading) spinner.classList.remove("hidden");
+          else spinner.classList.add("hidden");
+        }
+        const init = document.getElementById("initial-status");
+        if (init && !init.classList.contains("hidden")) init.textContent = msg;
+      }
+      updatePlayPauseBtn() {
+        const btn = document.getElementById("play-pause-btn");
+        if (btn) {
+          btn.textContent = this.isPlaying ? " Pause" : " Play";
+          const emojiSpan = document.createElement("span");
+          emojiSpan.setAttribute("aria-hidden", "true");
+          emojiSpan.textContent = this.isPlaying ? "⏸️" : "▶️";
+          btn.prepend(emojiSpan);
+        }
+      }
+      toggleTour() {
+        if (this.visualizer.autoTour) {
+          this.visualizer.stopAutoTour();
+        } else {
+          this.visualizer.startAutoTour();
+        }
+      }
+      updateTourBtn(enabled) {
+        const btn = document.getElementById("tour-btn");
+        if (btn) {
+          btn.textContent = enabled ? " Tour: On" : " Tour: Off";
+          const emojiSpan = document.createElement("span");
+          emojiSpan.setAttribute("aria-hidden", "true");
+          emojiSpan.textContent = enabled ? "🔄" : "🛑";
+          btn.prepend(emojiSpan);
+        }
+      }
+      togglePlayback() {
+        this.isPlaying = !this.isPlaying;
+        this.updatePlayPauseBtn();
+        if (this.isPlaying) this.play();
+      }
+      play() {
+        if (!this.isPlaying) return;
+        const stepDelay = 50;
+        const now = Date.now();
+        if (!this.lastStepTime || now - this.lastStepTime > stepDelay) {
+          const events = this.timeline.events;
+          if (this.currentStep < events.length - 1) {
+            this.currentStep++;
+            const event = events[this.currentStep];
+            if (
+              (event.type === "like" || event.type === "repost") &&
+              event.parentId
+            )
+              this.visualizer.spawnInteractionParticle(
+                event.parentId,
+                event.type,
+              );
+            this.lastStepTime = now;
+            this.visualize();
+            this.updateUI();
+          } else {
+            this.isPlaying = false;
+            this.updatePlayPauseBtn();
+          }
+        }
+        if (this.isPlaying) requestAnimationFrame(() => this.play());
+      }
+      seek(percent) {
+        this.currentStep = Math.floor(
+          (percent / 1000) * (this.timeline.events.length - 1),
+        );
+        this.visualize();
+        this.updateUI();
+      }
+      visualize() {
+        const events = this.timeline.events;
+        if (events.length === 0) return;
+        for (const n of this.network.nodes.values()) {
+          n.metrics.likes = 0;
+          n.metrics.reposts = 0;
+        }
+        for (let i = 0; i <= this.currentStep; i++) {
+          const e = events[i];
+          if (e.type === "like" || e.type === "repost") {
+            const n = this.network.nodes.get(e.parentId);
+            if (n) {
+              if (e.type === "like") n.metrics.likes++;
+              else n.metrics.reposts++;
+            }
+          }
+        }
+        const visible = new Set();
+        for (let i = 0; i <= this.currentStep; i++) {
+          const e = events[i];
+          if (e.type === "root" || e.type === "reply" || e.type === "quote")
+            visible.add(e.id);
+        }
+        this.visualizer.update(this.network, visible);
+      }
+      updateUI() {
+        const slider = document.getElementById("time-slider");
+        const text = document.getElementById("time-text");
+        const total = this.timeline.events.length;
+        if (total > 0) {
+          slider.value = (this.currentStep / (total - 1)) * 1000;
+          const event = this.timeline.events[this.currentStep];
+          if (event) {
+            const d = new Date(event.time);
+            text.textContent = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+          }
+        }
+      }
+    }
+    window.blueSkynetApp = new AppController();
+  </script>
+</MetaOnlyLayout>
