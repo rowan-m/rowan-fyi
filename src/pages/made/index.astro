@@ -3,14 +3,10 @@ import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 
 // Glob static HTML-based glitch projects
-const staticItems = import.meta.glob("/public/made/*/index.html", {
-  eager: true,
-});
+const staticItems = import.meta.glob("/public/made/*/index.html");
 
 // Glob Astro-based projects
-const astroItems = import.meta.glob("/src/pages/made/*/index.astro", {
-  eager: true,
-});
+const astroItems = import.meta.glob("/src/pages/made/*/index.astro");
 
 // Map static items to layout-compatible format
 const staticList = Object.keys(staticItems).map((key) => {
