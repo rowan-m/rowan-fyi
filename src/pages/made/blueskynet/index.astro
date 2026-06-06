@@ -1447,14 +1447,10 @@ import previewImg from "./blueskynet-preview.jpg";
         this.timeline.sort();
         this.currentStep = 0;
 
-        // Calculate play step delay, capping total animation time to ~30 seconds for larger threads
-        const baseStepDelay = 50;
+        // Calculate play step delay so that the overall animation duration is constant at ~30 seconds
         const maxAnimationTime = 30000; // 30 seconds
         const totalSteps = this.timeline.events.length - 1;
-        this.stepDelay =
-          totalSteps > 0
-            ? Math.min(baseStepDelay, maxAnimationTime / totalSteps)
-            : baseStepDelay;
+        this.stepDelay = totalSteps > 0 ? maxAnimationTime / totalSteps : 50;
 
         this.updateUI();
         this.visualize();
