@@ -493,7 +493,7 @@ import previewImg from "./blueskynet-preview.jpg";
           75,
           window.innerWidth / window.innerHeight,
           0.1,
-          2000,
+          10000, // Increased far clipping plane to prevent large graph clipping
         );
         this.renderer = new THREE.WebGLRenderer({
           antialias: true,
