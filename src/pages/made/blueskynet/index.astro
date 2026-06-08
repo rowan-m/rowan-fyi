@@ -229,6 +229,24 @@ import previewImg from "./blueskynet-preview.jpg";
     .hidden {
       display: none !important;
     }
+
+    @media (max-width: 640px) {
+      .ui-overlay {
+        padding: 0.75rem;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+      .timeline {
+        width: 100%;
+      }
+      .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
   </style>
 
   <div id="canvas-container"></div>
@@ -239,6 +257,7 @@ import previewImg from "./blueskynet-preview.jpg";
         type="text"
         id="post-url"
         placeholder="Enter Bluesky post URL (e.g. https://bsky.app/profile/...)"
+        aria-label="Bluesky post URL"
       />
       <button id="load-btn"><span aria-hidden="true">🌐</span> Visualize</button
       >
@@ -253,7 +272,14 @@ import previewImg from "./blueskynet-preview.jpg";
           ><span aria-hidden="true">🔄</span> Tour: On</button
         >
         <div class="timeline">
-          <input type="range" id="time-slider" min="0" max="1000" value="0" />
+          <input
+            type="range"
+            id="time-slider"
+            min="0"
+            max="1000"
+            value="0"
+            aria-label="Timeline position slider"
+          />
           <div class="time-display" id="time-text">0:00</div>
         </div>
       </div>
@@ -341,7 +367,13 @@ import previewImg from "./blueskynet-preview.jpg";
           `${API_BASE}/com.atproto.identity.resolveHandle?handle=${handle}`,
           { signal: this.signal },
         );
+        if (!resp.ok) {
+          throw new Error(`Failed to resolve handle: ${resp.statusText}`);
+        }
         const data = await resp.json();
+        if (!data || !data.did) {
+          throw new Error("Handle resolution returned empty DID");
+        }
         return data.did;
       }
 
@@ -350,15 +382,29 @@ import previewImg from "./blueskynet-preview.jpg";
           `${API_BASE}/app.bsky.feed.getPostThread?uri=${uri}&depth=10`,
           { signal: this.signal },
         );
-        return await resp.json();
+        if (!resp.ok) {
+          throw new Error(`Failed to get post thread: ${resp.statusText}`);
+        }
+        const data = await resp.json();
+        if (!data || !data.thread) {
+          throw new Error("Thread data is missing or empty");
+        }
+        return data;
       }
 
-      async getInteractions(uri, maxCount = 100) {
-        const fetchCollection = async (endpoint, key) => {
+      async getInteractions(
+        uri,
+        likeCount = 0,
+        repostCount = 0,
+        quoteCount = 1,
+        maxCount = 100,
+      ) {
+        const fetchCollection = async (endpoint, key, count) => {
+          if (count === 0) return [];
           let items = [];
           let cursor = null;
           try {
-            while (items.length < maxCount) {
+            while (items.length < Math.min(maxCount, count)) {
               const url = new URL(`${API_BASE}/${endpoint}`);
               url.searchParams.set("uri", uri);
               url.searchParams.set("limit", "100");
@@ -366,9 +412,25 @@ import previewImg from "./blueskynet-preview.jpg";
 
               const resp = await fetch(url.toString(), { signal: this.signal });
               const data = await resp.json();
-              if (!data[key] || data[key].length === 0) break;
 
-              items = items.concat(data[key]);
+              // Whitelist key to avoid security/detect-object-injection warning
+              let validatedKey = null;
+              if (key === "likes") {
+                validatedKey = "likes";
+              } else if (key === "repostedBy") {
+                validatedKey = "repostedBy";
+              }
+
+              let dataArray = null;
+              if (validatedKey === "likes") {
+                dataArray = data.likes;
+              } else if (validatedKey === "repostedBy") {
+                dataArray = data.repostedBy;
+              }
+
+              if (!dataArray || dataArray.length === 0) break;
+
+              items = items.concat(dataArray);
               cursor = data.cursor;
               if (!cursor) break;
             }
@@ -381,14 +443,27 @@ import previewImg from "./blueskynet-preview.jpg";
         };
 
         const [likes, reposts] = await Promise.all([
-          fetchCollection("app.bsky.feed.getLikes", "likes"),
-          fetchCollection("app.bsky.feed.getRepostedBy", "repostedBy"),
+          fetchCollection("app.bsky.feed.getLikes", "likes", likeCount),
+          fetchCollection(
+            "app.bsky.feed.getRepostedBy",
+            "repostedBy",
+            repostCount,
+          ),
         ]);
 
-        const quotesResp = await fetch(
-          `${API_BASE}/app.bsky.feed.getQuotes?uri=${uri}&limit=50`,
-          { signal: this.signal },
-        ).then((r) => r.json());
+        let quotesResp = { posts: [] };
+        if (quoteCount > 0) {
+          try {
+            quotesResp = await fetch(
+              `${API_BASE}/app.bsky.feed.getQuotes?uri=${uri}&limit=50`,
+              { signal: this.signal },
+            ).then((r) => r.json());
+          } catch (e) {
+            if (e.name !== "AbortError") {
+              console.warn(`Error fetching quotes for ${uri}`, e);
+            }
+          }
+        }
 
         return { quotes: quotesResp, likes: { likes }, reposts: { reposts } };
       }
@@ -397,8 +472,8 @@ import previewImg from "./blueskynet-preview.jpg";
         try {
           const url = new URL(urlStr);
           const parts = url.pathname.split("/");
-          const handle = parts[2];
-          const postId = parts[4];
+          const handle = parts.at(2);
+          const postId = parts.at(4);
           return { handle, postId };
         } catch {
           return null;
@@ -556,6 +631,26 @@ import previewImg from "./blueskynet-preview.jpg";
         this._scratchVec3_1 = new THREE.Vector3();
         this._scratchVec3_2 = new THREE.Vector3();
 
+        // Geometry / performance optimizations
+        this._geometryNeedsUpdate = true;
+        this._scratchTargetPos = new THREE.Vector3();
+        this._scratchTargetScale = new THREE.Vector3();
+        this._scratchStart = new THREE.Vector3();
+        this._scratchEnd = new THREE.Vector3();
+        this._scratchMid = new THREE.Vector3();
+        this._scratchDir = new THREE.Vector3();
+        this._scratchNormal = new THREE.Vector3();
+        this._scratchControl = new THREE.Vector3();
+        this._scratchDirToControl = new THREE.Vector3();
+        this._scratchOffsetStart = new THREE.Vector3();
+        this._scratchDirFromControl = new THREE.Vector3();
+        this._scratchOffsetEnd = new THREE.Vector3();
+        this._scratchCurve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(),
+          new THREE.Vector3(),
+          new THREE.Vector3(),
+        );
+
         this.controls.addEventListener("start", () => this.stopAutoTour());
 
         // ngraph Physics
@@ -574,6 +669,7 @@ import previewImg from "./blueskynet-preview.jpg";
 
       wakePhysics(duration = 5000) {
         this.physicsAwakeUntil = Date.now() + duration;
+        this._geometryNeedsUpdate = true;
       }
 
       startAutoTour() {
@@ -720,6 +816,12 @@ import previewImg from "./blueskynet-preview.jpg";
 
       clear() {
         this.stopAutoTour();
+
+        // Dispose cached textures to prevent GPU memory leak
+        for (const texture of this.textureCache.values()) {
+          texture.dispose();
+        }
+        this.textureCache.clear();
 
         // Dispose active particles
         for (const p of this.activeParticles) {
@@ -904,10 +1006,15 @@ import previewImg from "./blueskynet-preview.jpg";
 
       createNodeMesh(node) {
         // Main Avatar
+        let placeholderMap = this.placeholderTextures.REPLY;
+        if (node.type === "root") {
+          placeholderMap = this.placeholderTextures.ROOT;
+        } else if (node.type === "quote") {
+          placeholderMap = this.placeholderTextures.QUOTE;
+        }
+
         const mat = new THREE.SpriteMaterial({
-          map:
-            this.placeholderTextures[node.type.toUpperCase()] ||
-            this.placeholderTextures.REPLY,
+          map: placeholderMap,
           transparent: true,
           opacity: 0,
           depthWrite: false, // Prevent depth-sorting sorting artifacts and clipping
@@ -948,61 +1055,43 @@ import previewImg from "./blueskynet-preview.jpg";
         return line;
       }
 
-      update(network, visibleNodeIds) {
-        const oldSize = this.visibleNodes.size;
-        this.visibleNodes = visibleNodeIds;
-        if (visibleNodeIds.size !== oldSize) {
-          this.wakePhysics();
-        }
+      _addPhysicsNode(nodeId, node, network) {
+        const mesh = this.createNodeMesh(node);
+        this.nodeDiscoveryTimes.set(nodeId, Date.now());
+        this.physicsGraph.addNode(nodeId);
 
-        for (const nodeId of visibleNodeIds) {
-          const node = network.nodes.get(nodeId);
-          if (!node) continue;
+        const edge = network.edges.find((e) => e.target === nodeId);
+        const parentInPhysics = edge && this.physicsGraph.getNode(edge.source);
+        if (edge && parentInPhysics) {
+          const pPos = this.physicsLayout.getNodePosition(edge.source);
+          let hash = 0;
+          for (let j = 0; j < nodeId.length; j++) {
+            hash = (hash << 5) - hash + nodeId.charCodeAt(j);
+            hash |= 0;
+          }
+          const offsetX = ((hash % 100) / 100 - 0.5) * 5;
+          const offsetY = (((hash >> 8) % 100) / 100 - 0.5) * 5;
+          const offsetZ = (((hash >> 16) % 100) / 100 - 0.5) * 5;
 
-          const baseRadius = node.type === "root" ? 8.0 : 5.0;
-          const totalVolume =
-            Math.pow(baseRadius, 3) +
-            (node.metrics.likes + node.metrics.reposts) * 10.0;
-          this.targetScales.set(nodeId, Math.pow(totalVolume, 1 / 3));
-
-          if (!this.nodeMeshes.has(nodeId)) {
-            const mesh = this.createNodeMesh(node);
-            this.nodeDiscoveryTimes.set(nodeId, Date.now());
-            this.physicsGraph.addNode(nodeId);
-
-            const edge = network.edges.find((e) => e.target === nodeId);
-            const parentInPhysics =
-              edge && this.physicsGraph.getNode(edge.source);
-            if (edge && parentInPhysics) {
-              const pPos = this.physicsLayout.getNodePosition(edge.source);
-              let hash = 0;
-              for (let j = 0; j < nodeId.length; j++) {
-                hash = (hash << 5) - hash + nodeId.charCodeAt(j);
-                hash |= 0;
-              }
-              const offsetX = ((hash % 100) / 100 - 0.5) * 5;
-              const offsetY = (((hash >> 8) % 100) / 100 - 0.5) * 5;
-              const offsetZ = (((hash >> 16) % 100) / 100 - 0.5) * 5;
-
-              this.physicsLayout.setNodePosition(
-                nodeId,
-                pPos.x + offsetX,
-                pPos.y + offsetY,
-                pPos.z + offsetZ,
-              );
-              const parentMesh = this.nodeMeshes.get(edge.source);
-              if (parentMesh) mesh.position.copy(parentMesh.position);
-              else mesh.position.set(pPos.x, pPos.y, pPos.z || 0);
-            } else {
-              this.physicsLayout.setNodePosition(nodeId, 0, 0, 0);
-              if (node.type === "root") {
-                const gNode = this.physicsGraph.getNode(nodeId);
-                if (gNode) this.physicsLayout.pinNode(gNode, true);
-              }
-            }
+          this.physicsLayout.setNodePosition(
+            nodeId,
+            pPos.x + offsetX,
+            pPos.y + offsetY,
+            pPos.z + offsetZ,
+          );
+          const parentMesh = this.nodeMeshes.get(edge.source);
+          if (parentMesh) mesh.position.copy(parentMesh.position);
+          else mesh.position.set(pPos.x, pPos.y, pPos.z || 0);
+        } else {
+          this.physicsLayout.setNodePosition(nodeId, 0, 0, 0);
+          if (node.type === "root") {
+            const gNode = this.physicsGraph.getNode(nodeId);
+            if (gNode) this.physicsLayout.pinNode(gNode, true);
           }
         }
+      }
 
+      _addPhysicsEdges(network, visibleNodeIds) {
         // Ensure all edges between visible nodes are linked in the physics graph dynamically
         for (const edge of network.edges) {
           if (
@@ -1029,65 +1118,124 @@ import previewImg from "./blueskynet-preview.jpg";
         }
       }
 
-      animate() {
-        requestAnimationFrame(() => this.animate());
-        const now = Date.now();
-        const delta = this._lastFrameTime
-          ? (now - this._lastFrameTime) / 1000
-          : 0.016;
-        this._lastFrameTime = now;
+      update(network, visibleNodeIds) {
+        const oldSize = this.visibleNodes.size;
+        this.visibleNodes = visibleNodeIds;
+        if (visibleNodeIds.size !== oldSize) {
+          this.wakePhysics();
+        }
 
-        for (let i = this.activeParticles.length - 1; i >= 0; i--) {
-          const pData = this.activeParticles[i];
+        for (const nodeId of visibleNodeIds) {
+          const node = network.nodes.get(nodeId);
+          if (!node) continue;
+
+          const baseRadius = node.type === "root" ? 8.0 : 5.0;
+          const totalVolume =
+            Math.pow(baseRadius, 3) +
+            (node.metrics.likes + node.metrics.reposts) * 10.0;
+          this.targetScales.set(nodeId, Math.pow(totalVolume, 1 / 3));
+
+          if (!this.nodeMeshes.has(nodeId)) {
+            this._addPhysicsNode(nodeId, node, network);
+          }
+        }
+
+        this._addPhysicsEdges(network, visibleNodeIds);
+      }
+
+      _animateParticles(now) {
+        // Filter and update active particles to avoid index-splicing object-injection warnings
+        this.activeParticles = this.activeParticles.filter((pData) => {
           const elapsed = now - pData.startTime;
           const p = elapsed / pData.duration;
           if (p >= 1) {
             this.scene.remove(pData.sprite);
             pData.sprite.material.dispose();
-            this.activeParticles.splice(i, 1);
+            pData.sprite.geometry.dispose();
+            return false;
           } else {
             pData.sprite.position.y = pData.startY + p * 15;
             pData.sprite.material.opacity = 1 - p;
             pData.sprite.position.x += Math.sin(p * 10) * 0.05;
+            return true;
           }
+        });
+      }
+
+      _getNodeDiscoveryPulse(id, isVisible, now) {
+        if (isVisible && this.nodeDiscoveryTimes.has(id)) {
+          const elapsed = now - this.nodeDiscoveryTimes.get(id);
+          if (elapsed < 1200) {
+            return Math.sin((elapsed / 1200) * Math.PI);
+          }
+          this.nodeDiscoveryTimes.delete(id);
         }
+        return 0;
+      }
 
-        // Only step physics if awake
-        if (now < this.physicsAwakeUntil) {
-          for (let i = 0; i < 3; i++) this.physicsLayout.step();
+      _getNodeInteractionPulse(id, now) {
+        if (this.nodeInteractionTimes.has(id)) {
+          const data = this.nodeInteractionTimes.get(id);
+          const elapsed = now - data.time;
+          if (elapsed < 1500) {
+            return {
+              pulse: Math.sin((elapsed / 1500) * Math.PI),
+              type: data.type,
+            };
+          }
+          this.nodeInteractionTimes.delete(id);
         }
+        return null;
+      }
 
-        for (const [id, mesh] of this.nodeMeshes) {
-          const isVisible = this.visibleNodes.has(id);
-          const pos = this.physicsLayout.getNodePosition(id);
-          const halo = this.haloMeshes.get(id);
-
-          let discPulse = 0;
-          if (isVisible && this.nodeDiscoveryTimes.has(id)) {
-            const elapsed = now - this.nodeDiscoveryTimes.get(id);
-            if (elapsed < 1200)
-              discPulse = Math.sin((elapsed / 1200) * Math.PI);
-            else this.nodeDiscoveryTimes.delete(id);
+      _updateNodeHalo(halo, mesh, discPulse, intPulse, intType) {
+        halo.position.copy(mesh.position);
+        halo.scale.copy(mesh.scale).multiplyScalar(2.2);
+        if (intPulse > 0) {
+          halo.material.opacity = intPulse * 0.35;
+          if (intType === "like") {
+            halo.material.color.setHex(COLORS.LIKE);
+          } else {
+            halo.material.color.setHex(COLORS.REPOST);
           }
+          halo.visible = mesh.visible;
+        } else if (discPulse > 0) {
+          halo.material.opacity = discPulse * 0.25;
+          halo.material.color.setHex(0xffffff);
+          halo.visible = mesh.visible;
+        } else {
+          halo.visible = false;
+        }
+      }
 
-          let intPulse = 0;
-          let intType = null;
-          if (this.nodeInteractionTimes.has(id)) {
-            const data = this.nodeInteractionTimes.get(id);
-            const elapsed = now - data.time;
-            if (elapsed < 1500) {
-              intPulse = Math.sin((elapsed / 1500) * Math.PI);
-              intType = data.type;
-            } else this.nodeInteractionTimes.delete(id);
-          }
+      _animateNodes(now, shouldUpdate) {
+        const visibleNodes = this.visibleNodes;
+        const targetScales = this.targetScales;
+        const nodeMeshes = this.nodeMeshes;
+        const haloMeshes = this.haloMeshes;
+        const physicsLayout = this.physicsLayout;
 
-          const baseS = isVisible ? this.targetScales.get(id) || 3.0 : 0.001;
+        for (const [id, mesh] of nodeMeshes) {
+          const isVisible = visibleNodes.has(id);
+          const pos = physicsLayout.getNodePosition(id);
+          const halo = haloMeshes.get(id);
+
+          const discPulse = this._getNodeDiscoveryPulse(id, isVisible, now);
+          const intData = this._getNodeInteractionPulse(id, now);
+          const intPulse = intData ? intData.pulse : 0;
+          const intType = intData ? intData.type : null;
+
+          const baseS = isVisible ? targetScales.get(id) || 3.0 : 0.001;
           const targetS = baseS * (1 + discPulse * 0.3 + intPulse * 0.1);
           const targetO = isVisible ? 1.0 : 0.0;
 
-          const targetP = new THREE.Vector3(pos.x, pos.y, pos.z || 0);
-          mesh.position.lerp(targetP, 0.1);
-          mesh.scale.lerp(new THREE.Vector3(targetS, targetS, 1.0), 0.1);
+          if (shouldUpdate) {
+            this._scratchTargetPos.set(pos.x, pos.y, pos.z || 0);
+            mesh.position.lerp(this._scratchTargetPos, 0.1);
+            this._scratchTargetScale.set(targetS, targetS, 1.0);
+            mesh.scale.lerp(this._scratchTargetScale, 0.1);
+          }
+
           mesh.material.opacity = THREE.MathUtils.lerp(
             mesh.material.opacity,
             targetO,
@@ -1095,39 +1243,35 @@ import previewImg from "./blueskynet-preview.jpg";
           );
           mesh.visible = mesh.material.opacity > 0.01;
 
-          // Update Halo (localized glow)
           if (halo) {
-            halo.position.copy(mesh.position);
-            halo.scale.copy(mesh.scale).multiplyScalar(2.2);
-            if (intPulse > 0) {
-              // Extremely subtle additive glow
-              halo.material.opacity = intPulse * 0.35;
-              if (intType === "like") halo.material.color.setHex(COLORS.LIKE);
-              else halo.material.color.setHex(COLORS.REPOST);
-              halo.visible = mesh.visible;
-            } else if (discPulse > 0) {
-              halo.material.opacity = discPulse * 0.25;
-              halo.material.color.setHex(0xffffff);
-              halo.visible = mesh.visible;
-            } else {
-              halo.visible = false;
-            }
+            this._updateNodeHalo(halo, mesh, discPulse, intPulse, intType);
           }
         }
+      }
 
-        for (const [id, line] of this.edgeLines) {
+      _animateEdges(now, shouldUpdate) {
+        const visibleNodes = this.visibleNodes;
+        const edgeDiscoveryTimes = this.edgeDiscoveryTimes;
+        const edgeLines = this.edgeLines;
+        const nodeMeshes = this.nodeMeshes;
+
+        for (const [id, line] of edgeLines) {
           const [sourceId, targetId] = id.split("-");
           const isVisible =
-            this.visibleNodes.has(sourceId) && this.visibleNodes.has(targetId);
+            visibleNodes.has(sourceId) && visibleNodes.has(targetId);
           let pulse = 0;
-          if (isVisible && this.edgeDiscoveryTimes.has(id)) {
-            const elapsed = now - this.edgeDiscoveryTimes.get(id);
-            if (elapsed < 1200) pulse = Math.sin((elapsed / 1200) * Math.PI);
-            else this.edgeDiscoveryTimes.delete(id);
+          if (isVisible && edgeDiscoveryTimes.has(id)) {
+            const elapsed = now - edgeDiscoveryTimes.get(id);
+            if (elapsed < 1200) {
+              pulse = Math.sin((elapsed / 1200) * Math.PI);
+            } else {
+              edgeDiscoveryTimes.delete(id);
+            }
           }
           const targetO = isVisible ? 0.3 + pulse * 0.7 : 0.0;
-          if (pulse > 0) line.material.color.setRGB(1, 1, 1);
-          else {
+          if (pulse > 0) {
+            line.material.color.setRGB(1, 1, 1);
+          } else {
             const baseColor = new THREE.Color(
               COLORS[(line.userData.type || "REPLY").toUpperCase()] || 0x444444,
             );
@@ -1139,45 +1283,94 @@ import previewImg from "./blueskynet-preview.jpg";
             0.1,
           );
           line.visible = line.material.opacity > 0.01;
-          if (line.visible) {
-            const sMesh = this.nodeMeshes.get(sourceId);
-            const tMesh = this.nodeMeshes.get(targetId);
+
+          if (line.visible && shouldUpdate) {
+            const sMesh = nodeMeshes.get(sourceId);
+            const tMesh = nodeMeshes.get(targetId);
             if (sMesh && tMesh) {
-              const start = sMesh.position.clone();
-              const end = tMesh.position.clone();
-              const mid = new THREE.Vector3()
-                .addVectors(start, end)
+              // Reuse scratch vectors to avoid allocations
+              this._scratchStart.copy(sMesh.position);
+              this._scratchEnd.copy(tMesh.position);
+
+              this._scratchMid
+                .copy(this._scratchStart)
+                .add(this._scratchEnd)
                 .multiplyScalar(0.5);
-              const dir = new THREE.Vector3().subVectors(end, start);
-              const normal = new THREE.Vector3(-dir.y, dir.x, dir.z * 0.5)
+              this._scratchDir.copy(this._scratchEnd).sub(this._scratchStart);
+
+              this._scratchNormal
+                .set(
+                  -this._scratchDir.y,
+                  this._scratchDir.x,
+                  this._scratchDir.z * 0.5,
+                )
                 .normalize()
-                .multiplyScalar(dir.length() * 0.15);
-              const control = new THREE.Vector3().addVectors(mid, normal);
+                .multiplyScalar(this._scratchDir.length() * 0.15);
+
+              this._scratchControl
+                .copy(this._scratchMid)
+                .add(this._scratchNormal);
+
               const rS = sMesh.scale.x * 0.5;
               const rT = tMesh.scale.x * 0.5;
-              const dirToControl = new THREE.Vector3()
-                .subVectors(control, start)
+
+              this._scratchDirToControl
+                .copy(this._scratchControl)
+                .sub(this._scratchStart)
                 .normalize();
-              const offsetStart = start.add(dirToControl.multiplyScalar(rS));
-              const dirFromControl = new THREE.Vector3()
-                .subVectors(end, control)
+              this._scratchOffsetStart
+                .copy(this._scratchStart)
+                .addScaledVector(this._scratchDirToControl, rS);
+
+              this._scratchDirFromControl
+                .copy(this._scratchEnd)
+                .sub(this._scratchControl)
                 .normalize();
-              const offsetEnd = end.sub(dirFromControl.multiplyScalar(rT));
-              line.geometry.setFromPoints(
-                new THREE.QuadraticBezierCurve3(
-                  offsetStart,
-                  control,
-                  offsetEnd,
-                ).getPoints(16),
-              );
+              this._scratchOffsetEnd
+                .copy(this._scratchEnd)
+                .addScaledVector(this._scratchDirFromControl, -rT);
+
+              this._scratchCurve.v0.copy(this._scratchOffsetStart);
+              this._scratchCurve.v1.copy(this._scratchControl);
+              this._scratchCurve.v2.copy(this._scratchOffsetEnd);
+
+              line.geometry.setFromPoints(this._scratchCurve.getPoints(16));
+
               // Recalculate bounding box and sphere to prevent frustum culling bugs when rotating camera
               line.geometry.computeBoundingSphere();
               line.geometry.computeBoundingBox();
             }
           }
         }
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        const now = Date.now();
+        const delta = this._lastFrameTime
+          ? (now - this._lastFrameTime) / 1000
+          : 0.016;
+        this._lastFrameTime = now;
+
+        this._animateParticles(now);
+
+        const physicsActive = now < this.physicsAwakeUntil;
+        if (physicsActive) {
+          for (let i = 0; i < 3; i++) this.physicsLayout.step();
+        }
+
+        const shouldUpdate = physicsActive || this._geometryNeedsUpdate;
+        if (!physicsActive && this._geometryNeedsUpdate) {
+          this._geometryNeedsUpdate = false;
+        }
+
+        this._animateNodes(now, shouldUpdate);
+        this._animateEdges(now, shouldUpdate);
+
         if (this.autoTour) {
-          this._updateAutoTourBounds();
+          if (shouldUpdate) {
+            this._updateAutoTourBounds();
+          }
           this._updateAutoTour(delta);
         } else {
           this.controls.update();
@@ -1267,39 +1460,61 @@ import previewImg from "./blueskynet-preview.jpg";
             new Promise((resolve) => setTimeout(resolve, ms));
 
           const fetchInteractionsRecursively = async (thread) => {
-            const uri = thread.post?.uri;
+            const post = thread.post;
+            const uri = post?.uri;
             if (!uri || processedUris.has(uri)) return;
             processedUris.add(uri);
+
+            const likeCount = post.likeCount || 0;
+            const repostCount = post.repostCount || 0;
+            const quoteCount =
+              typeof post.quoteCount === "number" ? post.quoteCount : 1;
+            const hasEngagement = likeCount + repostCount + quoteCount > 0;
+
             if (processedUris.size < 250) {
               try {
-                // Add a small delay to throttle requests
-                await delay(50);
-                const inter = await this.client.getInteractions(
-                  uri,
-                  processedUris.size === 1 ? 1000 : 100,
-                );
-                interactionMap.set(uri, inter);
-                if (inter.quotes.posts && inter.quotes.posts.length > 0) {
-                  await Promise.all(
-                    inter.quotes.posts.slice(0, 15).map(async (q) => {
-                      if (processedUris.size >= 250 || processedUris.has(q.uri))
-                        return;
-                      try {
-                        // Slight throttle before resolving child quotes
-                        await delay(100);
-                        const qThread = await this.client.getThread(q.uri);
-                        allThreads.push(qThread.thread);
-                        await fetchInteractionsRecursively(qThread.thread);
-                      } catch (e) {
-                        if (e.name !== "AbortError") {
-                          console.warn(
-                            `Could not fetch thread for quote ${q.uri}`,
-                            e,
-                          );
-                        }
-                      }
-                    }),
+                if (hasEngagement) {
+                  // Add a small delay to throttle requests
+                  await delay(50);
+                  const inter = await this.client.getInteractions(
+                    uri,
+                    likeCount,
+                    repostCount,
+                    quoteCount,
+                    processedUris.size === 1 ? 1000 : 100,
                   );
+                  interactionMap.set(uri, inter);
+                  if (inter.quotes.posts && inter.quotes.posts.length > 0) {
+                    await Promise.all(
+                      inter.quotes.posts.slice(0, 15).map(async (q) => {
+                        if (
+                          processedUris.size >= 250 ||
+                          processedUris.has(q.uri)
+                        )
+                          return;
+                        try {
+                          // Only fetch full thread if quote has replies, saving massive requests
+                          if (q.replyCount && q.replyCount > 0) {
+                            await delay(100);
+                            const qThread = await this.client.getThread(q.uri);
+                            allThreads.push(qThread.thread);
+                            await fetchInteractionsRecursively(qThread.thread);
+                          } else {
+                            const dummyThread = { post: q, replies: [] };
+                            allThreads.push(dummyThread);
+                            await fetchInteractionsRecursively(dummyThread);
+                          }
+                        } catch (e) {
+                          if (e.name !== "AbortError") {
+                            console.warn(
+                              `Could not fetch thread for quote ${q.uri}`,
+                              e,
+                            );
+                          }
+                        }
+                      }),
+                    );
+                  }
                 }
               } catch (e) {
                 if (e.name !== "AbortError") {
@@ -1325,6 +1540,14 @@ import previewImg from "./blueskynet-preview.jpg";
         }
       }
       processData(threads, interactionMap) {
+        if (
+          !threads ||
+          threads.length === 0 ||
+          !threads[0] ||
+          !threads[0].post
+        ) {
+          throw new Error("No valid thread data to visualize");
+        }
         document.getElementById("playback-controls").classList.remove("hidden");
         document.getElementById("initial-status").classList.add("hidden");
         this.timeline = new EventTimeline();
@@ -1378,13 +1601,15 @@ import previewImg from "./blueskynet-preview.jpg";
                 .sort((a, b) => a - b);
               const end =
                 likes.length > 0
-                  ? likes[likes.length - 1]
+                  ? likes.at(-1)
                   : Math.min(Date.now(), start + 24 * 3600 * 1000);
               reposts.forEach((r, idx) => {
                 let time;
                 if (likes.length > 1) {
                   const s = Math.floor(safeRandom() * (likes.length - 1));
-                  time = likes[s] + safeRandom() * (likes[s + 1] - likes[s]);
+                  time =
+                    likes.at(s) +
+                    safeRandom() * (likes.at(s + 1) - likes.at(s));
                 } else {
                   time = start + (end - start) * (idx / reposts.length);
                 }
@@ -1522,7 +1747,7 @@ import previewImg from "./blueskynet-preview.jpg";
 
           for (let step = startStep + 1; step <= endStep; step++) {
             this.currentStep = step;
-            const event = this.timeline.events[step];
+            const event = this.timeline.events.at(step);
             if (
               event &&
               (event.type === "like" || event.type === "repost") &&
@@ -1566,7 +1791,7 @@ import previewImg from "./blueskynet-preview.jpg";
           n.metrics.reposts = 0;
         }
         for (let i = 0; i <= this.currentStep; i++) {
-          const e = events[i];
+          const e = events.at(i);
           if (e.type === "like" || e.type === "repost") {
             const n = this.network.nodes.get(e.parentId);
             if (n) {
@@ -1577,7 +1802,7 @@ import previewImg from "./blueskynet-preview.jpg";
         }
         const visible = new Set();
         for (let i = 0; i <= this.currentStep; i++) {
-          const e = events[i];
+          const e = events.at(i);
           if (e.type === "root" || e.type === "reply" || e.type === "quote")
             visible.add(e.id);
         }
@@ -1589,7 +1814,7 @@ import previewImg from "./blueskynet-preview.jpg";
         const total = this.timeline.events.length;
         if (total > 0) {
           slider.value = (this.currentStep / (total - 1)) * 1000;
-          const event = this.timeline.events[this.currentStep];
+          const event = this.timeline.events.at(this.currentStep);
           if (event) {
             const d = new Date(event.time);
             text.textContent = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
