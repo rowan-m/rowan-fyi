@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-// The optimized URL parser logic from src/pages/made/blueskynet/index.astro
+// The optimized URL parser logic from src/pages/made/linkage/index.astro
 function parseUrl(urlInput: string) {
   try {
     const regexMatch = urlInput.match(/profile\/([^/]+)\/post\/([^/?#\s]+)/);
@@ -45,7 +45,7 @@ function parseMastodonUrl(inputUrl: string) {
   }
 }
 
-describe("BlueSkynet URL Parser", () => {
+describe("LinkAge URL Parser", () => {
   test("successfully parses standard Bluesky post URL", () => {
     const url = "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h";
     const result = parseUrl(url);

@@ -1,15 +1,15 @@
 ---
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
-import previewImg from "./blueskynet-preview.jpg";
+import previewImg from "./linkage-preview.jpg";
 ---
 
 <MetaOnlyLayout
-  title="BlueSkynet"
+  title="LinkAge"
   description="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
 >
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="BlueSkynet" />
+  <meta property="og:title" content="LinkAge" />
   <meta
     property="og:description"
     content="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
@@ -25,7 +25,7 @@ import previewImg from "./blueskynet-preview.jpg";
     property="twitter:url"
     content={new URL(Astro.url.pathname, Astro.site)}
   />
-  <meta name="twitter:title" content="BlueSkynet" />
+  <meta name="twitter:title" content="LinkAge" />
   <meta
     name="twitter:description"
     content="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
@@ -307,7 +307,7 @@ import previewImg from "./blueskynet-preview.jpg";
 
       <footer class="app-footer">
         <a
-          href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/blueskynet"
+          href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/linkage"
           target="_blank"
           rel="noopener"><span aria-hidden="true">🧑‍💻</span> Code</a
         >
@@ -1565,7 +1565,7 @@ import previewImg from "./blueskynet-preview.jpg";
         this.client.reset();
         this.mastodonClient.reset();
         this.visualizer.clear();
-        document.title = "BlueSkynet";
+        document.title = "LinkAge";
 
         if (isMastodon) {
           await this.loadMastodon(parsedMastodon);
@@ -1836,7 +1836,7 @@ import previewImg from "./blueskynet-preview.jpg";
 
         // Dynamically append the author's handle to the browser tab title
         if (rootPost.author?.handle) {
-          document.title = `BlueSkynet - @${rootPost.author.handle}`;
+          document.title = `LinkAge - @${rootPost.author.handle}`;
         }
 
         this.timeline.setStart(
@@ -2110,6 +2110,6 @@ import previewImg from "./blueskynet-preview.jpg";
         }
       }
     }
-    window.blueSkynetApp = new AppController();
+    window.linkAgeApp = new AppController();
   </script>
 </MetaOnlyLayout>
