@@ -1,18 +1,45 @@
 import { describe, expect, test } from "vitest";
 
 // The optimized URL parser logic from src/pages/made/blueskynet/index.astro
-function parseUrl(urlStr: string) {
+function parseUrl(urlInput: string) {
   try {
-    // Robust regex to extract handle and postId regardless of trailing slashes, sub-paths, or query params
-    const match = urlStr.match(/profile\/([^/]+)\/post\/([^/?#\s]+)/);
-    if (match) {
-      return { handle: match[1], postId: match[2] };
+    const regexMatch = urlInput.match(/profile\/([^/]+)\/post\/([^/?#\s]+)/);
+    if (regexMatch) {
+      return { handle: regexMatch[1], postId: regexMatch[2] };
     }
-    const url = new URL(urlStr);
-    const parts = url.pathname.split("/");
-    const handle = parts.at(2);
-    const postId = parts.at(4);
-    return { handle, postId };
+    const parsedUrl = new URL(urlInput);
+    const segments = parsedUrl.pathname.split("/");
+    return {
+      handle: segments.at(2),
+      postId: segments.at(4),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseMastodonUrl(inputUrl: string) {
+  try {
+    const parsed = new URL(inputUrl);
+    const host = parsed.hostname;
+    const path = parsed.pathname;
+
+    const regexAt = path.match(/\/@([^/]+)\/([^/?#\s]+)/);
+    if (regexAt) {
+      return { domain: host, handle: regexAt[1], statusId: regexAt[2] };
+    }
+
+    const regexUsers = path.match(/\/users\/([^/]+)\/statuses\/([^/?#\s]+)/);
+    if (regexUsers) {
+      return { domain: host, handle: regexUsers[1], statusId: regexUsers[2] };
+    }
+
+    const regexWeb = path.match(/\/(?:web\/)?statuses\/([^/?#\s]+)/);
+    if (regexWeb) {
+      return { domain: host, handle: null, statusId: regexWeb[1] };
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -81,5 +108,53 @@ describe("BlueSkynet URL Parser", () => {
       handle: "user",
       postId: "999",
     });
+  });
+});
+
+describe("Mastodon URL Parser", () => {
+  test("successfully parses standard Mastodon post URL with @username", () => {
+    const url = "https://mastodon.social/@rowan_m/116640742340950964";
+    const result = parseMastodonUrl(url);
+    expect(result).toEqual({
+      domain: "mastodon.social",
+      handle: "rowan_m",
+      statusId: "116640742340950964",
+    });
+  });
+
+  test("successfully parses Mastodon post URL with sub-domain and query parameters", () => {
+    const url = "https://sub.domain.social/@username/123456?ref=embed";
+    const result = parseMastodonUrl(url);
+    expect(result).toEqual({
+      domain: "sub.domain.social",
+      handle: "username",
+      statusId: "123456",
+    });
+  });
+
+  test("successfully parses Mastodon activitypub standard users style post URL", () => {
+    const url = "https://mastodon.social/users/username/statuses/12345678";
+    const result = parseMastodonUrl(url);
+    expect(result).toEqual({
+      domain: "mastodon.social",
+      handle: "username",
+      statusId: "12345678",
+    });
+  });
+
+  test("successfully parses Mastodon web statuses style post URL", () => {
+    const url = "https://mastodon.social/web/statuses/987654321";
+    const result = parseMastodonUrl(url);
+    expect(result).toEqual({
+      domain: "mastodon.social",
+      handle: null,
+      statusId: "987654321",
+    });
+  });
+
+  test("returns null for completely invalid URLs", () => {
+    const url = "not-a-valid-url";
+    const result = parseMastodonUrl(url);
+    expect(result).toBeNull();
   });
 });

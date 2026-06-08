@@ -5,14 +5,14 @@ import previewImg from "./blueskynet-preview.jpg";
 
 <MetaOnlyLayout
   title="BlueSkynet"
-  description="Pick a post, any Bluesky post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
+  description="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
 >
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="BlueSkynet" />
   <meta
     property="og:description"
-    content="Pick a post, any Bluesky post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
+    content="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
   />
   <meta
     name="image"
@@ -28,7 +28,7 @@ import previewImg from "./blueskynet-preview.jpg";
   <meta name="twitter:title" content="BlueSkynet" />
   <meta
     name="twitter:description"
-    content="Pick a post, any Bluesky post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
+    content="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
   />
   <meta name="twitter:image" content={new URL(previewImg.src, Astro.site)} />
 
@@ -271,8 +271,8 @@ import previewImg from "./blueskynet-preview.jpg";
       <input
         type="text"
         id="post-url"
-        placeholder="Enter Bluesky post URL (e.g. https://bsky.app/profile/...)"
-        aria-label="Bluesky post URL"
+        placeholder="Enter Bluesky or Mastodon post URL"
+        aria-label="Bluesky or Mastodon post URL"
       />
       <button id="load-btn"><span aria-hidden="true">🌐</span> Visualize</button
       >
@@ -334,7 +334,7 @@ import previewImg from "./blueskynet-preview.jpg";
       id="initial-status"
       style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #444; font-size: 1.2rem; pointer-events: none;"
     >
-      Enter a Bluesky post URL to begin
+      Enter a Bluesky or Mastodon post URL to begin
     </div>
   </div>
 
@@ -492,6 +492,105 @@ import previewImg from "./blueskynet-preview.jpg";
         } catch {
           return null;
         }
+      }
+    }
+
+    // --- Mastodon API Client ---
+    class MastodonClient {
+      constructor() {
+        this.abortController = null;
+      }
+
+      reset() {
+        const controller = this.abortController;
+        if (controller) {
+          controller.abort();
+        }
+        this.abortController = new AbortController();
+      }
+
+      get signal() {
+        return this.abortController ? this.abortController.signal : null;
+      }
+
+      parseUrl(urlStr) {
+        try {
+          const url = new URL(urlStr);
+          const domain = url.hostname;
+
+          // Pattern 1: /@username/statusId
+          let match = url.pathname.match(/\/@([^/]+)\/([^/?#\s]+)/);
+          if (match) {
+            return { domain, handle: match[1], statusId: match[2] };
+          }
+
+          // Pattern 2: /users/username/statuses/statusId
+          match = url.pathname.match(/\/users\/([^/]+)\/statuses\/([^/?#\s]+)/);
+          if (match) {
+            return { domain, handle: match[1], statusId: match[2] };
+          }
+
+          // Pattern 3: /web/statuses/statusId
+          match = url.pathname.match(/\/(?:web\/)?statuses\/([^/?#\s]+)/);
+          if (match) {
+            return { domain, handle: null, statusId: match[1] };
+          }
+
+          return null;
+        } catch {
+          return null;
+        }
+      }
+
+      async getStatus(domain, statusId) {
+        const resp = await fetch(
+          `https://${domain}/api/v1/statuses/${statusId}`,
+          { signal: this.signal },
+        );
+        if (!resp.ok) {
+          throw new Error(
+            `Failed to get status from ${domain}: ${resp.statusText}`,
+          );
+        }
+        return await resp.json();
+      }
+
+      async getContext(domain, statusId) {
+        const resp = await fetch(
+          `https://${domain}/api/v1/statuses/${statusId}/context`,
+          { signal: this.signal },
+        );
+        if (!resp.ok) {
+          throw new Error(
+            `Failed to get thread context from ${domain}: ${resp.statusText}`,
+          );
+        }
+        return await resp.json();
+      }
+
+      async getInteractions(domain, statusId) {
+        const fetchEndpoint = async (endpoint) => {
+          try {
+            const resp = await fetch(
+              `https://${domain}/api/v1/statuses/${statusId}/${endpoint}?limit=80`,
+              { signal: this.signal },
+            );
+            if (!resp.ok) return [];
+            return await resp.json();
+          } catch (e) {
+            if (e.name !== "AbortError") {
+              console.warn(`Error fetching ${endpoint} for ${statusId}`, e);
+            }
+            return [];
+          }
+        };
+
+        const [favourites, reblogs] = await Promise.all([
+          fetchEndpoint("favourited_by"),
+          fetchEndpoint("reblogged_by"),
+        ]);
+
+        return { favourites, reblogs };
       }
     }
 
@@ -1391,6 +1490,7 @@ import previewImg from "./blueskynet-preview.jpg";
     class AppController {
       constructor() {
         this.client = new BskyClient();
+        this.mastodonClient = new MastodonClient();
         this.timeline = new EventTimeline();
         this.network = new InteractionNetwork();
         this.visualizer = new Visualizer(
@@ -1444,17 +1544,37 @@ import previewImg from "./blueskynet-preview.jpg";
         this.load(url);
       }
       async load(urlStr) {
-        const parsed = this.client.parseUrl(urlStr);
-        if (!parsed) {
-          this.setStatus("Invalid URL format");
+        const isMastodon =
+          urlStr.includes("@") || urlStr.includes("/statuses/");
+        const parsedMastodon = isMastodon
+          ? this.mastodonClient.parseUrl(urlStr)
+          : null;
+
+        if (isMastodon && !parsedMastodon) {
+          this.setStatus("Invalid Mastodon URL format");
           return;
         }
 
-        // Reset client abort controller and clear existing visualizer graph
+        const parsed = !isMastodon ? this.client.parseUrl(urlStr) : null;
+        if (!isMastodon && !parsed) {
+          this.setStatus("Invalid Bluesky URL format");
+          return;
+        }
+
+        // Reset client abort controllers and clear existing visualizer graph
         this.client.reset();
+        this.mastodonClient.reset();
         this.visualizer.clear();
         document.title = "BlueSkynet";
 
+        if (isMastodon) {
+          await this.loadMastodon(parsedMastodon);
+        } else {
+          await this.loadBluesky(parsed);
+        }
+      }
+
+      async loadBluesky(parsed) {
         this.setStatus("Resolving handle...", true);
         try {
           const did = await this.client.resolveHandle(parsed.handle);
@@ -1548,6 +1668,157 @@ import previewImg from "./blueskynet-preview.jpg";
           }
         }
       }
+
+      async loadMastodon(parsed) {
+        const { domain, statusId } = parsed;
+        this.setStatus("Fetching Mastodon status...", true);
+        try {
+          const rootStatus = await this.mastodonClient.getStatus(
+            domain,
+            statusId,
+          );
+          this.setStatus("Fetching thread context...", true);
+          const context = await this.mastodonClient.getContext(
+            domain,
+            statusId,
+          );
+          this.setStatus("Fetching interactions...", true);
+          const { favourites, reblogs } =
+            await this.mastodonClient.getInteractions(domain, statusId);
+
+          const rootUri =
+            rootStatus.uri ||
+            `https://${domain}/@${rootStatus.account?.acct}/${rootStatus.id}`;
+
+          // Map interactions using spread interaction timestamps
+          const maxReplyTimeIso =
+            context.descendants.length > 0
+              ? context.descendants
+                  .map((d) => d.created_at)
+                  .sort()
+                  .at(-1)
+              : new Date(
+                  new Date(rootStatus.created_at).getTime() + 2 * 3600 * 1000,
+                ).toISOString();
+
+          const mappedLikes = favourites.map((acc) => ({
+            id: acc.id,
+            createdAt: null,
+          }));
+          const mappedReposts = reblogs.map((acc) => ({
+            id: acc.id,
+            createdAt: null,
+          }));
+
+          const spreadLikes = this.spreadInteractionTimestamps(
+            mappedLikes,
+            rootStatus.created_at,
+            maxReplyTimeIso,
+          );
+          const spreadReposts = this.spreadInteractionTimestamps(
+            mappedReposts,
+            rootStatus.created_at,
+            maxReplyTimeIso,
+          );
+
+          const interactionMap = new Map();
+          interactionMap.set(rootUri, {
+            quotes: { posts: [] },
+            likes: { likes: spreadLikes },
+            reposts: { reposts: spreadReposts },
+          });
+
+          // Build tree structure
+          const threads = this.buildMastodonThreadTree(
+            rootStatus,
+            context.descendants,
+            domain,
+          );
+
+          this.processData(threads, interactionMap);
+          this.setStatus("Visualization ready", false);
+        } catch (e) {
+          if (e.name === "AbortError") {
+            console.log("Load operation aborted.");
+          } else {
+            console.error(e);
+            this.setStatus("Error loading Mastodon data", false);
+          }
+        }
+      }
+
+      spreadInteractionTimestamps(items, startIso, endIso) {
+        const start = new Date(startIso).getTime();
+        const end = new Date(endIso).getTime();
+        const duration = end - start;
+        return items.map((item, idx) => {
+          const time = start + (duration * (idx + 0.5)) / (items.length || 1);
+          return {
+            ...item,
+            createdAt: new Date(time).toISOString(),
+          };
+        });
+      }
+
+      buildMastodonThreadTree(rootStatus, descendants, domain) {
+        const nodesMap = new Map();
+
+        const stripHtml = (html) => {
+          if (!html) return "";
+          const doc = new DOMParser().parseFromString(html, "text/html");
+          return doc.body.textContent || "";
+        };
+
+        const mapMastodonStatus = (status) => {
+          const uri =
+            status.uri ||
+            `https://${domain}/@${status.account?.acct}/${status.id}`;
+          return {
+            uri,
+            id: status.id,
+            record: {
+              createdAt: status.created_at,
+              text: stripHtml(status.content),
+            },
+            indexedAt: status.created_at,
+            author: {
+              handle: status.account?.acct?.includes("@")
+                ? status.account.acct
+                : `${status.account?.acct || "user"}@${domain}`,
+              displayName:
+                status.account?.display_name ||
+                status.account?.username ||
+                "Mastodon User",
+              avatar: status.account?.avatar,
+            },
+            likeCount: status.favourites_count || 0,
+            repostCount: status.reblogs_count || 0,
+            quoteCount: 0,
+            replyCount: status.replies_count || 0,
+          };
+        };
+
+        const rootNode = { post: mapMastodonStatus(rootStatus), replies: [] };
+        nodesMap.set(rootStatus.id, rootNode);
+
+        for (const status of descendants) {
+          nodesMap.set(status.id, {
+            post: mapMastodonStatus(status),
+            replies: [],
+          });
+        }
+
+        for (const status of descendants) {
+          const parentId = status.in_reply_to_id;
+          if (parentId && nodesMap.has(parentId)) {
+            nodesMap.get(parentId).replies.push(nodesMap.get(status.id));
+          } else {
+            rootNode.replies.push(nodesMap.get(status.id));
+          }
+        }
+
+        return [rootNode];
+      }
       processData(threads, interactionMap) {
         if (
           !threads ||
@@ -1587,7 +1858,15 @@ import previewImg from "./blueskynet-preview.jpg";
           } else if (isNew) {
             this.timeline.addEvent("root", post, postTimestamp);
           }
-          const interactions = interactionMap.get(post.uri);
+          let interactions = interactionMap.get(post.uri);
+          if (!interactions) {
+            interactions = {
+              quotes: { posts: [] },
+              likes: { likes: [] },
+              reposts: { reposts: [] },
+            };
+            interactionMap.set(post.uri, interactions);
+          }
           if (interactions) {
             for (const quote of interactions.quotes.posts || []) {
               const qTimestamp = quote.record?.createdAt || quote.indexedAt;
