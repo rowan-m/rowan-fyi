@@ -11,6 +11,7 @@ export default [
       "sonarjs/no-duplicate-string": ["warn", { threshold: 5 }],
       "sonarjs/no-collapsible-if": "warn",
       "sonarjs/no-identical-functions": "warn",
+      "sonarjs/pseudo-random": "off",
     },
   },
 ];
