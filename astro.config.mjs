@@ -10,7 +10,7 @@ export default defineConfig({
   output: "server",
   adapter: node({
     mode: "middleware",
-    experimentalDisableStreaming: true,
+    // experimentalDisableStreaming: true,
   }),
   build: {
     format: "directory",
