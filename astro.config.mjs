@@ -7,7 +7,7 @@ import node from "@astrojs/node";
 export default defineConfig({
   site: "https://rowan.fyi",
   trailingSlash: "ignore",
-  output: "server",
+  output: "static",
   adapter: node({
     mode: "middleware",
   }),
