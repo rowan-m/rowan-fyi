@@ -5,7 +5,8 @@ import node from "@astrojs/node";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://rowan.fyi",
+  // site: "https://rowan.fyi",
+  site: "rowan-fyi--pr47-feature-email-verifi-mplclx4x.web.app",
   trailingSlash: "ignore",
   output: "server",
   adapter: node({
