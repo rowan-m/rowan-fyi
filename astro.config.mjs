@@ -5,8 +5,7 @@ import node from "@astrojs/node";
 
 // https://astro.build/config
 export default defineConfig({
-  // site: "https://rowan.fyi",
-  site: "https://rowan-fyi--pr47-feature-email-verifi-mplclx4x.web.app",
+  site: "https://rowan.fyi",
   trailingSlash: "ignore",
   output: "server",
   adapter: node({
@@ -16,4 +15,20 @@ export default defineConfig({
     format: "directory",
   },
   integrations: [sitemap()],
+  security: {
+    allowedDomains: [
+      {
+        hostname: "rowan.fyi",
+        protocol: "https",
+      },
+      {
+        hostname: "**.web.app",
+        protocol: "https",
+      },
+      {
+        hostname: "**.firebaseapp.com",
+        protocol: "https",
+      },
+    ],
+  },
 });
