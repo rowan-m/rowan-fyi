@@ -7,6 +7,9 @@ import Comments from "/public/img/comments.svg";
 
 import ShareButton from "@/components/ShareButton.astro";
 import SocialComments from "@/components/SocialComments.astro";
+
+export const prerender = true;
+
 interface Props {
   post: CollectionEntry<"posts">;
 }

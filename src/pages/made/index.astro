@@ -4,6 +4,8 @@ import path from "node:path";
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 
+export const prerender = true;
+
 // Read static directories inside public/made/
 let staticDirs: string[] = [];
 try {
