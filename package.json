@@ -17,24 +17,26 @@
     "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise && npm run build && npm run test"
   },
   "dependencies": {
+    "@astrojs/node": "^10.1.4",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^6.4.4"
+    "astro": "^6.4.7",
+    "jose": "^6.2.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@vitest/coverage-v8": "^4.1.9",
     "dependency-cruiser": "^17.4.3",
-    "eslint": "^10.4.1",
+    "eslint": "^10.5.0",
     "eslint-plugin-astro": "^1.7.0",
     "eslint-plugin-no-unsanitized": "^4.1.5",
-    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-security": "^4.0.1",
     "eslint-plugin-sonarjs": "^4.0.3",
     "globals": "^17.6.0",
-    "prettier": "^3.8.3",
+    "prettier": "^3.8.4",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript-eslint": "^8.60.1",
-    "vitest": "^4.1.8"
+    "typescript-eslint": "^8.61.1",
+    "vitest": "^4.1.9"
   },
   "allowScripts": {
     "esbuild@0.27.7": true,

@@ -1,0 +1,159 @@
+---
+export const prerender = false;
+
+import DefaultHead from "@/components/DefaultHead.astro";
+import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
+
+const cookieName = "evp_session";
+let isLoggedIn = Astro.cookies.get(cookieName)?.value === "active";
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const action = formData.get("action");
+
+  if (action === "login") {
+    Astro.cookies.set(cookieName, "active", {
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      maxAge: 3600, // 1 hour
+    });
+    isLoggedIn = true;
+  } else if (action === "logout") {
+    Astro.cookies.delete(cookieName, { path: "/" });
+    isLoggedIn = false;
+  }
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <DefaultHead
+    title="Email Provider (EVP Issuer Demo)"
+    description="Demo of an Email Verification Protocol (EVP) Issuer"
+  />
+  <DefaultBodyLayout>
+    <main class="evp-container">
+      <h1>Email Provider (EVP Issuer)</h1>
+      <p>
+        This page acts as the <strong>Issuer</strong> for the domain <code
+          >rowan.fyi</code
+        >. It manages the login session and provides the endpoints required by
+        the browser to issue Email Verification Tokens (EVTs).
+      </p>
+
+      <div class="status-card">
+        <h2>Authentication Status</h2>
+        {
+          isLoggedIn ? (
+            <div class="status active">
+              <p>
+                Logged in as <strong>demo@rowan.fyi</strong>
+              </p>
+              <form method="POST">
+                <input type="hidden" name="action" value="logout" />
+                <button type="submit" class="btn btn-danger">
+                  Log Out
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div class="status inactive">
+              <p>Not logged in</p>
+              <form method="POST">
+                <input type="hidden" name="action" value="login" />
+                <button type="submit" class="btn btn-success">
+                  Log In as demo@rowan.fyi
+                </button>
+              </form>
+            </div>
+          )
+        }
+      </div>
+
+      <div class="endpoints-card">
+        <h2>EVP Discovery & Endpoints</h2>
+        <ul>
+          <li>
+            <strong>Discovery Metadata:</strong>
+            <a href="/.well-known/email-verification" target="_blank"
+              >/.well-known/email-verification</a
+            >
+          </li>
+          <li>
+            <strong>Issuance Endpoint:</strong>
+            <code>/made/email-provider/issuance</code>
+          </li>
+          <li>
+            <strong>JWKS Endpoint:</strong>
+            <a href="/made/email-provider/jwks" target="_blank"
+              >/made/email-provider/jwks</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <p class="nav-links">
+        <a href="/made/email-verification/"
+          >&larr; Go to Email Verification Site (RP)</a
+        >
+      </p>
+    </main>
+
+    <style>
+      .evp-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 1rem;
+      }
+      .status-card,
+      .endpoints-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 4px;
+      }
+      .status.active {
+        background: rgba(40, 167, 69, 0.15);
+        border: 1px solid #28a745;
+      }
+      .status.inactive {
+        background: rgba(220, 53, 69, 0.15);
+        border: 1px solid #dc3545;
+      }
+      .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-success {
+        background-color: #28a745;
+        color: white;
+      }
+      .btn-danger {
+        background-color: #dc3545;
+        color: white;
+      }
+      .endpoints-card ul {
+        list-style: none;
+        padding: 0;
+      }
+      .endpoints-card li {
+        margin-bottom: 0.75rem;
+      }
+      .nav-links {
+        margin-top: 2rem;
+      }
+    </style>
+  </DefaultBodyLayout>
+</html>

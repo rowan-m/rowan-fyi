@@ -1,0 +1,416 @@
+---
+export const prerender = false;
+
+import DefaultHead from "@/components/DefaultHead.astro";
+import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
+import {
+  importJWK,
+  jwtVerify,
+  decodeJwt,
+  decodeProtectedHeader,
+  createRemoteJWKSet,
+} from "jose";
+import type { JWK } from "jose";
+import { PUBLIC_KEY_JWK } from "../email-provider/_keys";
+
+interface VerificationResult {
+  email: string;
+  evt: Record<string, unknown>;
+  kb: Record<string, unknown>;
+}
+
+interface EvtPayload {
+  email: string;
+  cnf?: {
+    jwk?: JWK;
+  };
+}
+
+let verificationResult: VerificationResult | null = null;
+let errorMsg = "";
+let submittedEmail = "";
+
+if (Astro.request.method === "POST") {
+  try {
+    const formData = await Astro.request.formData();
+    submittedEmail = formData.get("email") as string;
+    const rawToken = formData.get("token") as string;
+
+    if (rawToken) {
+      // Split the token into EVT and KB-JWT
+      const parts = rawToken.split("~");
+      if (parts.length < 2) {
+        throw new Error(
+          "Invalid token format. Missing Key Binding JWT (KB-JWT) separator '~'.",
+        );
+      }
+      const evtJwt = parts[0];
+      const kbJwt = parts[1];
+
+      // Decode EVT payload to dynamically discover the issuer (iss)
+      const decodedPayload = decodeJwt(evtJwt);
+      const iss = decodedPayload.iss;
+      if (!iss) {
+        throw new Error("EVT is missing the issuer ('iss') claim.");
+      }
+
+      // Determine if local or external issuer
+      const localOrigin = Astro.url.origin;
+      const isLocal =
+        iss === localOrigin ||
+        iss === "https://rowan.fyi" ||
+        iss === "http://localhost:4321" ||
+        iss === "http://localhost:4322";
+
+      let evtPayload: EvtPayload;
+
+      if (isLocal) {
+        // 1. Verify EVT using local Provider's Public Key
+        const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "ES256");
+        const { payload } = await jwtVerify(evtJwt, providerPublicKey);
+        evtPayload = payload as unknown as EvtPayload;
+      } else {
+        // 1. Verify EVT dynamically by performing discovery on the external issuer
+        const discoveryUrl = `${iss}/.well-known/email-verification`;
+        const metadataResponse = await fetch(discoveryUrl);
+        if (!metadataResponse.ok) {
+          throw new Error(
+            `Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`,
+          );
+        }
+        const metadata = await metadataResponse.json();
+        const jwksUri = metadata.jwks_uri;
+        if (!jwksUri) {
+          throw new Error(
+            `Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`,
+          );
+        }
+
+        // Fetch remote JWKS
+        const jwksResponse = await fetch(jwksUri);
+        if (!jwksResponse.ok) {
+          throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
+        }
+        const jwksData = await jwksResponse.json();
+
+        // The token header might have an empty kid and Google's JWKS omits kids.
+        // We must iterate through all keys and attempt verification.
+        const headerAlg = decodedPayload?.alg || "EdDSA";
+        let verifiedPayload = null;
+
+        for (const jwk of jwksData.keys) {
+          try {
+            const publicKey = await importJWK(jwk, headerAlg);
+            const { payload } = await jwtVerify(evtJwt, publicKey);
+            verifiedPayload = payload;
+            break; // Success, stop trying keys
+          } catch (e) {
+            // Signature verification failed for this key, try the next one
+            continue;
+          }
+        }
+
+        if (!verifiedPayload) {
+          throw new Error(
+            "Verification error: JWKSNoMatchingKey: no applicable key found in the JSON Web Key Set",
+          );
+        }
+        evtPayload = verifiedPayload as unknown as EvtPayload;
+      }
+
+      // 2. Extract browser's public key from cnf.jwk
+      const browserJwk = evtPayload.cnf?.jwk;
+      if (!browserJwk) {
+        throw new Error(
+          "EVT payload is missing the browser's ephemeral public key (cnf.jwk).",
+        );
+      }
+
+      // 3. Verify KB-JWT using browser's public key
+      const kbHeader = decodeProtectedHeader(kbJwt);
+      const kbAlg = kbHeader.alg || "ES256";
+      const browserPublicKey = await importJWK(browserJwk, kbAlg);
+      const { payload: kbPayload } = await jwtVerify(kbJwt, browserPublicKey);
+
+      // 4. Verify email match
+      if (evtPayload.email !== submittedEmail) {
+        throw new Error(
+          `Email mismatch: Form input is '${submittedEmail}', but verified token holds '${evtPayload.email}'.`,
+        );
+      }
+
+      verificationResult = {
+        email: evtPayload.email,
+        evt: evtPayload as unknown as Record<string, unknown>,
+        kb: kbPayload,
+      };
+    } else {
+      errorMsg =
+        "No verification token was sent by the browser. Traditional verification flow is required.";
+    }
+  } catch (e) {
+    console.error("Verification error:", e);
+    errorMsg = e instanceof Error ? e.message : "Failed to verify the token.";
+  }
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <DefaultHead
+    title="Email Verification Site (RP Demo)"
+    description="Demo of an Email Verification Protocol (EVP) Relying Party"
+  />
+  <DefaultBodyLayout>
+    <main class="evp-container">
+      <h1>Email Verification (Relying Party)</h1>
+      <p>
+        This page acts as the <strong>Relying Party (RP) / Verifier</strong>. It
+        requests a cryptographically verified email from the browser using
+        native HTML attributes.
+      </p>
+
+      <div class="demo-card">
+        <h2>Sign Up / Verification Form</h2>
+        <form method="POST" id="verify-form">
+          <div class="form-group">
+            <label for="email">Email address:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="email"
+              placeholder="e.g. demo@rowan.fyi"
+              value={submittedEmail || "demo@rowan.fyi"}
+              required
+            />
+            <small
+              >Tip: Log in at the <a
+                href="/made/email-provider/"
+                target="_blank">Provider Demo</a
+              > first, then autofill <strong>demo@rowan.fyi</strong> here.</small
+            >
+          </div>
+
+          <!-- EVP Hidden Input with Server-Side (or hardcoded) Nonce -->
+          <input
+            type="hidden"
+            name="token"
+            nonce="demo-nonce-987654321"
+            autocomplete="email-verification-token"
+          />
+
+          <button type="submit" class="btn btn-primary" id="submit-btn"
+            >Verify & Sign Up</button
+          >
+        </form>
+
+        <div id="progress-info" class="progress-info hidden">
+          <div class="spinner"></div>
+          <p>
+            Browser is contacting provider and generating cryptographic proof...
+          </p>
+        </div>
+      </div>
+
+      {
+        verificationResult && (
+          <div class="result-card success">
+            <h2>🎉 Verification Successful!</h2>
+            <p>
+              The email address <strong>{verificationResult.email}</strong> was
+              successfully verified on the server-side without sending any
+              email!
+            </p>
+
+            <div class="token-debug">
+              <h3>Decoded Token Contents</h3>
+
+              <h4>1. Email Verification Token (EVT) Payload</h4>
+              <pre>
+                <code>{JSON.stringify(verificationResult.evt, null, 2)}</code>
+              </pre>
+
+              <h4>2. Key Binding JWT (KB-JWT) Payload</h4>
+              <pre>
+                <code>{JSON.stringify(verificationResult.kb, null, 2)}</code>
+              </pre>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        errorMsg && (
+          <div class="result-card error">
+            <h2>⚠️ Verification Refused / Failed</h2>
+            <p>{errorMsg}</p>
+            <p class="fallback-note">
+              <strong>Fallback Triggered:</strong> A production site would now
+              fall back to the traditional flow (sending a one-time passcode or
+              magic link to <code>{submittedEmail || "the entered email"}</code>
+              ).
+            </p>
+          </div>
+        )
+      }
+
+      <div class="info-card">
+        <h2>How it works (for Developers)</h2>
+        <ol>
+          <li>
+            We include a standard hidden input with a unique <code>nonce</code>:
+            <pre><code>&lt;input type="hidden" name="token" nonce="demo-nonce-987654321" autocomplete="email-verification-token" /&gt;</code></pre>
+          </li>
+          <li>
+            When the user selects their email via autofill, the browser uses DNS
+            discovery to locate the issuer (<code>rowan.fyi</code>).
+          </li>
+          <li>
+            The browser contacts the issuer's issuance endpoint, gets a signed
+            EVT, signs a local Key Binding JWT (KB-JWT) binding the token to
+            this site's origin and our nonce, and automatically injects it into
+            our hidden field prior to form submission.
+          </li>
+          <li>
+            Our server-side code decrypts, parses, and validates the signature
+            on both tokens to complete verification.
+          </li>
+        </ol>
+      </div>
+
+      <p class="nav-links">
+        <a href="/made/email-provider/"
+          >&rarr; Go to Email Provider (Issuer Demo)</a
+        >
+      </p>
+    </main>
+
+    <script>
+      const form = document.getElementById("verify-form");
+      const progressInfo = document.getElementById("progress-info");
+      const submitBtn = document.getElementById("submit-btn");
+
+      if (form && progressInfo && submitBtn) {
+        form.addEventListener("submit", () => {
+          progressInfo.classList.remove("hidden");
+          setTimeout(() => {
+            submitBtn.setAttribute("disabled", "true");
+          }, 0);
+        });
+      }
+    </script>
+
+    <style>
+      .evp-container {
+        max-width: 650px;
+        margin: 2rem auto;
+        padding: 1rem;
+      }
+      .demo-card,
+      .result-card,
+      .info-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      label {
+        font-weight: bold;
+      }
+      input[type="email"] {
+        padding: 0.75rem;
+        border-radius: 4px;
+        border: 1px solid #aaa;
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        font-size: 1rem;
+      }
+      small {
+        color: #888;
+      }
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1rem;
+      }
+      .btn-primary {
+        background-color: #007bef;
+        color: white;
+      }
+      .btn-primary:disabled {
+        background-color: #555;
+        cursor: not-allowed;
+      }
+      .result-card.success {
+        border-color: #28a745;
+        background: rgba(40, 167, 69, 0.1);
+      }
+      .result-card.error {
+        border-color: #dc3545;
+        background: rgba(220, 53, 69, 0.1);
+      }
+      .fallback-note {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px dashed rgba(220, 53, 69, 0.3);
+        font-size: 0.9rem;
+      }
+      .token-debug h3 {
+        margin-top: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.5rem;
+      }
+      .token-debug h4 {
+        margin-top: 1rem;
+        color: #bbb;
+      }
+      pre {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 0.9rem;
+      }
+      .progress-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        color: #007bef;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(0, 123, 239, 0.3);
+        border-top-color: #007bef;
+        border-radius: 50%;
+        animation: spin 1s infinite linear;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .nav-links {
+        margin-top: 2rem;
+      }
+    </style>
+  </DefaultBodyLayout>
+</html>
