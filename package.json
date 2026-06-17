@@ -20,7 +20,10 @@
     "@astrojs/node": "^10.1.4",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^6.4.7",
+    "astro": "^6.4.8",
+    "firebase-admin": "^13.10.0",
+    "firebase-frameworks": "^0.11.8",
+    "firebase-functions": "^7.2.5",
     "jose": "^6.2.3"
   },
   "devDependencies": {
@@ -40,6 +43,8 @@
   },
   "allowScripts": {
     "esbuild@0.27.7": true,
-    "sharp@0.34.5": true
+    "sharp@0.34.5": true,
+    "@firebase/util@1.15.1": true,
+    "protobufjs@7.6.4": true
   }
 }
