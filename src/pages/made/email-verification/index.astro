@@ -3,13 +3,7 @@ export const prerender = false;
 
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
-import {
-  importJWK,
-  jwtVerify,
-  decodeJwt,
-  decodeProtectedHeader,
-  createRemoteJWKSet,
-} from "jose";
+import { importJWK, jwtVerify, decodeJwt, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
 import { PUBLIC_KEY_JWK } from "../email-provider/_keys";
 
@@ -104,7 +98,7 @@ if (Astro.request.method === "POST") {
             const { payload } = await jwtVerify(evtJwt, publicKey);
             verifiedPayload = payload;
             break; // Success, stop trying keys
-          } catch (e) {
+          } catch {
             // Signature verification failed for this key, try the next one
             continue;
           }
