@@ -239,7 +239,8 @@ if (Astro.request.method === "POST") {
       };
 
       // 3C. Validate the EVT signature by checking against the keys in the JWKS
-      const headerAlg = decodedPayload?.alg || "EdDSA";
+      const protectedHeader = decodeProtectedHeader(evtJwt);
+      const headerAlg = protectedHeader.alg || "ES256";
       let verifiedPayload = null;
 
       for (const jwk of jwksData.keys) {
