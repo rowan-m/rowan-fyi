@@ -9,6 +9,7 @@ Astro.response.headers.set(
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { importJWK, jwtVerify, decodeJwt, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
+import { createHash } from "node:crypto";
 import { verifyIssuerDelegation } from "./_dns";
 
 interface VerificationResult {
@@ -122,6 +123,34 @@ if (Astro.request.method === "POST") {
       const kbAlg = kbHeader.alg || "ES256";
       const browserPublicKey = await importJWK(browserJwk, kbAlg);
       const { payload: kbPayload } = await jwtVerify(kbJwt, browserPublicKey);
+
+      // Enforce full KB-JWT claims validation (Step 2)
+      // A. Audience Verification
+      const expectedAudience = Astro.url.origin;
+      if (kbPayload.aud !== expectedAudience) {
+        throw new Error(
+          `Key Binding audience mismatch. Expected '${expectedAudience}', but got '${kbPayload.aud}'.`,
+        );
+      }
+
+      // B. Nonce Verification (will be made fully dynamic in Step 3)
+      const expectedNonce = "demo-nonce-987654321";
+      if (kbPayload.nonce !== expectedNonce) {
+        throw new Error(
+          `Key Binding nonce mismatch. Expected '${expectedNonce}', but got '${kbPayload.nonce}'.`,
+        );
+      }
+
+      // C. Hash Verification (sd_hash binding to EVT)
+      const calculatedHash = createHash("sha256")
+        .update(evtJwt + "~")
+        .digest("base64url");
+
+      if (kbPayload.sd_hash !== calculatedHash) {
+        throw new Error(
+          "Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.",
+        );
+      }
 
       // 4. Verify email match
       if (evtPayload.email !== submittedEmail) {
