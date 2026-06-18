@@ -6,8 +6,7 @@ Astro.response.headers.set(
   "AhXp8ak/QLxZjlTcDhudtMFPwVwV3MrqSIO/OODXG2IknnKycOuqn+z/h195Ob/0B4vF42nTcV8lQbESLVggNQQAAABceyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiRW1haWxWZXJpZmljYXRpb25Qcm90b2NvbCIsImV4cGlyeSI6MTc5NDg3MzYwMH0=",
 );
 
-import DefaultHead from "@/components/DefaultHead.astro";
-import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { importJWK, jwtVerify, decodeJwt, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
 import { PUBLIC_KEY_JWK } from "../email-provider/_keys";
@@ -154,13 +153,34 @@ if (Astro.request.method === "POST") {
 }
 ---
 
-<!doctype html>
-<html lang="en">
-  <DefaultHead
-    title="Email Verification Site (RP Demo)"
-    description="Demo of an Email Verification Protocol (EVP) Relying Party"
+<MetaOnlyLayout
+  title="Email Verification Site (RP Demo)"
+  description="Demo of an Email Verification Protocol (EVP) Relying Party"
+>
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Email Verification Site (RP Demo)" />
+  <meta
+    property="og:description"
+    content="Demo of an Email Verification Protocol (EVP) Relying Party"
   />
-  <DefaultBodyLayout>
+  <meta name="twitter:card" content="summary" />
+  <meta property="twitter:domain" content="rowan.fyi" />
+  <meta
+    property="twitter:url"
+    content={new URL(Astro.url.pathname, Astro.site)}
+  />
+  <meta name="twitter:title" content="Email Verification Site (RP Demo)" />
+  <meta
+    name="twitter:description"
+    content="Demo of an Email Verification Protocol (EVP) Relying Party"
+  />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✉️</text></svg>"
+  />
+
+  <body>
     <main class="evp-container">
       <h1>Email Verification (Relying Party)</h1>
       <p>
@@ -411,5 +431,5 @@ if (Astro.request.method === "POST") {
         margin-top: 2rem;
       }
     </style>
-  </DefaultBodyLayout>
-</html>
+  </body>
+</MetaOnlyLayout>
