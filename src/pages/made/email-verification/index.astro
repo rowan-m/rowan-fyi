@@ -25,68 +25,14 @@ interface EvtPayload {
   };
 }
 
-/**
- * DNS DELEGATION helper: Verifies that the issuer is authoritative for the submitted email's domain.
- * Under the IETF standard, an email domain delegates verification to an issuer via a DNS TXT record
- * located at `_email-verification.<domain>`.
- *
- * This ensures that a malicious issuer (e.g. attacker.com) cannot sign a forged token
- * asserting ownership of an email at another domain (e.g. victim@gmail.com).
- */
-async function verifyIssuerDelegation(
-  email: string,
-  issuer: string,
-): Promise<boolean> {
-  const domain = email.split("@")[1];
-  if (!domain) return false;
-
-  let issuerHost: string;
-  try {
-    // Extract the hostname from the issuer URL
-    issuerHost = issuer.startsWith("http")
-      ? new URL(issuer).hostname.toLowerCase()
-      : issuer.toLowerCase();
-  } catch {
-    issuerHost = issuer.toLowerCase();
-  }
-
-  // Local development bypass (e.g., localhost, 127.0.0.1) for frictionless local testing
-  if (issuerHost === "localhost" || issuerHost === "127.0.0.1") {
-    return true;
-  }
-
-  // Self-authoritative match: If the email domain directly matches the issuer's hostname
-  if (domain.toLowerCase() === issuerHost) {
-    return true;
-  }
-
-  try {
-    // Perform server-side DNS TXT record lookup under _email-verification.<domain>
-    const records = await dns.resolveTxt(`_email-verification.${domain}`);
-    for (const record of records) {
-      const txt = record.join("");
-      if (txt.startsWith("iss=")) {
-        const delegatedIssuer = txt.substring(4);
-        let delegatedHost = "";
-        try {
-          delegatedHost = delegatedIssuer.startsWith("http")
-            ? new URL(delegatedIssuer).hostname.toLowerCase()
-            : delegatedIssuer.toLowerCase();
-        } catch {
-          delegatedHost = delegatedIssuer.toLowerCase();
-        }
-        if (delegatedHost === issuerHost) {
-          return true; // Match found: delegation is verified!
-        }
-      }
-    }
-  } catch (e) {
-    console.warn(
-      `DNS delegation TXT lookup failed for _email-verification.${domain}:`,
-      e,
-    );
-  }
-  return false;
+interface TraceStep {
+  name: string;
+  description: string;
+  serverCalled?: string;
+  inputSent?: unknown;
+  outputReceived?: unknown;
+  status: "success" | "failed" | "pending";
+  error?: string;
 }
 
 let verificationResult: VerificationResult | null = null;
@@ -97,7 +43,50 @@ let submittedEmail = "";
 const nonceCookieName = "evp_rp_nonce";
 let expectedNonce = Astro.cookies.get(nonceCookieName)?.value;
 
+// Initialize the 6-Step Verification Trace Array
+let traceSteps: TraceStep[] = [
+  {
+    name: "Step 1: Token Decomposition",
+    description:
+      "Decompose the submitted token into its distinct EVT and Key Binding JWT (KB-JWT) components.",
+    status: "pending",
+  },
+  {
+    name: "Step 2: DNS Delegation Authority Verification",
+    description:
+      "Perform dynamic server-side DNS queries to confirm that the email's domain delegated verification authority to the token issuer.",
+    status: "pending",
+  },
+  {
+    name: "Step 3: Issuer Discovery & JWKS Signature Verification",
+    description:
+      "Fetch the issuer's well-known configuration and JWKS public keys, then verify the cryptographic signature of the EVT.",
+    status: "pending",
+  },
+  {
+    name: "Step 4: Ephemeral Key Extraction",
+    description:
+      "Extract the browser's ephemeral public key from the validated EVT payload (cnf.jwk claim).",
+    status: "pending",
+  },
+  {
+    name: "Step 5: Key Binding JWT (KB-JWT) Validation",
+    description:
+      "Cryptographically verify the KB-JWT using the browser's key and confirm audience, nonce, and hash match.",
+    status: "pending",
+  },
+  {
+    name: "Step 6: Email Identity Match",
+    description:
+      "Confirm that the user-submitted email exactly matches the verified email identity inside the token.",
+    status: "pending",
+  },
+];
+
+let activeTrace: TraceStep[] | null = null;
+
 if (Astro.request.method === "POST") {
+  activeTrace = traceSteps;
   try {
     // Replay Protection: Consume and delete the nonce cookie immediately upon POST receipt.
     Astro.cookies.delete(nonceCookieName, { path: "/" });
@@ -110,11 +99,11 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // STEP 1: TOKEN DECOMPOSITION
       // ==============================================================================
-      // Under the SD-JWT Key Binding specification, the combined token is formed by
-      // concatenating the Issuer-Signed Token (EVT) and the Holder Key-Binding JWT (KB-JWT)
-      // separated by a tilde "~".
+      traceSteps[0].inputSent = { rawToken };
+
       const parts = rawToken.split("~");
       if (parts.length < 2) {
+        traceSteps[0].status = "failed";
         throw new Error(
           "Invalid token format. Missing Key Binding JWT (KB-JWT) separator '~'.",
         );
@@ -126,20 +115,87 @@ if (Astro.request.method === "POST") {
       const decodedPayload = decodeJwt(evtJwt);
       const iss = decodedPayload.iss;
       if (!iss) {
+        traceSteps[0].status = "failed";
         throw new Error("EVT is missing the issuer ('iss') claim.");
       }
+
+      traceSteps[0].outputReceived = {
+        evtJwtDecodedHeader: decodeProtectedHeader(evtJwt),
+        evtJwtDecodedPayload: decodedPayload,
+        kbJwtDecodedHeader: decodeProtectedHeader(kbJwt),
+        kbJwtDecodedPayload: decodeJwt(kbJwt),
+      };
+      traceSteps[0].status = "success";
 
       // ==============================================================================
       // STEP 2: DNS DELEGATION & AUTHORITY VERIFICATION
       // ==============================================================================
-      // Verify that the issuer domain actually has the authority to verify emails for
-      // the submitted email address's domain.
-      const isAuthoritative = await verifyIssuerDelegation(submittedEmail, iss);
+      const domain = submittedEmail.split("@")[1];
+      traceSteps[1].inputSent = {
+        submittedEmail,
+        tokenIssuer: iss,
+        dnsLookupTarget: `_email-verification.${domain}`,
+      };
+
+      let isAuthoritative = false;
+      const issuerHost = iss.startsWith("http")
+        ? new URL(iss).hostname.toLowerCase()
+        : iss.toLowerCase();
+
+      if (issuerHost === "localhost" || issuerHost === "127.0.0.1") {
+        isAuthoritative = true;
+        traceSteps[1].outputReceived = {
+          authorizedBy: "Localhost Development Bypass",
+          details: "DNS resolution is bypassed for local provider testing.",
+        };
+      } else if (domain.toLowerCase() === issuerHost) {
+        isAuthoritative = true;
+        traceSteps[1].outputReceived = {
+          authorizedBy: "Direct Domain Equality (Self-Authoritative)",
+          details: "Email domain directly matches the token issuer host.",
+        };
+      } else {
+        traceSteps[1].serverCalled = "System DNS Server (TXT Resolve)";
+        try {
+          const records = await dns.resolveTxt(`_email-verification.${domain}`);
+          traceSteps[1].outputReceived = { dnsTxtRecords: records };
+
+          for (const record of records) {
+            const txt = record.join("");
+            if (txt.startsWith("iss=")) {
+              const delegatedIssuer = txt.substring(4);
+              let delegatedHost = "";
+              try {
+                delegatedHost = delegatedIssuer.startsWith("http")
+                  ? new URL(delegatedIssuer).hostname.toLowerCase()
+                  : delegatedIssuer.toLowerCase();
+              } catch {
+                delegatedHost = delegatedIssuer.toLowerCase();
+              }
+              if (delegatedHost === issuerHost) {
+                isAuthoritative = true;
+                break;
+              }
+            }
+          }
+        } catch (dnsErr) {
+          traceSteps[1].status = "failed";
+          traceSteps[1].error =
+            dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
+          throw new Error(
+            `DNS delegation lookup failed for _email-verification.${domain}: ${traceSteps[1].error}`,
+            { cause: dnsErr },
+          );
+        }
+      }
+
       if (!isAuthoritative) {
+        traceSteps[1].status = "failed";
         throw new Error(
           `Security Exception: Issuer '${iss}' is not authoritative for the email domain of '${submittedEmail}'.`,
         );
       }
+      traceSteps[1].status = "success";
 
       let evtPayload: EvtPayload;
 
@@ -148,26 +204,39 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // 3A. Fetch the issuer's .well-known configurations
       const discoveryUrl = `${iss}/.well-known/email-verification`;
+      traceSteps[2].serverCalled = discoveryUrl;
+      traceSteps[2].inputSent = { url: discoveryUrl };
+
       const metadataResponse = await fetch(discoveryUrl);
       if (!metadataResponse.ok) {
+        traceSteps[2].status = "failed";
         throw new Error(
           `Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`,
         );
       }
       const metadata = await metadataResponse.json();
+      traceSteps[2].outputReceived = { issuerMetadata: metadata };
+
       const jwksUri = metadata.jwks_uri;
       if (!jwksUri) {
+        traceSteps[2].status = "failed";
         throw new Error(
           `Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`,
         );
       }
 
       // 3B. Fetch the public JSON Web Key Set (JWKS) used to sign the EVT
+      traceSteps[2].serverCalled = `${discoveryUrl} & ${jwksUri}`;
       const jwksResponse = await fetch(jwksUri);
       if (!jwksResponse.ok) {
+        traceSteps[2].status = "failed";
         throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
       }
       const jwksData = await jwksResponse.json();
+      traceSteps[2].outputReceived = {
+        issuerMetadata: metadata,
+        issuerJWKS: jwksData,
+      };
 
       // 3C. Validate the EVT signature by checking against the keys in the JWKS
       const headerAlg = decodedPayload?.alg || "EdDSA";
@@ -186,24 +255,28 @@ if (Astro.request.method === "POST") {
       }
 
       if (!verifiedPayload) {
+        traceSteps[2].status = "failed";
         throw new Error(
           "Verification error: JWKSNoMatchingKey: no applicable key found in the JSON Web Key Set",
         );
       }
       evtPayload = verifiedPayload as unknown as EvtPayload;
+      traceSteps[2].status = "success";
 
       // ==============================================================================
       // STEP 4: BROWSER EPHEMERAL KEY EXTRACTION
       // ==============================================================================
-      // Extract the browser's ephemeral public key from the "cnf" (confirmation) claim.
-      // In EVP, the browser generates a key pair, asks the issuer to bind it to the EVT,
-      // and then proves ownership of that key pair by signing the KB-JWT.
+      traceSteps[3].inputSent = { cnf: evtPayload.cnf };
+
       const browserJwk = evtPayload.cnf?.jwk;
       if (!browserJwk) {
+        traceSteps[3].status = "failed";
         throw new Error(
           "EVT payload is missing the browser's ephemeral public key (cnf.jwk).",
         );
       }
+      traceSteps[3].outputReceived = { extractedBrowserJwk: browserJwk };
+      traceSteps[3].status = "success";
 
       // ==============================================================================
       // STEP 5: KEY BINDING VALIDATION (KB-JWT CHECKS)
@@ -215,9 +288,24 @@ if (Astro.request.method === "POST") {
       // 5A. Cryptographic Proof of Possession: Verify the KB-JWT signature using the browser's public key
       const { payload: kbPayload } = await jwtVerify(kbJwt, browserPublicKey);
 
-      // 5B. Audience Verification: Ensure this token was specifically intended for our origin
+      // Calculate Expected Bind Hash (sd_hash) over EVT (including trailing '~')
+      const calculatedHash = createHash("sha256")
+        .update(evtJwt + "~")
+        .digest("base64url");
+
       const expectedAudience = Astro.url.origin;
+
+      traceSteps[4].inputSent = {
+        expectedAudience,
+        expectedNonce,
+        calculatedEvtHash: calculatedHash,
+        kbPayloadHeader: kbHeader,
+        kbPayloadBody: kbPayload,
+      };
+
+      // 5B. Audience Verification: Ensure this token was specifically intended for our origin
       if (kbPayload.aud !== expectedAudience) {
+        traceSteps[4].status = "failed";
         throw new Error(
           `Key Binding audience mismatch. Expected '${expectedAudience}', but got '${kbPayload.aud}'.`,
         );
@@ -225,32 +313,47 @@ if (Astro.request.method === "POST") {
 
       // 5C. Session Nonce Verification: Ensure the nonce matches the one we generated for this rendering
       if (!expectedNonce || kbPayload.nonce !== expectedNonce) {
+        traceSteps[4].status = "failed";
         throw new Error(
           `Key Binding nonce mismatch or expired session. Expected '${expectedNonce || "N/A"}', but got '${kbPayload.nonce}'.`,
         );
       }
 
-      // 5D. EVT Cryptographic Hash Binding: Match the "sd_hash" inside KB-JWT with the SHA-256
-      // hash of the EVT. This prevents an attacker from combining a valid KB-JWT with a different EVT.
-      const calculatedHash = createHash("sha256")
-        .update(evtJwt + "~")
-        .digest("base64url");
-
+      // 5D. EVT Cryptographic Hash Binding: Match the "sd_hash" inside KB-JWT with the SHA-256 hash of the EVT.
       if (kbPayload.sd_hash !== calculatedHash) {
+        traceSteps[4].status = "failed";
         throw new Error(
           "Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.",
         );
       }
 
+      traceSteps[4].outputReceived = {
+        keyBindingPassed: true,
+        holderVerification: "Holder Private Key possession verified.",
+      };
+      traceSteps[4].status = "success";
+
       // ==============================================================================
       // STEP 6: EMAIL IDENTITY MATCH
       // ==============================================================================
+      traceSteps[5].inputSent = {
+        submittedEmail,
+        verifiedTokenEmail: evtPayload.email,
+      };
+
       // Ensure the email address verified in the token matches the email inputted in the form.
       if (evtPayload.email !== submittedEmail) {
+        traceSteps[5].status = "failed";
         throw new Error(
           `Email mismatch: Form input is '${submittedEmail}', but verified token holds '${evtPayload.email}'.`,
         );
       }
+
+      traceSteps[5].outputReceived = {
+        matched: true,
+        email: evtPayload.email,
+      };
+      traceSteps[5].status = "success";
 
       verificationResult = {
         email: evtPayload.email,
@@ -264,6 +367,15 @@ if (Astro.request.method === "POST") {
   } catch (e) {
     console.error("Verification error:", e);
     errorMsg = e instanceof Error ? e.message : "Failed to verify the token.";
+
+    // Auto-mark the currently active step as failed with its exact error context
+    const currentStep = traceSteps.find(
+      (s) => s.status === "pending" || s.status === "failed",
+    );
+    if (currentStep) {
+      currentStep.status = "failed";
+      currentStep.error = errorMsg;
+    }
   }
 }
 
@@ -308,51 +420,370 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     html {
       font-family: sans-serif;
     }
+
+    /* Container layout */
+    main {
+      max-width: 800px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: #111;
+      letter-spacing: -0.5px;
+    }
+
+    /* Form styling */
+    .evp-form {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 0.4rem;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .form-group input[type="email"] {
+      padding: 0.6rem 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      width: 320px;
+      max-width: 100%;
+      outline: none;
+      box-sizing: border-box;
+      transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+    }
+
+    .form-group input[type="email"]:focus {
+      border-color: #0056b3;
+      box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+    }
+
+    .evp-form button[type="submit"] {
+      padding: 0.6rem 1.4rem;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: background-color 0.2s;
+    }
+
+    .evp-form button[type="submit"]:hover {
+      background-color: #004085;
+    }
+
+    .evp-form button[type="submit"]:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    /* Message Boxes */
+    .msg-box {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+    .msg-box h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+    .msg-box p {
+      margin-bottom: 0;
+      margin-top: 0;
+    }
+    .msg-box.success {
+      background-color: #e2f0d9;
+      border-color: #385723;
+      color: #385723;
+    }
+    .msg-box.error {
+      background-color: #fce4d6;
+      border-color: #c00000;
+      color: #c00000;
+    }
+
+    /* Trace Section Container */
+    .trace-container {
+      margin-top: 2rem;
+      border-top: 2px solid #ddd;
+      padding-top: 1.5rem;
+    }
+    .trace-container h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .trace-container p {
+      color: #666;
+      font-size: 0.95em;
+    }
+
+    /* Trace List & Steps */
+    .trace-list {
+      padding-left: 0;
+      list-style-type: none;
+    }
+    .trace-step {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border: 1px solid #e2e3e5;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+    }
+    .trace-step.success {
+      border-color: #c3e6cb;
+      background-color: #f4fcf7;
+    }
+    .trace-step.failed {
+      border-color: #f5c6cb;
+      background-color: #fff5f5;
+    }
+
+    .trace-step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .trace-step-title {
+      margin: 0;
+      font-size: 1.1em;
+      color: #444;
+    }
+    .trace-step.success .trace-step-title {
+      color: #1e5a2d;
+    }
+    .trace-step.failed .trace-step-title {
+      color: #8a1c24;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      font-size: 0.8em;
+      font-weight: bold;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      color: #fff;
+      text-transform: uppercase;
+      background-color: #6c757d;
+    }
+    .trace-step.success .status-badge {
+      background-color: #28a745;
+    }
+    .trace-step.failed .status-badge {
+      background-color: #dc3545;
+    }
+
+    /* Descriptions & Exceptions */
+    .trace-step-desc {
+      margin: 0.5rem 0;
+      font-size: 0.95em;
+      color: #444;
+      line-height: 1.4;
+    }
+    .trace-step-error {
+      margin: 0.5rem 0 0 0;
+      color: #c00000;
+      font-size: 0.9em;
+      font-weight: bold;
+      background: #feebeb;
+      padding: 0.5rem;
+      border-radius: 4px;
+    }
+
+    /* Expandable Trace Details */
+    .trace-details {
+      margin-top: 0.75rem;
+      color: #333;
+      outline: none;
+    }
+    .trace-details summary {
+      font-size: 0.85em;
+      font-weight: bold;
+      color: #0056b3;
+      cursor: pointer;
+    }
+    .trace-details-content {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+    }
+    .trace-details-content p {
+      margin: 0 0 0.75rem 0;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+    .trace-details-content code {
+      background-color: #f1f3f5;
+      padding: 0.15rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.95em;
+    }
+    .trace-section-mb {
+      margin-bottom: 0.75rem;
+    }
+    .trace-section-mb:last-child {
+      margin-bottom: 0;
+    }
+    .trace-section-mb strong {
+      font-size: 0.85em;
+      color: #555;
+    }
+    .trace-details-content pre {
+      margin: 0.25rem 0 0 0;
+      padding: 0.5rem;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+      font-size: 0.85em;
+      overflow-x: auto;
+    }
   </style>
-  <h1>Email Verification Protocol (EVP) demo</h1>
-  <p>
-    Select an email address from the autofill dropdown to trigger verification.
-  </p>
-  <form method="POST" id="verify-form">
-    <label for="email">Email address:</label>
-    <input
-      type="email"
-      id="email"
-      name="email"
-      autocomplete="email"
-      value={submittedEmail || ""}
-      placeholder="Use an autofilled email"
-      required
-    />
-    <!-- EVP Hidden Input with Server-Side Dynamic Nonce -->
-    <input
-      type="hidden"
-      name="token"
-      nonce={activeNonce}
-      autocomplete="email-verification-token"
-    />
-    <button type="submit" id="submit-btn">Sign up</button>
-  </form>
-
-  {
-    verificationResult && (
-      <div>
-        <p>Email address: {verificationResult.email}</p>
-
-        <p>Email Verification Token (EVT) Payload</p>
-        <pre>
-          <code>{JSON.stringify(verificationResult.evt, null, 2)}</code>
-        </pre>
-
-        <p>Key Binding JWT (KB-JWT) Payload</p>
-        <pre>
-          <code>{JSON.stringify(verificationResult.kb, null, 2)}</code>
-        </pre>
+  <main>
+    <h1>Email Verification Protocol (EVP) demo</h1>
+    <p>
+      Select an email address from the autofill dropdown to trigger
+      verification.
+    </p>
+    <form method="POST" id="verify-form" class="evp-form">
+      <div class="form-group">
+        <label for="email">Email address:</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          autocomplete="email"
+          value={submittedEmail || ""}
+          placeholder="Use an autofilled email"
+          required
+        />
       </div>
-    )
-  }
+      <!-- EVP Hidden Input with Server-Side Dynamic Nonce -->
+      <input
+        type="hidden"
+        name="token"
+        nonce={activeNonce}
+        autocomplete="email-verification-token"
+      />
+      <button type="submit" id="submit-btn">Sign up</button>
+    </form>
 
-  {errorMsg && <p>{errorMsg}</p>}
+    {
+      verificationResult && (
+        <div class="msg-box success">
+          <h3>🎉 Email Successfully Verified Cryptographically!</h3>
+          <p>
+            No verification email was sent. Verified Email identity:{" "}
+            <strong>{verificationResult.email}</strong>
+          </p>
+        </div>
+      )
+    }
+
+    {
+      errorMsg && (
+        <div class="msg-box error">
+          <h3>⚠️ Verification Blocked / Redirected</h3>
+          <p>{errorMsg}</p>
+        </div>
+      )
+    }
+
+    {
+      activeTrace && (
+        <div class="trace-container">
+          <h2>EVP Cryptographic Verification Trace</h2>
+          <p>
+            Review the exact server-to-server operations, inputs, and outputs
+            executed during verification:
+          </p>
+
+          <ol class="trace-list">
+            {activeTrace.map((step) => {
+              return (
+                <li class={`trace-step ${step.status}`}>
+                  <div class="trace-step-header">
+                    <h3 class="trace-step-title">{step.name}</h3>
+                    <span class="status-badge">{step.status}</span>
+                  </div>
+
+                  <p class="trace-step-desc">{step.description}</p>
+
+                  {step.error && (
+                    <p class="trace-step-error">
+                      Exception Details: {step.error}
+                    </p>
+                  )}
+
+                  {(step.serverCalled ||
+                    step.inputSent ||
+                    step.outputReceived) && (
+                    <details class="trace-details">
+                      <summary>Show Input / Output Data Traces</summary>
+                      <div class="trace-details-content">
+                        {step.serverCalled && (
+                          <p>
+                            <strong>Server Called:</strong>{" "}
+                            <code>{step.serverCalled}</code>
+                          </p>
+                        )}
+
+                        {step.inputSent && (
+                          <div class="trace-section-mb">
+                            <strong>Inputs Sent:</strong>
+                            <pre>
+                              <code>
+                                {JSON.stringify(step.inputSent, null, 2)}
+                              </code>
+                            </pre>
+                          </div>
+                        )}
+
+                        {step.outputReceived && (
+                          <div class="trace-section-mb">
+                            <strong>Outputs Received:</strong>
+                            <pre>
+                              <code>
+                                {JSON.stringify(step.outputReceived, null, 2)}
+                              </code>
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )
+    }
+  </main>
 
   <script>
     const form = document.getElementById("verify-form");
