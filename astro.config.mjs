@@ -22,11 +22,7 @@ export default defineConfig({
         protocol: "https",
       },
       {
-        hostname: "**.web.app",
-        protocol: "https",
-      },
-      {
-        hostname: "**.firebaseapp.com",
+        hostname: "*.web.app",
         protocol: "https",
       },
     ],
