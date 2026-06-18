@@ -6,6 +6,8 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 const cookieName = "evp_session";
 let isLoggedIn = Astro.cookies.get(cookieName)?.value === "active";
 
+let triggerLoginStatusUpdate: "logged-in" | "logged-out" | null = null;
+
 if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
   const action = formData.get("action");
@@ -18,9 +20,13 @@ if (Astro.request.method === "POST") {
       maxAge: 3600, // 1 hour
     });
     isLoggedIn = true;
+    triggerLoginStatusUpdate = "logged-in";
+    Astro.response.headers.set("Set-Login", "logged-in");
   } else if (action === "logout") {
     Astro.cookies.delete(cookieName, { path: "/" });
     isLoggedIn = false;
+    triggerLoginStatusUpdate = "logged-out";
+    Astro.response.headers.set("Set-Login", "logged-out");
   }
 }
 ---
@@ -171,4 +177,27 @@ if (Astro.request.method === "POST") {
       )
     }
   </main>
+
+  <script is:inline define:vars={{ triggerLoginStatusUpdate }}>
+    // Synchronize browser's login status with the Issuer session
+    // This is required for FedCM accounts-discovery and verification steps.
+    // We ONLY invoke setStatus when an explicit action (login/logout) was performed, NOT on standard GET requests.
+    if (
+      triggerLoginStatusUpdate &&
+      navigator.login &&
+      navigator.login.setStatus
+    ) {
+      navigator.login
+        .setStatus(triggerLoginStatusUpdate)
+        .then(() =>
+          console.log(`navigator.login.setStatus(${triggerLoginStatusUpdate})`),
+        )
+        .catch((err) =>
+          console.error(
+            `navigator.login.setStatus(${triggerLoginStatusUpdate}) error:`,
+            err,
+          ),
+        );
+    }
+  </script>
 </MetaOnlyLayout>
