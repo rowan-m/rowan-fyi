@@ -164,7 +164,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // ==============================================================================
     // We sign the EVT payload with the Issuer's private key.
     // The payload MUST include the "cnf" (confirmation) claim holding the browser's public key.
-    const privateKey = await importJWK(PRIVATE_KEY_JWK, "ES256");
+    const privateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
     const origin = url.origin;
 
     const evtPayload = {
@@ -180,7 +180,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 
     const evtJwt = await new SignJWT(evtPayload)
       .setProtectedHeader({
-        alg: "ES256",
+        alg: "EdDSA",
         kid: PRIVATE_KEY_JWK.kid, // Key ID corresponding to our JWKS keys
         typ: "evt+jwt", // Standard Token Type for EVTs
       })

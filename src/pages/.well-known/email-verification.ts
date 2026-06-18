@@ -8,7 +8,7 @@ export const GET: APIRoute = async ({ url }) => {
     JSON.stringify({
       issuance_endpoint: `${origin}/made/email-provider/issuance`,
       jwks_uri: `${origin}/made/email-provider/jwks`,
-      signing_alg_values_supported: ["ES256"],
+      signing_alg_values_supported: ["EdDSA"],
     }),
     {
       status: 200,

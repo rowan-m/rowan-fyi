@@ -35,7 +35,7 @@ describe("EVP Cryptographic Flow", () => {
     expect(requestPayload.email).toBe("demo@rowan.fyi");
 
     // 4. Provider signs an Email Verification Token (EVT)
-    const providerPrivateKey = await importJWK(PRIVATE_KEY_JWK, "ES256");
+    const providerPrivateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
     const evtPayload = {
       iss: "https://rowan.fyi",
       iat: Math.floor(Date.now() / 1000),
@@ -49,7 +49,7 @@ describe("EVP Cryptographic Flow", () => {
 
     const evtJwt = await new SignJWT(evtPayload)
       .setProtectedHeader({
-        alg: "ES256",
+        alg: "EdDSA",
         kid: PRIVATE_KEY_JWK.kid,
         typ: "evt+jwt",
       })
@@ -58,7 +58,7 @@ describe("EVP Cryptographic Flow", () => {
     const fullEvt = `${evtJwt}~`;
 
     // 5. Relying party verifies the EVT signature
-    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "ES256");
+    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
     const parsedEvt = fullEvt.split("~")[0];
     const { payload: verifiedEvt } = await jwtVerify(
       parsedEvt,
@@ -95,7 +95,7 @@ describe("EVP Endpoint Unit Tests", () => {
       "https://rowan.fyi/made/email-provider/issuance",
     );
     expect(data.jwks_uri).toBe("https://rowan.fyi/made/email-provider/jwks");
-    expect(data.signing_alg_values_supported).toContain("ES256");
+    expect(data.signing_alg_values_supported).toContain("EdDSA");
   });
 
   test("jwks endpoint returns public keys", async () => {
@@ -205,7 +205,7 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // C. Verify the issued token
     const evtJwt = data.issuance_token.split("~")[0];
-    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "ES256");
+    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
     const { payload } = await jwtVerify(evtJwt, providerPublicKey);
 
     expect(payload.email).toBe("demo@rowan.fyi");
