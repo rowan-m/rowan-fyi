@@ -25,3 +25,6 @@ coverage/
 firebase-debug.log
 
 tmp
+
+# Temporary working directory for EVP feature
+/email-verification/

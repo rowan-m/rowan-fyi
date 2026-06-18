@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
@@ -7,6 +9,7 @@ import Comments from "/public/img/comments.svg";
 
 import ShareButton from "@/components/ShareButton.astro";
 import SocialComments from "@/components/SocialComments.astro";
+
 interface Props {
   post: CollectionEntry<"posts">;
 }

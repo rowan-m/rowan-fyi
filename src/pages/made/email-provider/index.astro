@@ -1,0 +1,174 @@
+---
+export const prerender = false;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+
+const cookieName = "evp_session";
+let isLoggedIn = Astro.cookies.get(cookieName)?.value === "active";
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const action = formData.get("action");
+
+  if (action === "login") {
+    Astro.cookies.set(cookieName, "active", {
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      maxAge: 3600, // 1 hour
+    });
+    isLoggedIn = true;
+  } else if (action === "logout") {
+    Astro.cookies.delete(cookieName, { path: "/" });
+    isLoggedIn = false;
+  }
+}
+---
+
+<MetaOnlyLayout
+  title="Issuer - Email Verification Protocol (EVP) demo"
+  description="Demo of an Email Verification Protocol (EVP) Issuer"
+>
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+  <meta property="og:type" content="website" />
+  <meta
+    property="og:title"
+    content="Issuer - Email Verification Protocol (EVP) demo"
+  />
+  <meta
+    property="og:description"
+    content="Demo of an Email Verification Protocol (EVP) Issuer"
+  />
+  <meta name="twitter:card" content="summary" />
+  <meta property="twitter:domain" content="rowan.fyi" />
+  <meta
+    property="twitter:url"
+    content={new URL(Astro.url.pathname, Astro.site)}
+  />
+  <meta
+    name="twitter:title"
+    content="Issuer - Email Verification Protocol (EVP) demo"
+  />
+  <meta
+    name="twitter:description"
+    content="Demo of an Email Verification Protocol (EVP) Issuer"
+  />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>"
+  />
+  <style>
+    html {
+      font-family: sans-serif;
+    }
+
+    /* Container layout */
+    .evp-demo-container {
+      max-width: 800px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .evp-demo-container h1 {
+      font-size: 2.2em;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: #111;
+      letter-spacing: -0.5px;
+    }
+
+    .evp-intro-text {
+      color: #555;
+      font-size: 1.1em;
+      margin-top: 0;
+      margin-bottom: 2rem;
+    }
+
+    /* State Panels */
+    .status-panel {
+      padding: 1.5rem;
+      border-radius: 4px;
+      border: 1px solid;
+      margin-bottom: 2rem;
+    }
+    .status-panel p {
+      margin-top: 0;
+      margin-bottom: 1.2rem;
+      font-size: 1.1em;
+    }
+
+    .status-panel.logged-in {
+      background-color: #e2f0d9;
+      border-color: #385723;
+      color: #385723;
+    }
+    .status-panel.logged-out {
+      background-color: #f8f9fa;
+      border-color: #ddd;
+      color: #555;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.6rem 1.4rem;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: background-color 0.2s;
+    }
+    .btn-danger {
+      background-color: #c00000;
+    }
+    .btn-danger:hover {
+      background-color: #800000;
+    }
+    .btn-success {
+      background-color: #0056b3;
+    }
+    .btn-success:hover {
+      background-color: #004085;
+    }
+  </style>
+
+  <main class="evp-demo-container">
+    <h1>Issuer - Email Verification Protocol (EVP) demo</h1>
+    <p class="evp-intro-text">
+      Simulates an email provider that is authoritative for <code
+        >rowan.fyi</code
+      >. Manage your login session here to control whether the browser can
+      verify your email identity.
+    </p>
+
+    {
+      isLoggedIn ? (
+        <div class="status-panel logged-in">
+          <p>
+            Current Session: Logged in as <strong>demo@rowan.fyi</strong>
+          </p>
+          <form method="POST">
+            <input type="hidden" name="action" value="logout" />
+            <button type="submit" class="btn btn-danger">
+              Log out
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div class="status-panel logged-out">
+          <p>Current Session: Not logged in</p>
+          <form method="POST">
+            <input type="hidden" name="action" value="login" />
+            <button type="submit" class="btn btn-success">
+              Log in as demo@rowan.fyi
+            </button>
+          </form>
+        </div>
+      )
+    }
+  </main>
+</MetaOnlyLayout>
