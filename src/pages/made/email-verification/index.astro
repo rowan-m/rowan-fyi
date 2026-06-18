@@ -9,6 +9,7 @@ Astro.response.headers.set(
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { importJWK, jwtVerify, decodeJwt, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
+import { verifyIssuerDelegation } from "./_dns";
 
 interface VerificationResult {
   email: string;
@@ -49,6 +50,14 @@ if (Astro.request.method === "POST") {
       const iss = decodedPayload.iss;
       if (!iss) {
         throw new Error("EVT is missing the issuer ('iss') claim.");
+      }
+
+      // Step 1: DNS Delegation Authority Verification
+      const isAuthoritative = await verifyIssuerDelegation(submittedEmail, iss);
+      if (!isAuthoritative) {
+        throw new Error(
+          `Security Exception: Issuer '${iss}' is not authoritative for the email domain of '${submittedEmail}'.`,
+        );
       }
 
       let evtPayload: EvtPayload;
