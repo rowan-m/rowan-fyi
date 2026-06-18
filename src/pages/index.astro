@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 import PostCardView from "@/components/PostCardView.astro";
@@ -14,8 +16,6 @@ import Mastodon from "/public/img/socials/mastodon-fill.svg";
 import Threads from "/public/img/socials/threads-line.svg";
 import LastFmTrack from "@/components/LastFmTrack.astro";
 import BlueskyPost from "@/components/BlueskyPost.astro";
-
-export const prerender = true;
 
 const title = "rowan.fyi";
 const description =
