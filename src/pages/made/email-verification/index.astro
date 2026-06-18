@@ -10,7 +10,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { importJWK, jwtVerify, decodeJwt, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
 import { createHash, randomUUID } from "node:crypto";
-import { verifyIssuerDelegation } from "./_dns";
+import dns from "node:dns/promises";
 
 interface VerificationResult {
   email: string;
@@ -25,6 +25,70 @@ interface EvtPayload {
   };
 }
 
+/**
+ * DNS DELEGATION helper: Verifies that the issuer is authoritative for the submitted email's domain.
+ * Under the IETF standard, an email domain delegates verification to an issuer via a DNS TXT record
+ * located at `_email-verification.<domain>`.
+ *
+ * This ensures that a malicious issuer (e.g. attacker.com) cannot sign a forged token
+ * asserting ownership of an email at another domain (e.g. victim@gmail.com).
+ */
+async function verifyIssuerDelegation(
+  email: string,
+  issuer: string,
+): Promise<boolean> {
+  const domain = email.split("@")[1];
+  if (!domain) return false;
+
+  let issuerHost: string;
+  try {
+    // Extract the hostname from the issuer URL
+    issuerHost = issuer.startsWith("http")
+      ? new URL(issuer).hostname.toLowerCase()
+      : issuer.toLowerCase();
+  } catch {
+    issuerHost = issuer.toLowerCase();
+  }
+
+  // Local development bypass (e.g., localhost, 127.0.0.1) for frictionless local testing
+  if (issuerHost === "localhost" || issuerHost === "127.0.0.1") {
+    return true;
+  }
+
+  // Self-authoritative match: If the email domain directly matches the issuer's hostname
+  if (domain.toLowerCase() === issuerHost) {
+    return true;
+  }
+
+  try {
+    // Perform server-side DNS TXT record lookup under _email-verification.<domain>
+    const records = await dns.resolveTxt(`_email-verification.${domain}`);
+    for (const record of records) {
+      const txt = record.join("");
+      if (txt.startsWith("iss=")) {
+        const delegatedIssuer = txt.substring(4);
+        let delegatedHost = "";
+        try {
+          delegatedHost = delegatedIssuer.startsWith("http")
+            ? new URL(delegatedIssuer).hostname.toLowerCase()
+            : delegatedIssuer.toLowerCase();
+        } catch {
+          delegatedHost = delegatedIssuer.toLowerCase();
+        }
+        if (delegatedHost === issuerHost) {
+          return true; // Match found: delegation is verified!
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(
+      `DNS delegation TXT lookup failed for _email-verification.${domain}:`,
+      e,
+    );
+  }
+  return false;
+}
+
 let verificationResult: VerificationResult | null = null;
 let errorMsg = "";
 let submittedEmail = "";
@@ -35,7 +99,7 @@ let expectedNonce = Astro.cookies.get(nonceCookieName)?.value;
 
 if (Astro.request.method === "POST") {
   try {
-    // Delete the nonce cookie immediately upon processing to prevent replay attacks
+    // Replay Protection: Consume and delete the nonce cookie immediately upon POST receipt.
     Astro.cookies.delete(nonceCookieName, { path: "/" });
 
     const formData = await Astro.request.formData();
@@ -43,7 +107,12 @@ if (Astro.request.method === "POST") {
     const rawToken = formData.get("token") as string;
 
     if (rawToken) {
-      // Split the token into EVT and KB-JWT
+      // ==============================================================================
+      // STEP 1: TOKEN DECOMPOSITION
+      // ==============================================================================
+      // Under the SD-JWT Key Binding specification, the combined token is formed by
+      // concatenating the Issuer-Signed Token (EVT) and the Holder Key-Binding JWT (KB-JWT)
+      // separated by a tilde "~".
       const parts = rawToken.split("~");
       if (parts.length < 2) {
         throw new Error(
@@ -53,14 +122,18 @@ if (Astro.request.method === "POST") {
       const evtJwt = parts[0];
       const kbJwt = parts[1];
 
-      // Decode EVT payload to dynamically discover the issuer (iss)
+      // Decode the EVT payload to dynamically discover who issued this token.
       const decodedPayload = decodeJwt(evtJwt);
       const iss = decodedPayload.iss;
       if (!iss) {
         throw new Error("EVT is missing the issuer ('iss') claim.");
       }
 
-      // Step 1: DNS Delegation Authority Verification
+      // ==============================================================================
+      // STEP 2: DNS DELEGATION & AUTHORITY VERIFICATION
+      // ==============================================================================
+      // Verify that the issuer domain actually has the authority to verify emails for
+      // the submitted email address's domain.
       const isAuthoritative = await verifyIssuerDelegation(submittedEmail, iss);
       if (!isAuthoritative) {
         throw new Error(
@@ -70,7 +143,10 @@ if (Astro.request.method === "POST") {
 
       let evtPayload: EvtPayload;
 
-      // 1. Verify EVT dynamically by performing discovery on the external issuer
+      // ==============================================================================
+      // STEP 3: ISSUER DISCOVERY & EVT SIGNATURE VERIFICATION
+      // ==============================================================================
+      // 3A. Fetch the issuer's .well-known configurations
       const discoveryUrl = `${iss}/.well-known/email-verification`;
       const metadataResponse = await fetch(discoveryUrl);
       if (!metadataResponse.ok) {
@@ -86,15 +162,14 @@ if (Astro.request.method === "POST") {
         );
       }
 
-      // Fetch remote JWKS
+      // 3B. Fetch the public JSON Web Key Set (JWKS) used to sign the EVT
       const jwksResponse = await fetch(jwksUri);
       if (!jwksResponse.ok) {
         throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
       }
       const jwksData = await jwksResponse.json();
 
-      // The token header might have an empty kid and Gmail / Google's JWKS omits kids.
-      // We must iterate through all keys and attempt verification.
+      // 3C. Validate the EVT signature by checking against the keys in the JWKS
       const headerAlg = decodedPayload?.alg || "EdDSA";
       let verifiedPayload = null;
 
@@ -103,7 +178,7 @@ if (Astro.request.method === "POST") {
           const publicKey = await importJWK(jwk, headerAlg);
           const { payload } = await jwtVerify(evtJwt, publicKey);
           verifiedPayload = payload;
-          break; // Success, stop trying keys
+          break; // Key matched and signature verified successfully!
         } catch {
           // Signature verification failed for this key, try the next one
           continue;
@@ -117,7 +192,12 @@ if (Astro.request.method === "POST") {
       }
       evtPayload = verifiedPayload as unknown as EvtPayload;
 
-      // 2. Extract browser's public key from cnf.jwk
+      // ==============================================================================
+      // STEP 4: BROWSER EPHEMERAL KEY EXTRACTION
+      // ==============================================================================
+      // Extract the browser's ephemeral public key from the "cnf" (confirmation) claim.
+      // In EVP, the browser generates a key pair, asks the issuer to bind it to the EVT,
+      // and then proves ownership of that key pair by signing the KB-JWT.
       const browserJwk = evtPayload.cnf?.jwk;
       if (!browserJwk) {
         throw new Error(
@@ -125,14 +205,17 @@ if (Astro.request.method === "POST") {
         );
       }
 
-      // 3. Verify KB-JWT using browser's public key
+      // ==============================================================================
+      // STEP 5: KEY BINDING VALIDATION (KB-JWT CHECKS)
+      // ==============================================================================
       const kbHeader = decodeProtectedHeader(kbJwt);
       const kbAlg = kbHeader.alg || "ES256";
       const browserPublicKey = await importJWK(browserJwk, kbAlg);
+
+      // 5A. Cryptographic Proof of Possession: Verify the KB-JWT signature using the browser's public key
       const { payload: kbPayload } = await jwtVerify(kbJwt, browserPublicKey);
 
-      // Enforce full KB-JWT claims validation (Step 2)
-      // A. Audience Verification
+      // 5B. Audience Verification: Ensure this token was specifically intended for our origin
       const expectedAudience = Astro.url.origin;
       if (kbPayload.aud !== expectedAudience) {
         throw new Error(
@@ -140,14 +223,15 @@ if (Astro.request.method === "POST") {
         );
       }
 
-      // B. Nonce Verification (Step 3 - dynamic session check)
+      // 5C. Session Nonce Verification: Ensure the nonce matches the one we generated for this rendering
       if (!expectedNonce || kbPayload.nonce !== expectedNonce) {
         throw new Error(
           `Key Binding nonce mismatch or expired session. Expected '${expectedNonce || "N/A"}', but got '${kbPayload.nonce}'.`,
         );
       }
 
-      // C. Hash Verification (sd_hash binding to EVT)
+      // 5D. EVT Cryptographic Hash Binding: Match the "sd_hash" inside KB-JWT with the SHA-256
+      // hash of the EVT. This prevents an attacker from combining a valid KB-JWT with a different EVT.
       const calculatedHash = createHash("sha256")
         .update(evtJwt + "~")
         .digest("base64url");
@@ -158,7 +242,10 @@ if (Astro.request.method === "POST") {
         );
       }
 
-      // 4. Verify email match
+      // ==============================================================================
+      // STEP 6: EMAIL IDENTITY MATCH
+      // ==============================================================================
+      // Ensure the email address verified in the token matches the email inputted in the form.
       if (evtPayload.email !== submittedEmail) {
         throw new Error(
           `Email mismatch: Form input is '${submittedEmail}', but verified token holds '${evtPayload.email}'.`,

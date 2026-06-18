@@ -5,9 +5,21 @@ import { importJWK, jwtVerify, SignJWT, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
 import { PRIVATE_KEY_JWK } from "./_keys";
 
+/**
+ * Issuer Issuance Endpoint (EVP Standard API Route)
+ *
+ * In the Email Verification Protocol (EVP), the browser makes a credentialed POST request
+ * to this endpoint to request a signed Email Verification Token (EVT).
+ *
+ * We process the request through 5 clear, sequential steps.
+ */
 export const POST: APIRoute = async ({ request, cookies, url }) => {
   try {
-    // 1. Verify Authentication Cookie
+    // ==============================================================================
+    // STEP 1: SESSION AUTHENTICATION
+    // ==============================================================================
+    // The browser includes first-party cookies for the issuer.
+    // We check if the cookies represent a logged-in user who controls the email address.
     const session = cookies.get("evp_session")?.value;
     if (session !== "active") {
       return new Response(
@@ -26,7 +38,12 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       );
     }
 
-    // 2. Parse Request Body
+    // ==============================================================================
+    // STEP 2: PARSE THE TOKEN REQUEST BODY
+    // ==============================================================================
+    // To support early-stage client libraries and specs, we accommodate both:
+    // A. application/x-www-form-urlencoded (standard browser form format)
+    // B. application/json (standard dynamic JSON format)
     const contentType = request.headers.get("content-type") || "";
     let requestToken = "";
 
@@ -57,8 +74,13 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     let email = "";
     let browserJwk: JWK | undefined = undefined;
 
+    // ==============================================================================
+    // STEP 3: PROOF-OF-POSSESSION SIGNATURE VERIFICATION
+    // ==============================================================================
+    // If the request token is formatted as a signed JWT, we verify the signature to prove
+    // the browser holds the private key corresponding to its ephemeral public key (jwk).
     if (requestToken.includes(".")) {
-      // Decode the header to extract the browser's ephemeral public key (jwk)
+      // 3A. Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim)
       const header = decodeProtectedHeader(requestToken);
       browserJwk = header.jwk as JWK | undefined;
 
@@ -79,18 +101,23 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
         );
       }
 
-      // Import the browser's public key
+      // 3B. Import the browser's public JWK into a cryptographic key object
       const alg = (header.alg as string) || "ES256";
       const publicKey = await importJWK(browserJwk, alg);
 
-      // Verify the request_token signature
+      // 3C. Verify the signature on the request token using the browser's public key
       const { payload } = await jwtVerify(requestToken, publicKey);
       email = payload.email as string;
     } else {
+      // Fallback for simple tests/clients sending a raw email address
       email = requestToken;
     }
 
-    // 3. Verify target email is demo@rowan.fyi
+    // ==============================================================================
+    // STEP 4: USER AUTHORIZATION (IDENTITY MAPPING)
+    // ==============================================================================
+    // Confirm that the authenticated session user actually owns the requested email.
+    // For this simple demo provider, we only authorize the user `demo@rowan.fyi`.
     if (email !== "demo@rowan.fyi") {
       return new Response(
         JSON.stringify({
@@ -108,6 +135,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       );
     }
 
+    // Fallback public key if the client didn't supply one (e.g. static tests)
     if (!browserJwk) {
       browserJwk = {
         kty: "EC",
@@ -117,29 +145,35 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       };
     }
 
-    // 4. Generate the EVT (Email Verification Token)
+    // ==============================================================================
+    // STEP 5: SIGN AND ISSUE THE EMAIL VERIFICATION TOKEN (EVT)
+    // ==============================================================================
+    // We sign the EVT payload with the Issuer's private key.
+    // The payload MUST include the "cnf" (confirmation) claim holding the browser's public key.
     const privateKey = await importJWK(PRIVATE_KEY_JWK, "ES256");
     const origin = url.origin;
 
     const evtPayload = {
-      iss: origin,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 300, // 5 minutes expiration
+      iss: origin, // The authoritative issuer domain/URL
+      iat: Math.floor(Date.now() / 1000), // Issued At timestamp
+      exp: Math.floor(Date.now() / 1000) + 300, // Token validity (5 minutes)
       cnf: {
-        jwk: browserJwk,
+        jwk: browserJwk, // Cryptographically binds this token to the browser key pair
       },
-      email: "demo@rowan.fyi",
-      email_verified: true,
+      email: "demo@rowan.fyi", // The verified email identity
+      email_verified: true, // Verification state assertion
     };
 
     const evtJwt = await new SignJWT(evtPayload)
       .setProtectedHeader({
         alg: "ES256",
-        kid: PRIVATE_KEY_JWK.kid,
-        typ: "evt+jwt",
+        kid: PRIVATE_KEY_JWK.kid, // Key ID corresponding to our JWKS keys
+        typ: "evt+jwt", // Standard Token Type for EVTs
       })
       .sign(privateKey);
 
+    // Standard SD-JWT compatibility requires appending a trailing tilde "~"
+    // to separate the signed token from the key binding section.
     const issuanceToken = `${evtJwt}~`;
 
     return new Response(
@@ -151,6 +185,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Origin-Headers": "*",
         },
       },
     );
