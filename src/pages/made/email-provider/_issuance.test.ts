@@ -165,38 +165,6 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.error_description).toBe("Missing request_token in body.");
   });
 
-  test("issuance endpoint returns 400 when Sec-Fetch-Dest header is invalid", async () => {
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
-    const response = await postIssuance({
-      url: mockUrl,
-      request: new Request(mockUrl, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "sec-fetch-dest": "invalid-destination",
-        },
-        body: JSON.stringify({}),
-      }),
-      params: {},
-      props: {},
-      redirect: () => new Response(null, { status: 302 }),
-      locals: {},
-      cookies: {
-        get: () => ({ value: "active" }),
-      } as unknown as APIContext["cookies"],
-    } as unknown as APIContext);
-
-    expect(response.status).toBe(400);
-    const data = (await response.json()) as {
-      error: string;
-      error_description: string;
-    };
-    expect(data.error).toBe("invalid_request");
-    expect(data.error_description).toBe(
-      "Missing or invalid Sec-Fetch-Dest header.",
-    );
-  });
-
   test("issuance endpoint issues EVT on valid request token", async () => {
     // A. Generate browser's ephemeral key
     const { publicKey, privateKey } = await generateKeyPair("ES256");

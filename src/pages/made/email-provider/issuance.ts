@@ -19,26 +19,14 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // STEP 0: SEC-FETCH-DEST HEADER VALIDATION (IETF Draft Section 7.4.3 & WICG Section 3.5)
     // ==============================================================================
     // To protect user privacy and prevent CSRF / cross-site state detection,
-    // standard-compliant browsers MUST automatically set "Sec-Fetch-Dest: email-verification".
+    // standard-compliant browsers SHOULD set "Sec-Fetch-Dest: email-verification" or "webidentity".
     const secFetchDest = request.headers.get("sec-fetch-dest");
     if (
       secFetchDest &&
       secFetchDest !== "email-verification" &&
       secFetchDest !== "webidentity"
     ) {
-      return new Response(
-        JSON.stringify({
-          error: "invalid_request",
-          error_description: "Missing or invalid Sec-Fetch-Dest header.",
-        }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        },
-      );
+      console.warn(`Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
     }
 
     // ==============================================================================
