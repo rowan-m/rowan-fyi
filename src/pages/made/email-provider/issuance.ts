@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // ==============================================================================
     // The browser includes first-party cookies for the issuer.
     // We check if the cookies represent a logged-in user who controls the email address.
-    const session = cookies.get("evp_session")?.value;
+    const session = cookies.get("__session")?.value;
     if (session !== "active") {
       return new Response(
         JSON.stringify({

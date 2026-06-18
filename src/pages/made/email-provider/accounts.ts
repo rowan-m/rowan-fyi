@@ -14,7 +14,7 @@ import type { APIRoute } from "astro";
  */
 export const GET: APIRoute = async ({ cookies, request }) => {
   const origin = request.headers.get("origin") || "*";
-  const isLoggedIn = cookies.get("evp_session")?.value === "active";
+  const isLoggedIn = cookies.get("__session")?.value === "active";
 
   const responseBody = {
     accounts: isLoggedIn

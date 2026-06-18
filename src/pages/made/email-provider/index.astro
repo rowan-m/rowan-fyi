@@ -3,7 +3,7 @@ export const prerender = false;
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 
-const cookieName = "evp_session";
+const cookieName = "__session";
 let isLoggedIn = Astro.cookies.get(cookieName)?.value === "active";
 
 let triggerLoginStatusUpdate: "logged-in" | "logged-out" | null = null;
