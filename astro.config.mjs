@@ -16,6 +16,7 @@ export default defineConfig({
   },
   integrations: [sitemap()],
   security: {
+    checkOrigin: false,
     allowedDomains: [
       {
         hostname: "rowan.fyi",
