@@ -26,12 +26,15 @@ if (Astro.request.method === "POST") {
 ---
 
 <MetaOnlyLayout
-  title="Email Provider (EVP Issuer Demo)"
+  title="Issuer - Email Verification Protocol (EVP) demo"
   description="Demo of an Email Verification Protocol (EVP) Issuer"
 >
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Email Provider (EVP Issuer Demo)" />
+  <meta
+    property="og:title"
+    content="Issuer - Email Verification Protocol (EVP) demo"
+  />
   <meta
     property="og:description"
     content="Demo of an Email Verification Protocol (EVP) Issuer"
@@ -42,138 +45,42 @@ if (Astro.request.method === "POST") {
     property="twitter:url"
     content={new URL(Astro.url.pathname, Astro.site)}
   />
-  <meta name="twitter:title" content="Email Provider (EVP Issuer Demo)" />
+  <meta
+    name="twitter:title"
+    content="Issuer - Email Verification Protocol (EVP) demo"
+  />
   <meta
     name="twitter:description"
     content="Demo of an Email Verification Protocol (EVP) Issuer"
   />
   <link
     rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✉️</text></svg>"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>"
   />
-
-  <body>
-    <main class="evp-container">
-      <h1>Email Provider (EVP Issuer)</h1>
-      <p>
-        This page acts as the <strong>Issuer</strong> for the domain <code
-          >rowan.fyi</code
-        >. It manages the login session and provides the endpoints required by
-        the browser to issue Email Verification Tokens (EVTs).
-      </p>
-
-      <div class="status-card">
-        <h2>Authentication Status</h2>
-        {
-          isLoggedIn ? (
-            <div class="status active">
-              <p>
-                Logged in as <strong>demo@rowan.fyi</strong>
-              </p>
-              <form method="POST">
-                <input type="hidden" name="action" value="logout" />
-                <button type="submit" class="btn btn-danger">
-                  Log Out
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div class="status inactive">
-              <p>Not logged in</p>
-              <form method="POST">
-                <input type="hidden" name="action" value="login" />
-                <button type="submit" class="btn btn-success">
-                  Log In as demo@rowan.fyi
-                </button>
-              </form>
-            </div>
-          )
-        }
+  <h1>Issuer - Email Verification Protocol (EVP) demo</h1>
+  {
+    isLoggedIn ? (
+      <div>
+        <p>
+          Logged in as <strong>demo@rowan.fyi</strong>
+        </p>
+        <form method="POST">
+          <input type="hidden" name="action" value="logout" />
+          <button type="submit" class="btn btn-danger">
+            Log out
+          </button>
+        </form>
       </div>
-
-      <div class="endpoints-card">
-        <h2>EVP Discovery & Endpoints</h2>
-        <ul>
-          <li>
-            <strong>Discovery Metadata:</strong>
-            <a href="/.well-known/email-verification" target="_blank"
-              >/.well-known/email-verification</a
-            >
-          </li>
-          <li>
-            <strong>Issuance Endpoint:</strong>
-            <code>/made/email-provider/issuance</code>
-          </li>
-          <li>
-            <strong>JWKS Endpoint:</strong>
-            <a href="/made/email-provider/jwks" target="_blank"
-              >/made/email-provider/jwks</a
-            >
-          </li>
-        </ul>
+    ) : (
+      <div>
+        <p>Not logged in</p>
+        <form method="POST">
+          <input type="hidden" name="action" value="login" />
+          <button type="submit" class="btn btn-success">
+            Log in as demo@rowan.fyi
+          </button>
+        </form>
       </div>
-
-      <p class="nav-links">
-        <a href="/made/email-verification/"
-          >&larr; Go to Email Verification Site (RP)</a
-        >
-      </p>
-    </main>
-
-    <style>
-      .evp-container {
-        max-width: 600px;
-        margin: 2rem auto;
-        padding: 1rem;
-      }
-      .status-card,
-      .endpoints-card {
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin: 1.5rem 0;
-        background: rgba(255, 255, 255, 0.05);
-      }
-      .status {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
-        border-radius: 4px;
-      }
-      .status.active {
-        background: rgba(40, 167, 69, 0.15);
-        border: 1px solid #28a745;
-      }
-      .status.inactive {
-        background: rgba(220, 53, 69, 0.15);
-        border: 1px solid #dc3545;
-      }
-      .btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-      }
-      .btn-success {
-        background-color: #28a745;
-        color: white;
-      }
-      .btn-danger {
-        background-color: #dc3545;
-        color: white;
-      }
-      .endpoints-card ul {
-        list-style: none;
-        padding: 0;
-      }
-      .endpoints-card li {
-        margin-bottom: 0.75rem;
-      }
-      .nav-links {
-        margin-top: 2rem;
-      }
-    </style>
-  </body>
+    )
+  }
 </MetaOnlyLayout>
