@@ -16,6 +16,28 @@ import { PRIVATE_KEY_JWK } from "./_keys";
 export const POST: APIRoute = async ({ request, cookies, url }) => {
   try {
     // ==============================================================================
+    // STEP 0: SEC-FETCH-DEST HEADER VALIDATION (IETF Draft Section 7.4.3 & WICG Section 3.5)
+    // ==============================================================================
+    // To protect user privacy and prevent CSRF / cross-site state detection,
+    // standard-compliant browsers MUST automatically set "Sec-Fetch-Dest: email-verification".
+    const secFetchDest = request.headers.get("sec-fetch-dest");
+    if (secFetchDest && secFetchDest !== "email-verification") {
+      return new Response(
+        JSON.stringify({
+          error: "invalid_request",
+          error_description: "Missing or invalid Sec-Fetch-Dest header.",
+        }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        },
+      );
+    }
+
+    // ==============================================================================
     // STEP 1: SESSION AUTHENTICATION
     // ==============================================================================
     // The browser includes first-party cookies for the issuer.
@@ -185,7 +207,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Origin-Headers": "*",
+          "Access-Control-Allow-Headers": "*",
         },
       },
     );
