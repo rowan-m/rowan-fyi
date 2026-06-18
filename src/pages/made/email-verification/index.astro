@@ -9,7 +9,7 @@ Astro.response.headers.set(
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { importJWK, jwtVerify, decodeJwt, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { verifyIssuerDelegation } from "./_dns";
 
 interface VerificationResult {
@@ -29,8 +29,15 @@ let verificationResult: VerificationResult | null = null;
 let errorMsg = "";
 let submittedEmail = "";
 
+// Cookie and Nonce Configuration
+const nonceCookieName = "evp_rp_nonce";
+let expectedNonce = Astro.cookies.get(nonceCookieName)?.value;
+
 if (Astro.request.method === "POST") {
   try {
+    // Delete the nonce cookie immediately upon processing to prevent replay attacks
+    Astro.cookies.delete(nonceCookieName, { path: "/" });
+
     const formData = await Astro.request.formData();
     submittedEmail = formData.get("email") as string;
     const rawToken = formData.get("token") as string;
@@ -133,11 +140,10 @@ if (Astro.request.method === "POST") {
         );
       }
 
-      // B. Nonce Verification (will be made fully dynamic in Step 3)
-      const expectedNonce = "demo-nonce-987654321";
-      if (kbPayload.nonce !== expectedNonce) {
+      // B. Nonce Verification (Step 3 - dynamic session check)
+      if (!expectedNonce || kbPayload.nonce !== expectedNonce) {
         throw new Error(
-          `Key Binding nonce mismatch. Expected '${expectedNonce}', but got '${kbPayload.nonce}'.`,
+          `Key Binding nonce mismatch or expired session. Expected '${expectedNonce || "N/A"}', but got '${kbPayload.nonce}'.`,
         );
       }
 
@@ -173,6 +179,16 @@ if (Astro.request.method === "POST") {
     errorMsg = e instanceof Error ? e.message : "Failed to verify the token.";
   }
 }
+
+// Always generate a fresh nonce for the next page render
+const activeNonce = randomUUID();
+Astro.cookies.set(nonceCookieName, activeNonce, {
+  path: "/",
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax",
+  maxAge: 300, // 5 minutes
+});
 ---
 
 <MetaOnlyLayout
@@ -221,11 +237,11 @@ if (Astro.request.method === "POST") {
       placeholder="Use an autofilled email"
       required
     />
-    <!-- EVP Hidden Input with Server-Side (or hardcoded) Nonce -->
+    <!-- EVP Hidden Input with Server-Side Dynamic Nonce -->
     <input
       type="hidden"
       name="token"
-      nonce="demo-nonce-987654321"
+      nonce={activeNonce}
       autocomplete="email-verification-token"
     />
     <button type="submit" id="submit-btn">Sign up</button>
