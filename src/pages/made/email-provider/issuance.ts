@@ -21,7 +21,11 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // To protect user privacy and prevent CSRF / cross-site state detection,
     // standard-compliant browsers MUST automatically set "Sec-Fetch-Dest: email-verification".
     const secFetchDest = request.headers.get("sec-fetch-dest");
-    if (secFetchDest && secFetchDest !== "email-verification") {
+    if (
+      secFetchDest &&
+      secFetchDest !== "email-verification" &&
+      secFetchDest !== "webidentity"
+    ) {
       return new Response(
         JSON.stringify({
           error: "invalid_request",
