@@ -9,7 +9,7 @@ export default defineConfig({
   trailingSlash: "ignore",
   output: "server",
   adapter: node({
-    mode: "middleware",
+    mode: "standalone",
   }),
   build: {
     format: "directory",
