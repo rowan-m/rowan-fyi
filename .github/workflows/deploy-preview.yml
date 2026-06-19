@@ -64,7 +64,7 @@ jobs:
         run: |
           TAG_URL=$(gcloud run services describe rowan-fyi \
             --region europe-west1 \
-            --format='value(status.traffic.where(tag="pr-${{ github.event.number }}").url)')
+            --format=json | python3 -c "import sys, json; print(next((t['url'] for t in json.load(sys.stdin).get('status', {}).get('traffic', []) if t.get('tag') == 'pr-${{ github.event.number }}'), ''))")
           echo "tag_url=$TAG_URL" >> $GITHUB_OUTPUT
 
       - name: Comment on PR with Preview Link
