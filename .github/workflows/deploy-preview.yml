@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -33,8 +33,8 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: 'projects/315620914732/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
-          service_account: 'github-action-965078087@rowan-fyi.iam.gserviceaccount.com'
+          workload_identity_provider: "projects/315620914732/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider"
+          service_account: "github-action-965078087@rowan-fyi.iam.gserviceaccount.com"
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -53,10 +53,10 @@ jobs:
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: 'rowan-fyi'
-          region: 'europe-west1'
-          image: 'europe-west1-docker.pkg.dev/rowan-fyi/rowan-fyi-repo/rowan-fyi:pr-${{ github.event.number }}'
-          tag: 'pr-${{ github.event.number }}'
+          service: "rowan-fyi"
+          region: "europe-west1"
+          image: "europe-west1-docker.pkg.dev/rowan-fyi/rowan-fyi-repo/rowan-fyi:pr-${{ github.event.number }}"
+          tag: "pr-${{ github.event.number }}"
           no_traffic: true
 
       - name: Get Preview URL
@@ -72,13 +72,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           EXISTING_COMMENT_ID=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.author.login == "github-actions[bot]" and (.body | contains("Preview deployed successfully"))) | .id' | head -n 1)
-          
+
           COMMENT_BODY="🚀 **Preview deployed successfully to Cloud Run!**
 
           🔗 **Preview URL:** ${{ steps.preview-url.outputs.tag_url }}
-          
+
           _Built from commit ${{ github.event.pull_request.head.sha }}._"
-          
+
           if [ -n "$EXISTING_COMMENT_ID" ]; then
             gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING_COMMENT_ID" -f body="$COMMENT_BODY"
           else
