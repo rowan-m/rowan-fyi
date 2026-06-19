@@ -1,0 +1,86 @@
+name: Deploy Preview to Cloud Run
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  build_and_preview:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run code checks
+        run: npm run check
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/315620914732/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider'
+          service_account: 'github-action-965078087@rowan-fyi.iam.gserviceaccount.com'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
+
+      - name: Build and Push Container Image
+        run: |
+          IMAGE_URI="europe-west1-docker.pkg.dev/rowan-fyi/rowan-fyi-repo/rowan-fyi:pr-${{ github.event.number }}"
+          docker build -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+
+      - name: Deploy Preview to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: 'rowan-fyi'
+          region: 'europe-west1'
+          image: 'europe-west1-docker.pkg.dev/rowan-fyi/rowan-fyi-repo/rowan-fyi:pr-${{ github.event.number }}'
+          tag: 'pr-${{ github.event.number }}'
+          no_traffic: true
+
+      - name: Get Preview URL
+        id: preview-url
+        run: |
+          TAG_URL=$(gcloud run services describe rowan-fyi \
+            --region europe-west1 \
+            --format='value(status.traffic.where(tag="pr-${{ github.event.number }}").url)')
+          echo "tag_url=$TAG_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR with Preview Link
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTING_COMMENT_ID=$(gh pr view ${{ github.event.number }} --json comments -q '.comments[] | select(.author.login == "github-actions[bot]" and (.body | contains("Preview deployed successfully"))) | .id' | head -n 1)
+          
+          COMMENT_BODY="🚀 **Preview deployed successfully to Cloud Run!**
+
+          🔗 **Preview URL:** ${{ steps.preview-url.outputs.tag_url }}
+          
+          _Built from commit ${{ github.event.pull_request.head.sha }}._"
+          
+          if [ -n "$EXISTING_COMMENT_ID" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING_COMMENT_ID" -f body="$COMMENT_BODY"
+          else
+            gh pr comment ${{ github.event.number }} --body "$COMMENT_BODY"
+          fi
