@@ -22,7 +22,7 @@ Welcome, Agent. You are contributing to a personal portfolio and blog built with
 - `src/layouts/`: Common page layouts.
 - `public/made/`: Standalone legacy demos. Each folder is an independent project.
 - `.idx/`: Configuration for Google Project IDX development environment.
-- `.github/workflows/`: CI/CD pipelines for Firebase Hosting.
+- `.github/workflows/`: CI/CD pipelines for Google Cloud Run.
 - `scripts/`: Helper scripts for maintenance tasks.
 
 ## 🛠 Development Workflow
