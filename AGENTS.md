@@ -1,66 +1,65 @@
-# Project: rowan.fyi
+# Project Context: rowan.fyi (Agent Directives)
 
-Welcome, Agent. You are contributing to a personal portfolio and blog built with **Astro**. This project also serves as a host for numerous standalone experiments imported from Glitch.
+Welcome, Agent. You are operating as a Senior Software Engineer contributing to a personal portfolio, blog, and standalone experiment host. This document provides your core operational directives, architectural context, and quality gates.
+
+**CRITICAL DIRECTIVE:** You must **always** run `npm run check` and ensure it passes completely before concluding any task or submitting a pull request.
 
 ## 🏗 Architecture & Tech Stack
 
-- **Framework:** [Astro 6+](https://astro.build/)
-- **Content:** Managed via [Astro Content Collections](https://docs.astro.build/en/guides/content-collections/) in `src/content/`.
-- **Styling:** Primarily CSS (Vanilla CSS preferred).
-- **Standalone Demos:** Located in `public/made/`. These are self-contained HTML/JS/CSS projects.
-- **Testing:** [Vitest](https://vitest.dev/) for unit and integration testing.
-- **Linting & Quality:**
-  - `eslint` with `sonarjs` and `security` plugins.
-  - `dependency-cruiser` to enforce architectural boundaries.
-  - `prettier` for consistent formatting.
+- **Framework:** [Astro 6+](https://astro.build/) configured with the `@astrojs/node` adapter (`standalone` mode).
+- **Runtime:** Node.js 22 (Strictly enforced in CI/CD).
+- **Content:** Markdown/MDX managed via Astro Content Collections (`src/content/`).
+- **Styling:** Vanilla CSS is strictly preferred. Do not introduce large CSS frameworks (Tailwind, Bootstrap, etc.) unless explicitly commanded.
+- **Containerization:** Deployed as a Dockerized container.
+- **Hosting/Deployment:** Google Cloud Run (`europe-west1`) via Google Artifact Registry.
+- **Testing:** [Vitest](https://vitest.dev/) for unit/integration testing.
 
-## 📁 Key Directories
+## 📂 Repository Topology & Boundaries
 
-- `src/content/posts/`: Markdown/MDX files for blog posts.
-- `src/pages/`: Astro pages and dynamic routes.
-- `src/components/`: Reusable Astro components.
-- `src/layouts/`: Common page layouts.
-- `public/made/`: Standalone legacy demos. Each folder is an independent project.
-- `.idx/`: Configuration for Google Project IDX development environment.
-- `.github/workflows/`: CI/CD pipelines for Google Cloud Run.
-- `scripts/`: Helper scripts for maintenance tasks.
+You must respect the architectural boundaries of this repository:
 
-## 🛠 Development Workflow
+- `src/`: The core Astro application.
+  - `src/pages/`: Astro routing.
+  - `src/pages/made/`: Astro-native, interactive/server experiments (uses strict TS, full unit/integration testing, and subject to standard quality gates).
+  - `src/components/`: Reusable, functional Astro UI components.
+  - `src/layouts/`: Shared page structures.
+  - `src/content/posts/`: Blog posts. **Always check `src/content.config.ts` for schema definitions before adding/editing content.**
+- `public/made/`: A collection of legacy, self-contained HTML/JS/CSS experiments imported from Glitch. **Treat these as immutable legacy systems.** Maintain their standalone nature. Do not inject modern build tools into them unless tasked with a full migration to Astro components.
+- `.github/workflows/`: CI/CD pipelines deploying to GCP. Note the distinct handling of PR Previews vs. Production (`deploy-preview.yml` and `deploy-prod.yml`).
+- `Dockerfile` / `.dockerignore`: The container configuration for Cloud Run deployments.
 
-### Standard Commands
+## 🛡 Quality Gates & CI/CD
 
-- `npm run dev`: Start local development server.
-- `npm run build`: Build for production.
-- `npm run format`: Format code with Prettier.
-- `npm run check`: Run all quality checks (Lints, Tests, DepCruise). **Always run this before finishing a task.**
+We enforce aggressive code quality and security checks. The CI/CD pipeline will fail if any of these are violated.
 
-### Linting Details
+The master command is `npm run check`. This command sequentially executes:
 
-We take code quality seriously. There are specialized linting configurations:
+1. `npm run format:check` (Prettier code formatting)
+2. `npm run lint` (Standard ESLint)
+3. `npm run lint:sonar` (SonarJS plugin for code smells, cognitive complexity, and maintainability)
+4. `npm run lint:security` (Security plugin for vulnerabilities like unsanitized HTML or unsafe regex)
+5. `npm run depcruise` (Dependency Cruiser to enforce structural boundaries)
+6. `npm run build` (Astro production build)
+7. `npm run test` (Vitest suite execution)
 
-- `npm run lint:sonar`: Checks for code smells and maintainability.
-- `npm run lint:security`: Checks for common security vulnerabilities.
+**Agent Responsibility:** You must manually invoke `npm run check` after completing your modifications. If it fails, you are responsible for fixing the errors before completing your interaction.
 
-## 📜 Coding Standards
+## 🧑‍💻 Coding Standards
 
-1. **Type Safety:** Use TypeScript for all new logic in `src/`.
-2. **Component Structure:** Prefer functional components and Astro components over complex class-based structures.
-3. **Vanilla CSS:** Aim for clean, modern Vanilla CSS. Avoid adding large CSS frameworks unless specifically requested.
-4. **Aliases:** Use `@/` as an alias for the `src/` directory (e.g., `import Header from "@/components/Header.astro"`).
-5. **Demos:** When modifying or adding to `public/made/`, remember these are often legacy projects. Maintain their standalone nature unless migrating them to Astro components.
-6. **Tests:** All new logic should include corresponding tests in Vitest.
+1. **TypeScript First:** Use strict TypeScript for all new logic inside the `src/` directory.
+2. **Path Aliasing:** Use the `@/` alias to reference the `src/` directory (e.g., `import Header from "@/components/Header.astro"`).
+3. **Component Simplicity:** Prefer lightweight functional components over complex class-based architectures.
+4. **Dependencies:** If your solution requires a new dependency, you must install it (`npm i <package>`) and ensure `package.json` and `package-lock.json` are both updated and committed.
+5. **Testing & Astro Naming:** Any new utility function, parser, or core logic must be accompanied by a Vitest test file.
+   - **CRITICAL ASTRO ROUTING RULE:** If you add or edit a test file inside the Astro pages directory (such as `src/pages/made/`), you **must** prefix its filename with a leading underscore (e.g., `_my-feature.test.ts`). This is mandatory so the Astro build engine knows to ignore it and doesn't incorrectly generate a public URL route for a test suite.
+6. **Proactive Refactoring:** If you touch a piece of code that exhibits "code smells" (as historically noted in the README), proactively refactor it into cleaner patterns, provided it stays within the scope of your primary objective.
 
-## 🚦 Quality Gate
+## 🚀 Execution Checklist
 
-Your changes are considered complete only when `npm run check` passes entirely. This includes:
+Before you output a final confirmation to the user, silently verify:
 
-- Prettier formatting.
-- Standard ESLint.
-- SonarJS & Security Lints.
-- Dependency Cruiser checks.
-- Vitest execution.
-
-## 💡 Proactive Advice
-
-- If you notice "nasty" code (as mentioned in README.md), prioritize refactoring it into cleaner, more maintainable patterns while staying within the scope of your task.
-- Check `src/content.config.ts` for schema definitions before adding or modifying blog posts.
+- [ ] Did I write TypeScript?
+- [ ] Did I respect the separation of legacy `public/made/` and Astro-native `src/pages/made/`?
+- [ ] Did I write Vitest tests for new logic?
+- [ ] Did I use leading underscores (`_filename.test.ts`) for test files in the pages directory?
+- [ ] **Did I run `npm run check` and verify it passed?**
