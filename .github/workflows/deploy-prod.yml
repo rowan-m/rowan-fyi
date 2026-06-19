@@ -53,3 +53,4 @@ jobs:
           service: "rowan-fyi"
           region: "europe-west1"
           image: "europe-west1-docker.pkg.dev/rowan-fyi/rowan-fyi-repo/rowan-fyi:latest"
+          revision_traffic: "LATEST=100"
