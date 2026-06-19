@@ -2,6 +2,13 @@
   "name": "ps-origin-trial",
   "version": "0.0.1",
   "description": "Privacy Sandbox origin trial demo",
+  "keywords": [
+    "demo"
+  ],
+  "repository": {
+    "url": "https://glitch.com/edit/#!/ps-origin-trial"
+  },
+  "license": "MIT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,12 +20,5 @@
   },
   "engines": {
     "node": "12.x"
-  },
-  "repository": {
-    "url": "https://glitch.com/edit/#!/ps-origin-trial"
-  },
-  "license": "MIT",
-  "keywords": [
-    "demo"
-  ]
+  }
 }

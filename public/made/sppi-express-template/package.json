@@ -2,6 +2,13 @@
   "name": "sppi-express-template",
   "version": "0.0.1",
   "description": "Basic template project with Express and optional Mustache.",
+  "keywords": [
+    "demo"
+  ],
+  "repository": {
+    "url": "https://glitch.com/edit/#!/sppi-express-template"
+  },
+  "license": "Apache-2.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,12 +20,5 @@
   },
   "engines": {
     "node": "^16.x"
-  },
-  "repository": {
-    "url": "https://glitch.com/edit/#!/sppi-express-template"
-  },
-  "license": "Apache-2.0",
-  "keywords": [
-    "demo"
-  ]
+  }
 }

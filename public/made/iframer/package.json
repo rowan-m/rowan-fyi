@@ -2,6 +2,15 @@
   "name": "user-agent-client-hints",
   "version": "0.0.1",
   "description": "User-Agent Client Hints is a new expansion to the Client Hints API.",
+  "keywords": [
+    "useragent",
+    "clienthints",
+    "web.dev"
+  ],
+  "repository": {
+    "url": "https://github.com/GoogleChromeLabs/trust-safety-demo/user-agent-client-hints"
+  },
+  "license": "Apache-2.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,14 +22,5 @@
   },
   "engines": {
     "node": "12.x"
-  },
-  "repository": {
-    "url": "https://github.com/GoogleChromeLabs/trust-safety-demo/user-agent-client-hints"
-  },
-  "license": "Apache-2.0",
-  "keywords": [
-    "useragent",
-    "clienthints",
-    "web.dev"
-  ]
+  }
 }

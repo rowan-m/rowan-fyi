@@ -1,20 +1,20 @@
 {
   "name": "out-out",
-  "type": "module",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
     "astro": "astro",
-    "lint": "eslint src",
-    "lint:sonar": "eslint src -c eslint.sonar.config.js",
-    "lint:security": "eslint src -c eslint.security.config.js",
+    "build": "astro build",
+    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise && npm run build && npm run test",
     "depcruise": "depcruise src",
+    "dev": "astro dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
-    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise && npm run build && npm run test"
+    "lint": "eslint src",
+    "lint:security": "eslint src -c eslint.security.config.js",
+    "lint:sonar": "eslint src -c eslint.sonar.config.js",
+    "preview": "astro preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@astrojs/node": "^10.1.4",
@@ -36,6 +36,7 @@
     "globals": "^17.6.0",
     "prettier": "^3.8.4",
     "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-packagejson": "^3.0.2",
     "typescript-eslint": "^8.61.1",
     "vitest": "^4.1.9"
   },

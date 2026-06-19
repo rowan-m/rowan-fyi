@@ -2,6 +2,13 @@
   "name": "samesite-sandbox",
   "version": "0.0.1",
   "description": "SameSite cookie tests",
+  "keywords": [
+    "cookies"
+  ],
+  "repository": {
+    "url": "https://glitch.com/edit/#!/samesite-sandbox"
+  },
+  "license": "Apache-2.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -14,12 +21,5 @@
   },
   "engines": {
     "node": "^16.x"
-  },
-  "repository": {
-    "url": "https://glitch.com/edit/#!/samesite-sandbox"
-  },
-  "license": "Apache-2.0",
-  "keywords": [
-    "cookies"
-  ]
+  }
 }
