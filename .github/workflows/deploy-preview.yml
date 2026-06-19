@@ -64,6 +64,7 @@ jobs:
           image: "europe-west1-docker.pkg.dev/rowan-fyi/rowan-fyi-repo/rowan-fyi:pr-${{ github.event.number }}"
           tag: "pr-${{ github.event.number }}"
           no_traffic: true
+          flags: "--concurrency=250"
 
       - name: Get Preview URL
         id: preview-url
