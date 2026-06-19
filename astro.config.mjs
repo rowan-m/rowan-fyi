@@ -7,7 +7,8 @@ import node from "@astrojs/node";
 export default defineConfig({
   site: "https://rowan.fyi",
   trailingSlash: "ignore",
-  output: "server",
+  scopedStyleStrategy: "where",
+  output: "static",
   adapter: node({
     mode: "standalone",
   }),
@@ -16,7 +17,7 @@ export default defineConfig({
   },
   integrations: [sitemap()],
   security: {
-    checkOrigin: false,
+    checkOrigin: true,
     allowedDomains: [
       {
         hostname: "rowan.fyi",
