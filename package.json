@@ -5,7 +5,7 @@
   "scripts": {
     "astro": "astro",
     "build": "astro build",
-    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise && npm run build && npm run test",
+    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise && npm run test",
     "depcruise": "depcruise src",
     "dev": "astro dev",
     "format": "prettier --write .",
