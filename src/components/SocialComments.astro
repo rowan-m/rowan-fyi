@@ -151,6 +151,41 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
 <script>
   /* eslint-disable @typescript-eslint/no-explicit-any */
+  function getSearchQueries(
+    urlStr: string,
+    blogHostname: string = "rowan.fyi",
+  ): string[] {
+    try {
+      const url = new URL(urlStr);
+
+      // If it is an external domain, search for the hostname directly
+      if (url.hostname !== blogHostname) {
+        return [url.hostname];
+      }
+
+      const queries = [urlStr];
+
+      // Trailing slash variations
+      if (urlStr.endsWith("/")) {
+        queries.push(urlStr.slice(0, -1));
+      } else if (!url.pathname.includes(".")) {
+        queries.push(urlStr + "/");
+      }
+
+      // Protocol-less variations
+      const noProtocol = url.host + url.pathname + url.search;
+      queries.push(noProtocol);
+      if (noProtocol.endsWith("/")) {
+        queries.push(noProtocol.slice(0, -1));
+      } else if (!url.pathname.includes(".")) {
+        queries.push(noProtocol + "/");
+      }
+
+      return Array.from(new Set(queries));
+    } catch {
+      return [urlStr];
+    }
+  }
   interface Comment {
     id: string;
     authorName: string;
@@ -322,12 +357,25 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       }
     }
 
+    let blogHostname = "rowan.fyi";
+    try {
+      blogHostname = new URL(canonicalUrl).hostname;
+    } catch {
+      // fallback
+    }
+
     // Search for mentions of the canonical URL and location URL
-    const searchUrls = [canonicalUrl];
-    if (locationUrl) searchUrls.push(locationUrl);
+    const searchUrls: string[] = [];
+    searchUrls.push(...getSearchQueries(canonicalUrl, blogHostname));
+    if (locationUrl) {
+      searchUrls.push(...getSearchQueries(locationUrl, blogHostname));
+    }
+    const uniqueSearchUrls = Array.from(new Set(searchUrls));
 
     const searchResults = await Promise.all(
-      searchUrls.map((urlToSearch) => searchBlueskyUrl(urlToSearch, comments)),
+      uniqueSearchUrls.map((urlToSearch) =>
+        searchBlueskyUrl(urlToSearch, comments),
+      ),
     );
 
     const allComments = [...comments, ...searchResults.flat()];
@@ -523,13 +571,24 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       }
     }
 
+    let blogHostname = "rowan.fyi";
+    try {
+      blogHostname = new URL(canonicalUrl).hostname;
+    } catch {
+      // fallback
+    }
+
     // Search for mentions - this often fails without auth on many instances,
     // so we only try mastodon.social as a best-effort fallback.
-    const searchUrls = [canonicalUrl];
-    if (locationUrl) searchUrls.push(locationUrl);
+    const searchUrls: string[] = [];
+    searchUrls.push(...getSearchQueries(canonicalUrl, blogHostname));
+    if (locationUrl) {
+      searchUrls.push(...getSearchQueries(locationUrl, blogHostname));
+    }
+    const uniqueSearchUrls = Array.from(new Set(searchUrls));
 
     const searchResults = await Promise.all(
-      searchUrls.map((urlToSearch) => searchMastodonUrl(urlToSearch)),
+      uniqueSearchUrls.map((urlToSearch) => searchMastodonUrl(urlToSearch)),
     );
 
     const allComments = [...comments, ...searchResults.flat()];
