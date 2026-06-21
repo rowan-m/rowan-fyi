@@ -11,6 +11,8 @@ tags:
   - rust
   - fractal
   - mandelbrot
+blueskyUrl: https://bsky.app/profile/rowan.fyi/post/3motch5pn722e
+mastodonUrl: https://mastodon.social/@rowan_m/116790187470258197
 ---
 
 I built the first iteration of [Fractious](/posts/fractious/) back in 2021 as a way to start learning about WebGL and shaders. Rendering the Mandelbrot set is, of course, a classic rite of passage and approximately 86.3% of developers<sup>[citation needed]</sup> have built their own version in one way or another.
