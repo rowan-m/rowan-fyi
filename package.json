@@ -17,10 +17,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/node": "^10.1.4",
+    "@astrojs/markdown-remark": "^7.2.0",
+    "@astrojs/node": "^11.0.0",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^6.4.8",
+    "astro": "^7.0.0",
     "jose": "^6.2.3",
     "rehype-mathjax": "^7.1.0",
     "remark-math": "^6.0.0",
@@ -31,11 +32,11 @@
     "@vitest/coverage-v8": "^4.1.9",
     "dependency-cruiser": "^17.4.3",
     "eslint": "^10.5.0",
-    "eslint-plugin-astro": "^1.7.0",
+    "eslint-plugin-astro": "^2.0.0",
     "eslint-plugin-no-unsanitized": "^4.1.5",
     "eslint-plugin-security": "^4.0.1",
     "eslint-plugin-sonarjs": "^4.1.0",
-    "globals": "^17.6.0",
+    "globals": "^17.7.0",
     "prettier": "^3.8.4",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-packagejson": "^3.0.2",
@@ -44,6 +45,6 @@
   },
   "allowScripts": {
     "sharp@0.34.5": true,
-    "esbuild@0.27.7": true
+    "esbuild@0.28.1": true
   }
 }
