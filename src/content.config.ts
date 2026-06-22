@@ -14,6 +14,7 @@ const posts = defineCollection({
       tags: z.array(z.string()).optional(),
       blueskyUrl: z.string().url().optional(),
       mastodonUrl: z.string().url().optional(),
+      standardSiteDoc: z.string().optional(),
     }),
 });
 

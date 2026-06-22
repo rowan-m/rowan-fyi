@@ -27,9 +27,22 @@ describe("collections.posts.schema", () => {
       tags: ["test", "astro"],
       blueskyUrl: "https://bsky.app/profile/user/post/123",
       mastodonUrl: "https://mastodon.social/@user/123",
+      standardSiteDoc: "3movvj4v5nz2e",
     };
     const result = zodSchema.safeParse(fullPost);
     expect(result.success).toBe(true);
+  });
+
+  test("rejects post with non-string standardSiteDoc", () => {
+    const invalidPost = {
+      ...validPost,
+      standardSiteDoc: 12345,
+    };
+    const result = zodSchema.safeParse(invalidPost);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(["standardSiteDoc"]);
+    }
   });
 
   test("rejects post missing title", () => {

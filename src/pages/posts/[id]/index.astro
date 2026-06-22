@@ -54,6 +54,14 @@ const articleData = {
     type="application/ld+json"
     set:html={JSON.stringify(articleData)}
   />
+  {
+    post.data.standardSiteDoc && (
+      <link
+        rel="site.standard.document"
+        href={`at://did:plc:7dtviror2bcs32dnngqsf7ay/site.standard.document/${post.data.standardSiteDoc}`}
+      />
+    )
+  }
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
   <meta property="og:title" content={post.data.title} />
