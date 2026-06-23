@@ -14,6 +14,18 @@ import { PRIVATE_KEY_JWK } from "./_keys";
  * We process the request through 5 clear, sequential steps.
  */
 export const POST: APIRoute = async ({ request, cookies, url }) => {
+  const requestOrigin = request.headers.get("origin");
+  const corsHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Headers": "*",
+  };
+  if (requestOrigin) {
+    corsHeaders["Access-Control-Allow-Origin"] = requestOrigin;
+    corsHeaders["Access-Control-Allow-Credentials"] = "true";
+  } else {
+    corsHeaders["Access-Control-Allow-Origin"] = "*";
+  }
+
   try {
     // ==============================================================================
     // STEP 0: SEC-FETCH-DEST HEADER VALIDATION (IETF Draft Section 7.4.3 & WICG Section 3.5)
@@ -44,10 +56,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
         }),
         {
           status: 401,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+          headers: corsHeaders,
         },
       );
     }
@@ -77,10 +86,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
         }),
         {
           status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+          headers: corsHeaders,
         },
       );
     }
@@ -107,10 +113,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
           }),
           {
             status: 400,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-            },
+            headers: corsHeaders,
           },
         );
       }
@@ -141,10 +144,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
         }),
         {
           status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
+          headers: corsHeaders,
         },
       );
     }
@@ -196,11 +196,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "*",
-        },
+        headers: corsHeaders,
       },
     );
   } catch (error) {
@@ -216,10 +212,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       }),
       {
         status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
+        headers: corsHeaders,
       },
     );
   }

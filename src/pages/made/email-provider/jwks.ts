@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import { PUBLIC_KEY_JWK } from "./_keys";
 import type { APIRoute } from "astro";
 
