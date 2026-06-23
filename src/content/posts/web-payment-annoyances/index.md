@@ -5,6 +5,8 @@ pubDate: 2026-06-23
 tags: ["web", "payments", "ux", "standards"]
 image: web-payment-annoyances.jpg
 imageAlt: "A placeholder web payments diagram"
+blueskyUrl: https://bsky.app/profile/rowan.fyi/post/3moy7lh4xok27
+mastodonUrl: https://mastodon.social/@rowan_m/116801246665129793
 ---
 
 I polled you, my social media peers, on what irked and irritated you when it came to paying for things on the web. There is, of course, a large caveat associated with this: it's by no means "research" and very much represents people I know who are willing to talk to me, and goodness knows that's a small segment of the overall population. Still, I think some interesting trends and patterns came out nonetheless!
