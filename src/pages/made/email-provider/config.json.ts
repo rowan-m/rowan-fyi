@@ -32,7 +32,7 @@ export const GET: APIRoute = async ({ url }) => {
         Pragma: "no-cache",
         Expires: "0",
         "Origin-Trial":
-          "AhXp8ak/QLxZjlTcDhudtMFPwVwV3MrqSIO/OODXG2IknnKycOuqn+z/h195Ob/0B4vF42nTcV8lQbESLVggNQQAAABceyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiRW1haWxWZXJpZmljYXRpb25Qcm90b2NvbCIsImV4cGlyeSI6MTc5NDg3MzYwMH0=",
+          "ArlNTb0I5sWYtpsINNIp66oP6s/jRB8b/b4YThumFJixzpxdYvaW1mUEAjNOYSaS/aTpZ2bVDPElzEtTmGGS3A4AAAB8eyJvcmlnaW4iOiJodHRwczovL3ByLTU2LS0tcm93YW4tZnlpLWRqbDYzaHJhZnEtZXcuYS5ydW4uYXBwOjQ0MyIsImZlYXR1cmUiOiJFbWFpbFZlcmlmaWNhdGlvblByb3RvY29sIiwiZXhwaXJ5IjoxNzk0ODczNjAwfQ==",
       },
     },
   );
