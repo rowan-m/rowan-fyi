@@ -20,6 +20,7 @@ interface VerificationResult {
 
 interface EvtPayload {
   email: string;
+  email_verified?: boolean;
   cnf?: {
     jwk?: JWK;
   };
@@ -76,9 +77,9 @@ let traceSteps: TraceStep[] = [
     status: "pending",
   },
   {
-    name: "Step 6: Email Identity Match",
+    name: "Step 6: Email Identity Match & Verification Claim",
     description:
-      "Confirm that the user-submitted email exactly matches the verified email identity inside the token.",
+      "Confirm that the token asserts verification status and the user-submitted email matches the verified identity.",
     status: "pending",
   },
 ];
@@ -335,12 +336,21 @@ if (Astro.request.method === "POST") {
       traceSteps[4].status = "success";
 
       // ==============================================================================
-      // STEP 6: EMAIL IDENTITY MATCH
+      // STEP 6: EMAIL IDENTITY MATCH & VERIFICATION CLAIM
       // ==============================================================================
       traceSteps[5].inputSent = {
         submittedEmail,
         verifiedTokenEmail: evtPayload.email,
+        emailVerifiedClaim: evtPayload.email_verified,
       };
+
+      // Ensure the token asserts that the email has been verified
+      if (evtPayload.email_verified !== true) {
+        traceSteps[5].status = "failed";
+        throw new Error(
+          "Security Exception: The token 'email_verified' claim must be explicitly true.",
+        );
+      }
 
       // Ensure the email address verified in the token matches the email inputted in the form.
       if (evtPayload.email !== submittedEmail) {
@@ -353,6 +363,7 @@ if (Astro.request.method === "POST") {
       traceSteps[5].outputReceived = {
         matched: true,
         email: evtPayload.email,
+        email_verified: evtPayload.email_verified,
       };
       traceSteps[5].status = "success";
 
