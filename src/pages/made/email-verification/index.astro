@@ -47,39 +47,39 @@ let expectedNonce = Astro.cookies.get(nonceCookieName)?.value;
 // Initialize the 6-Step Verification Trace Array
 let traceSteps: TraceStep[] = [
   {
-    name: "Step 1: Token Decomposition",
+    name: "Step 1: Token Decomposition & Parsing",
     description:
-      "Decompose the submitted token into its distinct EVT and Key Binding JWT (KB-JWT) components.",
+      "Decompose the submitted token into its distinct EVT and Key Binding JWT (KB-JWT) components, and perform unverified local decoding of their headers and payloads.",
     status: "pending",
   },
   {
-    name: "Step 2: DNS Delegation Authority Verification",
+    name: "Step 2: Local Claims & Session Binding Verification",
+    description:
+      "Verify local, non-cryptographic claims (email match, verification status, audience, nonce, and cryptographic hash binding) to fail fast before doing network or crypto operations.",
+    status: "pending",
+  },
+  {
+    name: "Step 3: DNS Delegation Authority Verification",
     description:
       "Perform dynamic server-side DNS queries to confirm that the email's domain delegated verification authority to the token issuer.",
     status: "pending",
   },
   {
-    name: "Step 3: Issuer Discovery & JWKS Signature Verification",
+    name: "Step 4: Issuer Discovery & JWKS Fetching",
     description:
-      "Fetch the issuer's well-known configuration and JWKS public keys, then verify the cryptographic signature of the EVT.",
+      "Fetch the issuer's well-known configuration and JWKS public keys from their authoritative origin.",
     status: "pending",
   },
   {
-    name: "Step 4: Ephemeral Key Extraction",
+    name: "Step 5: Issuer Signature Cryptographic Verification",
     description:
-      "Extract the browser's ephemeral public key from the validated EVT payload (cnf.jwk claim).",
+      "Cryptographically verify the EVT signature using the fetched issuer public keys from their JWKS.",
     status: "pending",
   },
   {
-    name: "Step 5: Key Binding JWT (KB-JWT) Validation",
+    name: "Step 6: Ephemeral Key Binding Cryptographic Verification",
     description:
-      "Cryptographically verify the KB-JWT using the browser's key and confirm audience, nonce, and hash match.",
-    status: "pending",
-  },
-  {
-    name: "Step 6: Email Identity Match & Verification Claim",
-    description:
-      "Confirm that the token asserts verification status and the user-submitted email matches the verified identity.",
+      "Extract the browser's ephemeral public key from the validated EVT and cryptographically verify the KB-JWT signature to prove possession of the private key.",
     status: "pending",
   },
 ];
@@ -98,7 +98,7 @@ if (Astro.request.method === "POST") {
 
     if (rawToken) {
       // ==============================================================================
-      // STEP 1: TOKEN DECOMPOSITION
+      // STEP 1: TOKEN DECOMPOSITION & PARSING
       // ==============================================================================
       traceSteps[0].inputSent = { rawToken };
 
@@ -112,27 +112,97 @@ if (Astro.request.method === "POST") {
       const evtJwt = parts[0];
       const kbJwt = parts[1];
 
-      // Decode the EVT payload to dynamically discover who issued this token.
-      const decodedPayload = decodeJwt(evtJwt);
+      // Decode the EVT payload locally to dynamically discover who issued this token.
+      const decodedPayload = decodeJwt(evtJwt) as EvtPayload;
       const iss = decodedPayload.iss;
       if (!iss) {
         traceSteps[0].status = "failed";
         throw new Error("EVT is missing the issuer ('iss') claim.");
       }
 
+      const decodedKbPayload = decodeJwt(kbJwt);
+
       traceSteps[0].outputReceived = {
         evtJwtDecodedHeader: decodeProtectedHeader(evtJwt),
         evtJwtDecodedPayload: decodedPayload,
         kbJwtDecodedHeader: decodeProtectedHeader(kbJwt),
-        kbJwtDecodedPayload: decodeJwt(kbJwt),
+        kbJwtDecodedPayload: decodedKbPayload,
       };
       traceSteps[0].status = "success";
 
       // ==============================================================================
-      // STEP 2: DNS DELEGATION & AUTHORITY VERIFICATION
+      // STEP 2: LOCAL CLAIMS & SESSION BINDING VERIFICATION (FAIL-FAST)
+      // ==============================================================================
+      const calculatedHash = createHash("sha256")
+        .update(evtJwt + "~")
+        .digest("base64url");
+
+      const expectedAudience = Astro.url.origin;
+
+      traceSteps[1].inputSent = {
+        submittedEmail,
+        tokenEmail: decodedPayload.email,
+        emailVerifiedClaim: decodedPayload.email_verified,
+        expectedAudience,
+        tokenAudience: decodedKbPayload.aud,
+        expectedNonce,
+        tokenNonce: decodedKbPayload.nonce,
+        calculatedEvtHash: calculatedHash,
+        tokenHash: decodedKbPayload.sd_hash,
+      };
+
+      // 2A. Ensure the email address in the token matches the submitted form input
+      if (decodedPayload.email !== submittedEmail) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          `Email mismatch: Form input is '${submittedEmail}', but token holds '${decodedPayload.email}'.`,
+        );
+      }
+
+      // 2B. Ensure the token asserts that the email has been verified
+      if (decodedPayload.email_verified !== true) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          "Security Exception: The token 'email_verified' claim must be explicitly true.",
+        );
+      }
+
+      // 2C. Session Nonce Verification: Ensure the nonce matches the one we generated for this rendering
+      if (!expectedNonce || decodedKbPayload.nonce !== expectedNonce) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          `Key Binding nonce mismatch or expired session. Expected '${expectedNonce || "N/A"}', but got '${decodedKbPayload.nonce}'.`,
+        );
+      }
+
+      // 2D. Audience Verification: Ensure this token was specifically intended for our origin
+      if (decodedKbPayload.aud !== expectedAudience) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          `Key Binding audience mismatch. Expected '${expectedAudience}', but got '${decodedKbPayload.aud}'.`,
+        );
+      }
+
+      // 2E. EVT Cryptographic Hash Binding: Match the "sd_hash" inside KB-JWT with the SHA-256 hash of the EVT.
+      if (decodedKbPayload.sd_hash !== calculatedHash) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          "Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.",
+        );
+      }
+
+      traceSteps[1].outputReceived = {
+        localChecksPassed: true,
+        details:
+          "All local claims, session nonce, target audience, and hash binding checks matched successfully.",
+      };
+      traceSteps[1].status = "success";
+
+      // ==============================================================================
+      // STEP 3: DNS DELEGATION & AUTHORITY VERIFICATION (NETWORK)
       // ==============================================================================
       const domain = submittedEmail.split("@")[1];
-      traceSteps[1].inputSent = {
+      traceSteps[2].inputSent = {
         submittedEmail,
         tokenIssuer: iss,
         dnsLookupTarget: `_email-verification.${domain}`,
@@ -145,21 +215,21 @@ if (Astro.request.method === "POST") {
 
       if (issuerHost === "localhost" || issuerHost === "127.0.0.1") {
         isAuthoritative = true;
-        traceSteps[1].outputReceived = {
+        traceSteps[2].outputReceived = {
           authorizedBy: "Localhost Development Bypass",
           details: "DNS resolution is bypassed for local provider testing.",
         };
       } else if (domain.toLowerCase() === issuerHost) {
         isAuthoritative = true;
-        traceSteps[1].outputReceived = {
+        traceSteps[2].outputReceived = {
           authorizedBy: "Direct Domain Equality (Self-Authoritative)",
           details: "Email domain directly matches the token issuer host.",
         };
       } else {
-        traceSteps[1].serverCalled = "System DNS Server (TXT Resolve)";
+        traceSteps[2].serverCalled = "System DNS Server (TXT Resolve)";
         try {
           const records = await dns.resolveTxt(`_email-verification.${domain}`);
-          traceSteps[1].outputReceived = { dnsTxtRecords: records };
+          traceSteps[2].outputReceived = { dnsTxtRecords: records };
 
           for (const record of records) {
             const txt = record.join("");
@@ -180,69 +250,73 @@ if (Astro.request.method === "POST") {
             }
           }
         } catch (dnsErr) {
-          traceSteps[1].status = "failed";
-          traceSteps[1].error =
+          traceSteps[2].status = "failed";
+          traceSteps[2].error =
             dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
           throw new Error(
-            `DNS delegation lookup failed for _email-verification.${domain}: ${traceSteps[1].error}`,
+            `DNS delegation lookup failed for _email-verification.${domain}: ${traceSteps[2].error}`,
             { cause: dnsErr },
           );
         }
       }
 
       if (!isAuthoritative) {
-        traceSteps[1].status = "failed";
+        traceSteps[2].status = "failed";
         throw new Error(
           `Security Exception: Issuer '${iss}' is not authoritative for the email domain of '${submittedEmail}'.`,
         );
       }
-      traceSteps[1].status = "success";
-
-      let evtPayload: EvtPayload;
+      traceSteps[2].status = "success";
 
       // ==============================================================================
-      // STEP 3: ISSUER DISCOVERY & EVT SIGNATURE VERIFICATION
+      // STEP 4: ISSUER DISCOVERY & JWKS FETCHING (NETWORK)
       // ==============================================================================
-      // 3A. Fetch the issuer's .well-known configurations
       const discoveryUrl = `${iss}/.well-known/email-verification`;
-      traceSteps[2].serverCalled = discoveryUrl;
-      traceSteps[2].inputSent = { url: discoveryUrl };
+      traceSteps[3].serverCalled = discoveryUrl;
+      traceSteps[3].inputSent = { url: discoveryUrl };
 
       const metadataResponse = await fetch(discoveryUrl);
       if (!metadataResponse.ok) {
-        traceSteps[2].status = "failed";
+        traceSteps[3].status = "failed";
         throw new Error(
           `Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`,
         );
       }
       const metadata = await metadataResponse.json();
-      traceSteps[2].outputReceived = { issuerMetadata: metadata };
+      traceSteps[3].outputReceived = { issuerMetadata: metadata };
 
       const jwksUri = metadata.jwks_uri;
       if (!jwksUri) {
-        traceSteps[2].status = "failed";
+        traceSteps[3].status = "failed";
         throw new Error(
           `Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`,
         );
       }
 
-      // 3B. Fetch the public JSON Web Key Set (JWKS) used to sign the EVT
-      traceSteps[2].serverCalled = `${discoveryUrl} & ${jwksUri}`;
+      traceSteps[3].serverCalled = `${discoveryUrl} & ${jwksUri}`;
       const jwksResponse = await fetch(jwksUri);
       if (!jwksResponse.ok) {
-        traceSteps[2].status = "failed";
+        traceSteps[3].status = "failed";
         throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
       }
       const jwksData = await jwksResponse.json();
-      traceSteps[2].outputReceived = {
+      traceSteps[3].outputReceived = {
         issuerMetadata: metadata,
         issuerJWKS: jwksData,
       };
+      traceSteps[3].status = "success";
 
-      // 3C. Validate the EVT signature by checking against the keys in the JWKS
+      // ==============================================================================
+      // STEP 5: ISSUER SIGNATURE CRYPTOGRAPHIC VERIFICATION
+      // ==============================================================================
       const protectedHeader = decodeProtectedHeader(evtJwt);
       const headerAlg = protectedHeader.alg || "ES256";
       let verifiedPayload = null;
+
+      traceSteps[4].inputSent = {
+        evtJwt,
+        signingAlg: headerAlg,
+      };
 
       for (const jwk of jwksData.keys) {
         try {
@@ -257,113 +331,47 @@ if (Astro.request.method === "POST") {
       }
 
       if (!verifiedPayload) {
-        traceSteps[2].status = "failed";
+        traceSteps[4].status = "failed";
         throw new Error(
           "Verification error: JWKSNoMatchingKey: no applicable key found in the JSON Web Key Set",
         );
       }
-      evtPayload = verifiedPayload as unknown as EvtPayload;
-      traceSteps[2].status = "success";
-
-      // ==============================================================================
-      // STEP 4: BROWSER EPHEMERAL KEY EXTRACTION
-      // ==============================================================================
-      traceSteps[3].inputSent = { cnf: evtPayload.cnf };
-
-      const browserJwk = evtPayload.cnf?.jwk;
-      if (!browserJwk) {
-        traceSteps[3].status = "failed";
-        throw new Error(
-          "EVT payload is missing the browser's ephemeral public key (cnf.jwk).",
-        );
-      }
-      traceSteps[3].outputReceived = { extractedBrowserJwk: browserJwk };
-      traceSteps[3].status = "success";
-
-      // ==============================================================================
-      // STEP 5: KEY BINDING VALIDATION (KB-JWT CHECKS)
-      // ==============================================================================
-      const kbHeader = decodeProtectedHeader(kbJwt);
-      const kbAlg = kbHeader.alg || "ES256";
-      const browserPublicKey = await importJWK(browserJwk, kbAlg);
-
-      // 5A. Cryptographic Proof of Possession: Verify the KB-JWT signature using the browser's public key
-      const { payload: kbPayload } = await jwtVerify(kbJwt, browserPublicKey);
-
-      // Calculate Expected Bind Hash (sd_hash) over EVT (including trailing '~')
-      const calculatedHash = createHash("sha256")
-        .update(evtJwt + "~")
-        .digest("base64url");
-
-      const expectedAudience = Astro.url.origin;
-
-      traceSteps[4].inputSent = {
-        expectedAudience,
-        expectedNonce,
-        calculatedEvtHash: calculatedHash,
-        kbPayloadHeader: kbHeader,
-        kbPayloadBody: kbPayload,
-      };
-
-      // 5B. Audience Verification: Ensure this token was specifically intended for our origin
-      if (kbPayload.aud !== expectedAudience) {
-        traceSteps[4].status = "failed";
-        throw new Error(
-          `Key Binding audience mismatch. Expected '${expectedAudience}', but got '${kbPayload.aud}'.`,
-        );
-      }
-
-      // 5C. Session Nonce Verification: Ensure the nonce matches the one we generated for this rendering
-      if (!expectedNonce || kbPayload.nonce !== expectedNonce) {
-        traceSteps[4].status = "failed";
-        throw new Error(
-          `Key Binding nonce mismatch or expired session. Expected '${expectedNonce || "N/A"}', but got '${kbPayload.nonce}'.`,
-        );
-      }
-
-      // 5D. EVT Cryptographic Hash Binding: Match the "sd_hash" inside KB-JWT with the SHA-256 hash of the EVT.
-      if (kbPayload.sd_hash !== calculatedHash) {
-        traceSteps[4].status = "failed";
-        throw new Error(
-          "Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.",
-        );
-      }
-
+      const evtPayload = verifiedPayload as unknown as EvtPayload;
       traceSteps[4].outputReceived = {
-        keyBindingPassed: true,
-        holderVerification: "Holder Private Key possession verified.",
+        verifiedPayload: evtPayload,
+        cryptographicallyVerified: true,
       };
       traceSteps[4].status = "success";
 
       // ==============================================================================
-      // STEP 6: EMAIL IDENTITY MATCH & VERIFICATION CLAIM
+      // STEP 6: EPHEMERAL KEY BINDING CRYPTOGRAPHIC VERIFICATION
       // ==============================================================================
       traceSteps[5].inputSent = {
-        submittedEmail,
-        verifiedTokenEmail: evtPayload.email,
-        emailVerifiedClaim: evtPayload.email_verified,
+        cnf: evtPayload.cnf,
+        kbJwt,
       };
 
-      // Ensure the token asserts that the email has been verified
-      if (evtPayload.email_verified !== true) {
+      const browserJwk = evtPayload.cnf?.jwk;
+      if (!browserJwk) {
         traceSteps[5].status = "failed";
         throw new Error(
-          "Security Exception: The token 'email_verified' claim must be explicitly true.",
+          "EVT payload is missing the browser's ephemeral public key (cnf.jwk).",
         );
       }
 
-      // Ensure the email address verified in the token matches the email inputted in the form.
-      if (evtPayload.email !== submittedEmail) {
-        traceSteps[5].status = "failed";
-        throw new Error(
-          `Email mismatch: Form input is '${submittedEmail}', but verified token holds '${evtPayload.email}'.`,
-        );
-      }
+      const kbHeader = decodeProtectedHeader(kbJwt);
+      const kbAlg = kbHeader.alg || "ES256";
+      const browserPublicKey = await importJWK(browserJwk, kbAlg);
+
+      // Cryptographic Proof of Possession: Verify the KB-JWT signature using the browser's public key
+      const { payload: kbPayload } = await jwtVerify(kbJwt, browserPublicKey);
 
       traceSteps[5].outputReceived = {
-        matched: true,
-        email: evtPayload.email,
-        email_verified: evtPayload.email_verified,
+        extractedBrowserJwk: browserJwk,
+        kbPayloadHeader: kbHeader,
+        kbPayloadBody: kbPayload,
+        keyBindingPassed: true,
+        holderVerification: "Holder Private Key possession verified.",
       };
       traceSteps[5].status = "success";
 
