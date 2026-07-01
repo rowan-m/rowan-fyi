@@ -1,3 +1,5 @@
+// NOTE: this is a static demo for educational purposes only.
+// In a real application, you should generate and manage your keys securely.
 export const PUBLIC_KEY_JWK = {
   kty: "OKP",
   crv: "Ed25519",
