@@ -98,7 +98,7 @@ if (Astro.request.method === "POST") {
 
     if (rawToken) {
       // ==============================================================================
-      // STEP 1: TOKEN DECOMPOSITION & PARSING
+      // STEP 1: TOKEN PARSING
       // ==============================================================================
       traceSteps[0].inputSent = { rawToken };
 
@@ -131,7 +131,7 @@ if (Astro.request.method === "POST") {
       traceSteps[0].status = "success";
 
       // ==============================================================================
-      // STEP 2: LOCAL CLAIMS & SESSION BINDING VERIFICATION (FAIL-FAST)
+      // STEP 2: VERIFY EXPECTED VALUES AND SESSION BINDING
       // ==============================================================================
       const calculatedHash = createHash("sha256")
         .update(evtJwt + "~")
