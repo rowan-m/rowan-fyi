@@ -22,10 +22,7 @@ app.use(function (req, res, next) {
   }
 
   if (req.secure) {
-    res.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubdomains; preload",
-    );
+    res.set("Strict-Transport-Security", "max-age=63072000; includeSubdomains; preload");
     return next();
   }
 
@@ -40,23 +37,18 @@ app.get("/", (req, res) => {
   };
 
   if ("receive-cookie-deprecation" in req.cookies) {
-    templateVars.receiveCookieDeprecationCookieValue =
-      req.cookies["receive-cookie-deprecation"];
+    templateVars.receiveCookieDeprecationCookieValue = req.cookies["receive-cookie-deprecation"];
   }
 
   if ("sec-cookie-deprecation" in req.headers) {
-    templateVars.secCookieDeprecationHeaderValue =
-      req.headers["sec-cookie-deprecation"];
+    templateVars.secCookieDeprecationHeaderValue = req.headers["sec-cookie-deprecation"];
   }
 
   res.render("index", templateVars);
 });
 
 app.get("/set-cookie", (req, res) => {
-  res.set(
-    "Set-Cookie",
-    "receive-cookie-deprecation=1; Secure; HttpOnly; Path=/; SameSite=None; Partitioned;",
-  );
+  res.set("Set-Cookie", "receive-cookie-deprecation=1; Secure; HttpOnly; Path=/; SameSite=None; Partitioned;");
   res.redirect(303, "/");
 });
 
@@ -79,9 +71,6 @@ const listener = app.listen(process.env.PORT, function () {
   console.log("Your app is listening on port " + listener.address().port);
 
   if (app.get("env") === "development") {
-    console.log(
-      "If you are running locally, try http://localhost:" +
-        listener.address().port,
-    );
+    console.log("If you are running locally, try http://localhost:" + listener.address().port);
   }
 });

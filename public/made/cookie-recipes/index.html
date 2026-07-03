@@ -177,26 +177,21 @@
           ><input type="text" name="value" value="ckvalue" /><code>;</code>
         </div>
         <div class="secure">
-          <button class="action" type="submit" name="toggle-secure">-</button
-          ><code>Secure</code><code>;</code>
+          <button class="action" type="submit" name="toggle-secure">-</button><code>Secure</code><code>;</code>
         </div>
         <div class="domain">
-          <button class="action" type="submit" name="toggle-domain">-</button
-          ><code>Domain</code><code>=</code
+          <button class="action" type="submit" name="toggle-domain">-</button><code>Domain</code><code>=</code
           ><input type="text" name="domain" value="localhost" /><code>;</code>
         </div>
         <div class="path">
-          <button class="action" type="submit" name="toggle-path">-</button
-          ><code>Path</code><code>=</code
+          <button class="action" type="submit" name="toggle-path">-</button><code>Path</code><code>=</code
           ><input type="text" name="path" value="/" /><code>;</code>
         </div>
         <div class="httponly">
-          <button class="action" type="submit" name="toggle-httponly">-</button
-          ><code>HttpOnly</code><code>;</code>
+          <button class="action" type="submit" name="toggle-httponly">-</button><code>HttpOnly</code><code>;</code>
         </div>
         <div class="samesite">
-          <button class="action" type="submit" name="toggle-samesite">-</button
-          ><code>SameSite</code><code>=</code>
+          <button class="action" type="submit" name="toggle-samesite">-</button><code>SameSite</code><code>=</code>
           <select name="samesite">
             <option value="Lax">Lax</option>
             <option value="Strict">Strict</option>
@@ -205,20 +200,12 @@
           <code>;</code>
         </div>
         <div class="maxage">
-          <button class="action" type="submit" name="toggle-maxage">-</button
-          ><code>Max-Age</code><code>=</code
-          ><input type="number" name="maxage" min="0" value="604800" /><code
-            >;</code
-          >
+          <button class="action" type="submit" name="toggle-maxage">-</button><code>Max-Age</code><code>=</code
+          ><input type="number" name="maxage" min="0" value="604800" /><code>;</code>
         </div>
         <div class="expires">
-          <button class="action" type="submit" name="toggle-expires">-</button
-          ><code>Expires</code><code>=</code
-          ><input
-            type="text"
-            name="expires"
-            value="Tue, 02 Apr 2024 23:06:42 GMT"
-          /><code>;</code>
+          <button class="action" type="submit" name="toggle-expires">-</button><code>Expires</code><code>=</code
+          ><input type="text" name="expires" value="Tue, 02 Apr 2024 23:06:42 GMT" /><code>;</code>
         </div>
       </form>
     </section>
@@ -233,26 +220,21 @@
           </select>
         </div>
         <div class="secure">
-          <button class="action" type="submit" name="toggle-secure">+</button
-          ><code>Secure</code><code>;</code>
+          <button class="action" type="submit" name="toggle-secure">+</button><code>Secure</code><code>;</code>
         </div>
         <div class="domain">
-          <button class="action" type="submit" name="toggle-domain">+</button
-          ><code>Domain</code><code>=</code
+          <button class="action" type="submit" name="toggle-domain">+</button><code>Domain</code><code>=</code
           ><input type="text" name="domain" value="localhost" /><code>;</code>
         </div>
         <div class="path">
-          <button class="action" type="submit" name="toggle-path">+</button
-          ><code>Path</code><code>=</code
+          <button class="action" type="submit" name="toggle-path">+</button><code>Path</code><code>=</code
           ><input type="text" name="path" value="/" /><code>;</code>
         </div>
         <div class="httponly">
-          <button class="action" type="submit" name="toggle-httponly">+</button
-          ><code>HttpOnly</code><code>;</code>
+          <button class="action" type="submit" name="toggle-httponly">+</button><code>HttpOnly</code><code>;</code>
         </div>
         <div class="samesite">
-          <button class="action" type="submit" name="toggle-samesite">+</button
-          ><code>SameSite</code><code>=</code>
+          <button class="action" type="submit" name="toggle-samesite">+</button><code>SameSite</code><code>=</code>
           <select name="samesite">
             <option value="Lax">Lax</option>
             <option value="Strict">Strict</option>
@@ -261,20 +243,12 @@
           <code>;</code>
         </div>
         <div class="maxage">
-          <button class="action" type="submit" name="toggle-maxage">+</button
-          ><code>Max-Age</code><code>=</code
-          ><input type="number" name="maxage" min="0" value="604800" /><code
-            >;</code
-          >
+          <button class="action" type="submit" name="toggle-maxage">+</button><code>Max-Age</code><code>=</code
+          ><input type="number" name="maxage" min="0" value="604800" /><code>;</code>
         </div>
         <div class="expires">
-          <button class="action" type="submit" name="toggle-expires">+</button
-          ><code>Expires</code><code>=</code
-          ><input
-            type="text"
-            name="expires"
-            value="Mon, 01 Apr 2024 12:34:56 GMT"
-          /><code>;</code>
+          <button class="action" type="submit" name="toggle-expires">+</button><code>Expires</code><code>=</code
+          ><input type="text" name="expires" value="Mon, 01 Apr 2024 12:34:56 GMT" /><code>;</code>
         </div>
       </form>
     </section>
@@ -305,11 +279,7 @@
             httponly: new CookieAttr("HttpOnly", "HttpOnly", false),
             samesite: new CookieAttr("SameSite", "Lax", false),
             maxage: new CookieAttr("Max-Age", "604800", false),
-            expires: new CookieAttr(
-              "Expires",
-              new Date(Date.now() + 604800).toUTCString(),
-              false,
-            ),
+            expires: new CookieAttr("Expires", new Date(Date.now() + 604800).toUTCString(), false),
           };
         }
       }
@@ -356,10 +326,7 @@
             break;
 
           case "path":
-            if (
-              this.config.path.value != "/" &&
-              this.config.prefix.value === "__Host-"
-            ) {
+            if (this.config.path.value != "/" && this.config.prefix.value === "__Host-") {
               this.config.prefix.enabled = false;
             }
             break;
@@ -440,9 +407,7 @@
       }
 
       updateFromCookie() {
-        for (const [attrName, cookieAttr] of Object.entries(
-          this.cookie.config,
-        )) {
+        for (const [attrName, cookieAttr] of Object.entries(this.cookie.config)) {
           const attrEl = this.form.querySelector("." + attrName);
 
           if (attrEl) {
@@ -471,13 +436,9 @@
     cookie.setAttr("samesite", "Lax");
     cookie.enableAttr("samesite");
 
-    const addedAttrFormEl = document.querySelector(
-      ".cookie-mix .cookie-attributes",
-    );
+    const addedAttrFormEl = document.querySelector(".cookie-mix .cookie-attributes");
     const addedAttrForm = new CookieForm(cookie, addedAttrFormEl, true);
-    const availAttrFormEl = document.querySelector(
-      ".ingredients .cookie-attributes",
-    );
+    const availAttrFormEl = document.querySelector(".ingredients .cookie-attributes");
     const availAttrForm = new CookieForm(cookie, availAttrFormEl, false);
 
     addedAttrForm.updateFromCookie();

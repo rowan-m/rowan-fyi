@@ -234,23 +234,17 @@
     ctx.globalCompositeOperation = "difference";
 
     function updateForm(ev) {
-      const curVals =
-        vals[document.querySelector('input[name="val"]:checked').value];
+      const curVals = vals[document.querySelector('input[name="val"]:checked').value];
       for (const param in curVals) {
-        document.querySelector(`input[name="${param}"]`).value = parseFloat(
-          curVals[param],
-        );
-        document.querySelector(`input[name="r-${param}"]`).value = parseFloat(
-          curVals[param],
-        );
+        document.querySelector(`input[name="${param}"]`).value = parseFloat(curVals[param]);
+        document.querySelector(`input[name="r-${param}"]`).value = parseFloat(curVals[param]);
       }
     }
 
     function updateValues(ev) {
       const name = ev.target.name;
       const param = name.substring(name.length - 1, name.length);
-      const curVals =
-        vals[document.querySelector('input[name="val"]:checked').value];
+      const curVals = vals[document.querySelector('input[name="val"]:checked').value];
       curVals[param] = parseFloat(ev.target.value);
       document.querySelector(`input[name="${param}"]`).value = curVals[param];
       document.querySelector(`input[name="r-${param}"]`).value = curVals[param];

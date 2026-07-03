@@ -103,27 +103,16 @@
     "use strict";
 
     if (location.protocol !== "https:") {
-      location.replace(
-        `https:${location.href.substring(location.protocol.length)}`,
-      );
+      location.replace(`https:${location.href.substring(location.protocol.length)}`);
     }
 
     document.querySelector(".saveimage").addEventListener("click", (e) => {
       const d = new Date();
       const timestamp =
-        "" +
-        d.getFullYear() +
-        d.getMonth() +
-        d.getDay() +
-        d.getHours() +
-        d.getMinutes() +
-        d.getSeconds();
+        "" + d.getFullYear() + d.getMonth() + d.getDay() + d.getHours() + d.getMinutes() + d.getSeconds();
 
       const tmpA = document.createElement("a");
-      tmpA.href = document
-        .querySelector("canvas")
-        .toDataURL("image/png")
-        .replace("image/png", "image/octet-stream");
+      tmpA.href = document.querySelector("canvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
       tmpA.target = "_blank";
       tmpA.download = `strange-attraction-${timestamp}.png`;
       tmpA.click();
@@ -233,13 +222,9 @@
       }
 
       update(t) {
-        const nx =
-          this.a[0] * Math.cos(this.x * this.f[0]) +
-          this.a[1] * Math.sin(this.y * this.f[1]);
+        const nx = this.a[0] * Math.cos(this.x * this.f[0]) + this.a[1] * Math.sin(this.y * this.f[1]);
         // + this.a[2] * Math.cos(this.t * this.f[2]);
-        const ny =
-          this.a[3] * Math.sin(this.x * this.f[3]) +
-          this.a[4] * Math.cos(this.y * this.f[4]);
+        const ny = this.a[3] * Math.sin(this.x * this.f[3]) + this.a[4] * Math.cos(this.y * this.f[4]);
         // + this.a[5] * Math.sin(this.t * this.f[5]);
 
         // const nx = Math.sin(this.f[0] * this.y)
@@ -250,23 +235,14 @@
         // const nx = Math.sin(this.x * this.y / this.a[0]) * this.y + Math.cos(this.a[1] * this.x - this.y);
         // const ny = this.x + Math.sin(this.y) / this.a[0];
 
-        const hue =
-          (Math.hypot(this.x - nx, this.y - ny) * this.huescale +
-            this.hueoffset) %
-          360;
+        const hue = (Math.hypot(this.x - nx, this.y - ny) * this.huescale + this.hueoffset) % 360;
         const ang = Math.atan2(this.x - nx, this.y - ny);
         this.dotSize = Math.abs(ang);
         this.x = nx;
         this.y = ny;
         this.ctx.fillStyle = `hsla(${hue}, 30%, 60%, 1.0)`;
         this.ctx.beginPath();
-        this.ctx.arc(
-          this.x * this.scale,
-          this.y * this.scale,
-          this.dotSize,
-          0,
-          2 * Math.PI,
-        );
+        this.ctx.arc(this.x * this.scale, this.y * this.scale, this.dotSize, 0, 2 * Math.PI);
         this.ctx.fill();
       }
 
@@ -280,12 +256,7 @@
         });
 
         this.ctx.fillStyle = "hsla(0, 0%, 9%, 0.02)";
-        this.ctx.fillRect(
-          -Math.floor(this.w / 2),
-          -Math.floor(this.h / 2),
-          this.w,
-          this.h,
-        );
+        this.ctx.fillRect(-Math.floor(this.w / 2), -Math.floor(this.h / 2), this.w, this.h);
         while (performance.now() - t < 12) {
           this.update(t);
           this.t += 0.5;

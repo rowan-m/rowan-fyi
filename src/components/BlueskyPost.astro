@@ -92,12 +92,8 @@
           const postId = post.uri.split("/").pop();
           const permalink = `https://bsky.app/profile/${author.handle}/post/${postId}`;
 
-          const urlEl = document.getElementById(
-            "bsky-url",
-          ) as HTMLAnchorElement;
-          const imageEl = document.getElementById(
-            "bsky-image",
-          ) as HTMLImageElement;
+          const urlEl = document.getElementById("bsky-url") as HTMLAnchorElement;
+          const imageEl = document.getElementById("bsky-image") as HTMLImageElement;
           const nameEl = document.getElementById("bsky-name");
           const handleEl = document.getElementById("bsky-handle");
           const textEl = document.getElementById("bsky-text");

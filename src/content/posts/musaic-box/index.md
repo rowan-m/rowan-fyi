@@ -82,10 +82,7 @@ const schema = {
     },
   },
 };
-const result = await model.prompt(
-  `Create a melody based on the vibe: ${vibe}`,
-  { responseConstraint: { schema } },
-);
+const result = await model.prompt(`Create a melody based on the vibe: ${vibe}`, { responseConstraint: { schema } });
 ```
 
 ## Tone.js

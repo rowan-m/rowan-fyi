@@ -118,30 +118,9 @@
       <button type="button" class="saveimage">💾</button>
       <button type="button" class="toggle-pp">⏸️</button>
       <button type="button" class="shuffle">🔀</button>
-      <label
-        >↔
-        <input
-          type="range"
-          name="xOff"
-          min="-200"
-          max="200"
-          value="0"
-          step="25"
-      /></label>
-      <label
-        >↕
-        <input
-          type="range"
-          name="yOff"
-          min="-200"
-          max="200"
-          value="0"
-          step="25"
-      /></label>
-      <label
-        >🔎
-        <input type="range" name="zoom" min="-1" max="2" value="0" step=".1"
-      /></label>
+      <label>↔ <input type="range" name="xOff" min="-200" max="200" value="0" step="25" /></label>
+      <label>↕ <input type="range" name="yOff" min="-200" max="200" value="0" step="25" /></label>
+      <label>🔎 <input type="range" name="zoom" min="-1" max="2" value="0" step=".1" /></label>
     </form>
     <section>
       <a href="https://twitter.com/rowan_m">🦤 @rowan_m</a>
@@ -152,29 +131,18 @@
     "use strict";
 
     if (location.protocol !== "https:") {
-      location.replace(
-        `https:${location.href.substring(location.protocol.length)}`,
-      );
+      location.replace(`https:${location.href.substring(location.protocol.length)}`);
     }
 
     document.querySelector(".saveimage").addEventListener("click", (e) => {
       const d = new Date();
       const timestamp =
-        "" +
-        d.getFullYear() +
-        d.getMonth() +
-        d.getDay() +
-        d.getHours() +
-        d.getMinutes() +
-        d.getSeconds();
+        "" + d.getFullYear() + d.getMonth() + d.getDay() + d.getHours() + d.getMinutes() + d.getSeconds();
       // e.target.download = `strange-attraction-${timestamp}.png`;
       // e.target.href = document.querySelector('canvas').toDataURL('image/png').replace('image/png', 'image/octet-stream');
 
       const tmpA = document.createElement("a");
-      tmpA.href = document
-        .querySelector("canvas")
-        .toDataURL("image/png")
-        .replace("image/png", "image/octet-stream");
+      tmpA.href = document.querySelector("canvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
       tmpA.target = "_blank";
       tmpA.download = `strange-attraction-${timestamp}.png`;
       tmpA.click();
@@ -260,16 +228,8 @@
         this.ctx.fillStyle = "#222";
         this.ctx.shadowColor = "hsl(0, 80%, 60%)";
         this.ctx.shadowBlur = 5;
-        this.ctx.translate(
-          Math.floor(this.w / 2 + this.xOff),
-          Math.floor(this.h / 2 + this.yOff),
-        );
-        this.ctx.fillRect(
-          -Math.floor(this.w / 2 + this.xOff),
-          -Math.floor(this.h / 2 + this.yOff),
-          this.w,
-          this.h,
-        );
+        this.ctx.translate(Math.floor(this.w / 2 + this.xOff), Math.floor(this.h / 2 + this.yOff));
+        this.ctx.fillRect(-Math.floor(this.w / 2 + this.xOff), -Math.floor(this.h / 2 + this.yOff), this.w, this.h);
         this.ctx.globalCompositeOperation = "screen";
         this.ctx.globalAlpha = 0.3;
       }
@@ -371,14 +331,8 @@
         // const y = Math.sin(this.c * this.p0.x) + this.d * Math.cos(this.d * this.p0.y);
 
         // Whatevs attractor
-        const x =
-          Math.sin(this.a * this.p0.y) +
-          this.c * Math.cos(this.a * this.p0.x) +
-          this.d * Math.cos(this.p0.x);
-        const y =
-          Math.sin(this.b * this.p0.x) +
-          this.d * Math.cos(this.b * this.p0.y) +
-          this.c * Math.cos(this.p0.y);
+        const x = Math.sin(this.a * this.p0.y) + this.c * Math.cos(this.a * this.p0.x) + this.d * Math.cos(this.p0.x);
+        const y = Math.sin(this.b * this.p0.x) + this.d * Math.cos(this.b * this.p0.y) + this.c * Math.cos(this.p0.y);
 
         const xd = this.p0.x - x;
         const yd = this.p0.y - y;
@@ -404,12 +358,7 @@
         const hue = (this.distFactor * 720 + this.hueoffset) % 360;
         this.ctx.fillStyle = `hsl(${hue}deg, 100%, 30%)`;
         this.ctx.shadowColor = `hsl(${hue}deg, 100%, 30%)`;
-        this.ctx.fillRect(
-          this.p1.x * this.scale,
-          this.p1.y * this.scale,
-          0.25,
-          0.25,
-        );
+        this.ctx.fillRect(this.p1.x * this.scale, this.p1.y * this.scale, 0.25, 0.25);
       }
 
       tick(t) {

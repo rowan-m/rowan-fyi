@@ -7,10 +7,7 @@ app.use(cp());
 app.enable("trust proxy");
 app.use(function (req, res, next) {
   if (req.secure) {
-    res.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; inlcudeSubdomains; preload",
-    );
+    res.set("Strict-Transport-Security", "max-age=63072000; inlcudeSubdomains; preload");
     return next();
   }
 
@@ -30,10 +27,7 @@ app.get("/", function (request, response) {
 });
 
 app.all("/cookies.json", function (request, response) {
-  response.set(
-    "Access-Control-Allow-Origin",
-    "https://rowan.fyi/made/x-origin-src",
-  );
+  response.set("Access-Control-Allow-Origin", "https://rowan.fyi/made/x-origin-src");
   response.set("Access-Control-Allow-Credentials", "true");
   response.json(request.cookies);
 });

@@ -12,10 +12,7 @@
     }
   </style>
   <h1>History has issues</h1>
-  <p>
-    Open <code>about:history</code> so you can see and refresh it after each
-    button press.
-  </p>
+  <p>Open <code>about:history</code> so you can see and refresh it after each button press.</p>
   <form method="get" action="/">
     <button type="button" name="push-state">
       <code>history.pushState('/?a=b')</code>
@@ -62,9 +59,7 @@
     let counter = 0;
 
     function updateFromUrl() {
-      const params = window.location.search
-        ? window.location.search
-        : window.location.hash.substring(1);
+      const params = window.location.search ? window.location.search : window.location.hash.substring(1);
       const urlParams = new URLSearchParams(params);
       urlParams.forEach(function (value, key) {
         switch (key) {
@@ -85,91 +80,59 @@
     updateFromUrl();
     document.title = generateTitle();
 
-    document
-      .querySelector('button[name="push-state"]')
-      .addEventListener("click", (e) => {
-        action = "pushState";
-        counter++;
-        history.pushState(
-          { action, counter },
-          generateTitle(),
-          `/?action=${action}&counter=${counter}`,
-        );
-        document.title = generateTitle();
-      });
+    document.querySelector('button[name="push-state"]').addEventListener("click", (e) => {
+      action = "pushState";
+      counter++;
+      history.pushState({ action, counter }, generateTitle(), `/?action=${action}&counter=${counter}`);
+      document.title = generateTitle();
+    });
 
-    document
-      .querySelector('button[name="push-state-hash"]')
-      .addEventListener("click", (e) => {
-        action = "pushStateHash";
-        counter++;
-        history.pushState(
-          { action, counter },
-          generateTitle(),
-          `/#action=${action}&counter=${counter}`,
-        );
-        document.title = generateTitle();
-      });
+    document.querySelector('button[name="push-state-hash"]').addEventListener("click", (e) => {
+      action = "pushStateHash";
+      counter++;
+      history.pushState({ action, counter }, generateTitle(), `/#action=${action}&counter=${counter}`);
+      document.title = generateTitle();
+    });
 
-    document
-      .querySelector('button[name="replace-state"]')
-      .addEventListener("click", (e) => {
-        action = "replaceState";
-        counter++;
-        history.replaceState(
-          { action, counter },
-          generateTitle(),
-          `/?action=${action}&counter=${counter}`,
-        );
-        document.title = generateTitle();
-      });
+    document.querySelector('button[name="replace-state"]').addEventListener("click", (e) => {
+      action = "replaceState";
+      counter++;
+      history.replaceState({ action, counter }, generateTitle(), `/?action=${action}&counter=${counter}`);
+      document.title = generateTitle();
+    });
 
-    document
-      .querySelector('button[name="replace-state-hash"]')
-      .addEventListener("click", (e) => {
-        action = "replaceStateHash";
-        counter++;
-        history.replaceState(
-          { action, counter },
-          generateTitle(),
-          `/#action=${action}&counter=${counter}`,
-        );
-        document.title = generateTitle();
-      });
+    document.querySelector('button[name="replace-state-hash"]').addEventListener("click", (e) => {
+      action = "replaceStateHash";
+      counter++;
+      history.replaceState({ action, counter }, generateTitle(), `/#action=${action}&counter=${counter}`);
+      document.title = generateTitle();
+    });
 
-    document
-      .querySelector('button[name="assign"]')
-      .addEventListener("click", (e) => {
-        action = "assign";
-        counter++;
-        window.location.assign(`/?action=${action}&counter=${counter}`);
-      });
+    document.querySelector('button[name="assign"]').addEventListener("click", (e) => {
+      action = "assign";
+      counter++;
+      window.location.assign(`/?action=${action}&counter=${counter}`);
+    });
 
-    document
-      .querySelector('button[name="assign-hash"]')
-      .addEventListener("click", (e) => {
-        action = "assignHash";
-        counter++;
-        window.location.assign(`/#action=${action}&counter=${counter}`);
-      });
+    document.querySelector('button[name="assign-hash"]').addEventListener("click", (e) => {
+      action = "assignHash";
+      counter++;
+      window.location.assign(`/#action=${action}&counter=${counter}`);
+    });
 
-    document
-      .querySelector('button[name="replace"]')
-      .addEventListener("click", (e) => {
-        action = "replace";
-        counter++;
-        const title = generateTitle();
-        window.location.replace(`/?action=${action}&counter=${counter}`);
-        document.title = generateTitle(); // redundant, the above triggers a request
-      });
+    document.querySelector('button[name="replace"]').addEventListener("click", (e) => {
+      action = "replace";
+      counter++;
+      const title = generateTitle();
+      window.location.replace(`/?action=${action}&counter=${counter}`);
+      document.title = generateTitle(); // redundant, the above triggers a request
+    });
 
-    document
-      .querySelector('button[name="replace-hash"]')
-      .addEventListener("click", (e) => {
-        action = "replaceHash";
-        counter++;
-        window.location.replace(`/#action=${action}&counter=${counter}`);
-        document.title = generateTitle(); // not always redudant, this doesn't always trigger a request
-      });
+    document.querySelector('button[name="replace-hash"]').addEventListener("click", (e) => {
+      action = "replaceHash";
+      counter++;
+      window.location.replace(`/#action=${action}&counter=${counter}`);
+      document.title = generateTitle(); // not always redudant, this doesn't always trigger a request
+    });
   </script>
 </html>

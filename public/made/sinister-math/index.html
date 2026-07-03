@@ -126,10 +126,7 @@
         let adding = true;
 
         this.pnts.forEach((p, i) => {
-          if (
-            Math.abs(p.x - x) < this.pntSensitivity &&
-            Math.abs(p.y - y) < this.pntSensitivity
-          ) {
+          if (Math.abs(p.x - x) < this.pntSensitivity && Math.abs(p.y - y) < this.pntSensitivity) {
             this.pnts.splice(i, 1);
             adding = false;
           }
@@ -140,10 +137,7 @@
         }
 
         if (this.pnts.length >= 1) {
-          Object.assign(
-            this.curPnt,
-            this.pnts[Math.floor(Math.random() * this.pnts.length)],
-          );
+          Object.assign(this.curPnt, this.pnts[Math.floor(Math.random() * this.pnts.length)]);
         } else {
           this.curPnt = null;
         }
@@ -168,10 +162,7 @@
 
       handleClick(e) {
         if (this.state === this.PAUSED) {
-          this.togglePnt(
-            e.pageX - this.cvs.offsetLeft,
-            e.pageY - this.cvs.offsetTop,
-          );
+          this.togglePnt(e.pageX - this.cvs.offsetLeft, e.pageY - this.cvs.offsetTop);
         }
       }
 
@@ -215,15 +206,7 @@
 
           if (this.state === this.PLAYING) {
             this.dctx.beginPath();
-            this.dctx.ellipse(
-              this.curPnt.x,
-              this.curPnt.y,
-              1,
-              1,
-              0,
-              0,
-              2 * Math.PI,
-            );
+            this.dctx.ellipse(this.curPnt.x, this.curPnt.y, 1, 1, 0, 0, 2 * Math.PI);
             this.dctx.stroke();
 
             this.ctx.beginPath();
@@ -236,15 +219,7 @@
 
           this.pnts.forEach((p) => {
             this.ctx.beginPath();
-            this.ctx.ellipse(
-              p.x,
-              p.y,
-              this.pntRadius,
-              this.pntRadius,
-              0,
-              0,
-              2 * Math.PI,
-            );
+            this.ctx.ellipse(p.x, p.y, this.pntRadius, this.pntRadius, 0, 0, 2 * Math.PI);
             this.ctx.stroke();
           });
 
@@ -287,11 +262,7 @@
     });
     window.addEventListener("resize", sinister.handleResize);
     cvs.addEventListener("click", sinister.handleClick);
-    document
-      .querySelector(".pp-butt")
-      .addEventListener("click", sinister.handlePlayPause);
-    document
-      .querySelector(".cl-butt")
-      .addEventListener("click", sinister.handleClear);
+    document.querySelector(".pp-butt").addEventListener("click", sinister.handlePlayPause);
+    document.querySelector(".cl-butt").addEventListener("click", sinister.handleClear);
   </script>
 </html>

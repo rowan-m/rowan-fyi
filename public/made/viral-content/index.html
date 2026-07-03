@@ -4,35 +4,16 @@
   <title>Conway's Game of Life</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link
-    id="favicon"
-    rel="icon"
-    href="./assets/conways-game-of-life.jpg"
-    type="image/x-icon"
-  />
+  <link id="favicon" rel="icon" href="./assets/conways-game-of-life.jpg" type="image/x-icon" />
 
   <meta
     name="Description"
     content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
   />
 
-  <link
-    rel="apple-touch-icon"
-    sizes="180x180"
-    href="./assets/apple-touch-icon.png"
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="32x32"
-    href="./assets/favicon-32x32.png"
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="16x16"
-    href="./assets/favicon-16x16.png"
-  />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16x16.png" />
   <link rel="mask-icon" href="./assets/safari-pinned-tab.svg" color="#c0c0c0" />
   <meta name="apple-mobile-web-app-title" content="Life" />
   <meta name="application-name" content="Life" />
@@ -46,10 +27,7 @@
     name="twitter:description"
     content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
   />
-  <meta
-    name="twitter:image"
-    content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg"
-  />
+  <meta name="twitter:image" content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg" />
   <meta name="twitter:image:width" content="1284" />
   <meta name="twitter:image:height" content="1514" />
   <meta name="twitter:image:alt" content="An active Game of Life screenshot" />
@@ -61,10 +39,7 @@
     property="og:description"
     content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
   />
-  <meta
-    property="og:image"
-    content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg"
-  />
+  <meta property="og:image" content="https://rowan.fyi/made/viral-content/assets/conways-game-of-life-preview.jpg" />
   <meta property="og:image:width" content="1284" />
   <meta property="og:image:height" content="1514" />
 
@@ -144,8 +119,7 @@
     <h2 class="theme">Customizable emoji version!</h2>
     <p>
       👆 Tap the cells 💻
-      <a href="https://glitch.com/edit/#!/viral-content">Get the code</a> 👋 Say
-      hi to Rowan on 🦋
+      <a href="https://glitch.com/edit/#!/viral-content">Get the code</a> 👋 Say hi to Rowan on 🦋
       <a href="https://bsky.app/profile/rowan-m.bsky.social">Bluesky</a> 🦣
       <a href="https://mastodon.social/@rowan_m">Mastodon</a> 🧵
       <a href="https://www.threads.com/@rowan_m">Threads</a> 👔
@@ -167,50 +141,20 @@
       <fieldset>
         <legend>Select an emoji for each cell type</legend>
         <label for="live">Live:</label>
-        <input
-          name="live"
-          id="live"
-          type="text"
-          size="1"
-          minlength="1"
-          maxlength="10"
-        />
+        <input name="live" id="live" type="text" size="1" minlength="1" maxlength="10" />
         <label for="dead">Dead:</label>
-        <input
-          name="dead"
-          id="dead"
-          type="text"
-          size="1"
-          minlength="1"
-          maxlength="10"
-        />
+        <input name="dead" id="dead" type="text" size="1" minlength="1" maxlength="10" />
         <label for="clean">Clean:</label>
-        <input
-          name="clean"
-          id="clean"
-          type="text"
-          size="1"
-          minlength="1"
-          maxlength="10"
-        />
+        <input name="clean" id="clean" type="text" size="1" minlength="1" maxlength="10" />
       </fieldset>
       <label for="theme-name">Theme name</label>
-      <input
-        name="theme-name"
-        id="theme-name"
-        type="text"
-        size="30"
-        minlength="1"
-        maxlength="60"
-      />
+      <input name="theme-name" id="theme-name" type="text" size="30" minlength="1" maxlength="60" />
       <button name="share" type="button">⏫ Share theme!</button><br />
       <label for="share-url">🔗 Share URL</label>
       <input type="text" name="share-url" id="share-url" size="60" disabled />
     </form>
     <p>
-      <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
-        >Learn about the game here.</a
-      >
+      <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Learn about the game here.</a>
     </p>
   </footer>
   <script>
@@ -304,10 +248,7 @@
 
             const neighbours = this.countNeighbours(x, y, oldWorld);
 
-            if (
-              oldWorld[x][y] === true &&
-              (neighbours === 2 || neighbours === 3)
-            ) {
+            if (oldWorld[x][y] === true && (neighbours === 2 || neighbours === 3)) {
               newWorld[x][y] = true;
             }
 
@@ -470,8 +411,7 @@
 
       applyThemeToForm = () => {
         this.titleText.textContent = this.themes[this.curTheme][0];
-        document.title =
-          "Conway's Game of Life - " + this.themes[this.curTheme][0];
+        document.title = "Conway's Game of Life - " + this.themes[this.curTheme][0];
         this.themeInput.value = this.themes[this.curTheme][0];
         this.liveInput.value = this.themes[this.curTheme][1];
         this.deadInput.value = this.themes[this.curTheme][2];
@@ -480,8 +420,7 @@
 
       applyThemeToPage = () => {
         this.titleText.textContent = this.themes[this.curTheme][0];
-        document.title =
-          "Conway's Game of Life - " + this.themes[this.curTheme][0];
+        document.title = "Conway's Game of Life - " + this.themes[this.curTheme][0];
       };
 
       applyThemeToURL = () => {
@@ -498,16 +437,14 @@
       };
 
       applyThemeToShareDetails = () => {
-        this.shareDetails.title =
-          "Conway's Game of Life - " + this.themes[this.curTheme][0];
+        this.shareDetails.title = "Conway's Game of Life - " + this.themes[this.curTheme][0];
         this.shareDetails.text = "";
         this.shareDetails.url = window.location.href;
         this.shareInput.value = window.location.href;
       };
 
       changeTheme = () => {
-        this.curTheme =
-          this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
+        this.curTheme = this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
         this.applyTheme();
         this.render();
       };
@@ -544,8 +481,7 @@
       };
 
       updateThemeFromShuffle = () => {
-        this.curTheme =
-          this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
+        this.curTheme = this.curTheme < this.themes.length - 1 ? this.curTheme + 1 : 0;
         this.applyThemeToPage();
         this.applyThemeToURL();
         this.applyThemeToForm();

@@ -4,12 +4,7 @@
   <title>User-Agent 👀 Client Hints</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link
-    id="favicon"
-    rel="icon"
-    href="./assets/eyes_1f440.png"
-    type="image/x-icon"
-  />
+  <link id="favicon" rel="icon" href="./assets/eyes_1f440.png" type="image/x-icon" />
   <meta name="Description" content="User-Agent 👀 Client Hints" />
   <style>
     body {
@@ -107,24 +102,15 @@ navigator.userAgentData
     <p>
       *️⃣ Requires Chrome 84 or equivalent.<br />
       📃 Read the proposal at
-      <a href="https://github.com/WICG/ua-client-hints"
-        >github.com/WICG/ua-client-hints</a
-      ><br />
+      <a href="https://github.com/WICG/ua-client-hints">github.com/WICG/ua-client-hints</a><br />
       💻
-      <a
-        href="https://glitch.com/edit/#!/user-agent-client-hints?path=public%2Fjavascript.html"
-        >See the demo code</a
-      >.
+      <a href="https://glitch.com/edit/#!/user-agent-client-hints?path=public%2Fjavascript.html">See the demo code</a>.
     </p>
   </footer>
   <script>
     "use strict";
     const brandsText = document.querySelector(".brands");
-    brandsText.textContent = JSON.stringify(
-      navigator.userAgentData.brands,
-      null,
-      "  ",
-    );
+    brandsText.textContent = JSON.stringify(navigator.userAgentData.brands, null, "  ");
     const platform = document.querySelector(".platform");
     platform.textContent = navigator.userAgentData.platform;
     const mobileText = document.querySelector(".mobile");

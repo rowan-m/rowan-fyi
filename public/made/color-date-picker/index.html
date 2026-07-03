@@ -59,9 +59,7 @@
     const END_YEAR = 2100;
     const END_DATE = new Date(END_YEAR + "-12-31T23:59:59Z");
     const MS_PER_DAY = 1000 * 60 * 60 * 24;
-    const TOTAL_DAYS = Math.floor(
-      (END_DATE.getTime() - START_DATE.getTime()) / MS_PER_DAY,
-    );
+    const TOTAL_DAYS = Math.floor((END_DATE.getTime() - START_DATE.getTime()) / MS_PER_DAY);
 
     /**
      * Decodes 6-digit hex string Date object between
@@ -93,9 +91,7 @@
         return null;
       }
 
-      const dayOffset = Math.floor(
-        (date.getTime() - START_DATE.getTime()) / MS_PER_DAY,
-      );
+      const dayOffset = Math.floor((date.getTime() - START_DATE.getTime()) / MS_PER_DAY);
       const hexString = dayOffset.toString(16).padStart(6, "0");
       return `#${hexString}`;
     }
@@ -121,10 +117,7 @@
         month: "long",
         day: "numeric",
       };
-      dateOutput.textContent = decodeHexToDate(color).toLocaleDateString(
-        undefined,
-        options,
-      );
+      dateOutput.textContent = decodeHexToDate(color).toLocaleDateString(undefined, options);
       document.documentElement.style.setProperty("--date-color", color);
     }
 

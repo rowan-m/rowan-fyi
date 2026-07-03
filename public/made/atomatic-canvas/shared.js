@@ -33,13 +33,7 @@ class CanvasRenderer {
     this.eCtx.fillStyle = "olivedrab";
     this.eCtx.lineWidth = 3;
     this.eCtx.beginPath();
-    this.eCtx.arc(
-      this.eCvs.width / 2,
-      this.eCvs.height / 2,
-      (this.eCvs.width - 3) / 2,
-      0,
-      _2PI,
-    );
+    this.eCtx.arc(this.eCvs.width / 2, this.eCvs.height / 2, (this.eCvs.width - 3) / 2, 0, _2PI);
     this.eCtx.fill();
     this.eCtx.stroke();
   }
@@ -75,13 +69,7 @@ class CanvasRenderer {
         const nx = Math.cos(theta) * radius;
         const ny = Math.sin(theta) * radius;
 
-        this.nCtx.arc(
-          Math.floor(this.cen.x + nx),
-          Math.floor(this.cen.y + ny),
-          Math.floor(this.dim.w * 0.01),
-          0,
-          _2PI,
-        );
+        this.nCtx.arc(Math.floor(this.cen.x + nx), Math.floor(this.cen.y + ny), Math.floor(this.dim.w * 0.01), 0, _2PI);
         this.nCtx.fill();
         this.nCtx.stroke();
       }
@@ -100,15 +88,7 @@ class CanvasRenderer {
       this.oCtx.translate(-this.cen.x, -this.cen.y);
 
       this.oCtx.beginPath();
-      this.oCtx.ellipse(
-        this.cen.x,
-        this.cen.y,
-        Math.floor(this.dim.w * e.w),
-        Math.floor(this.dim.h * e.h),
-        0,
-        0,
-        _2PI,
-      );
+      this.oCtx.ellipse(this.cen.x, this.cen.y, Math.floor(this.dim.w * e.w), Math.floor(this.dim.h * e.h), 0, 0, _2PI);
       this.oCtx.stroke();
 
       const ex = this.cen.x + this.dim.w * e.w * Math.cos(e.ea);

@@ -43,10 +43,7 @@ app.use(function (req, res, next) {
 
   // Set the HSTS header if we're already on HTTPS
   if (req.secure) {
-    res.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; inlcudeSubdomains; preload",
-    );
+    res.set("Strict-Transport-Security", "max-age=63072000; inlcudeSubdomains; preload");
     return next();
   }
 
@@ -106,10 +103,7 @@ app.get("/chips", (req, res) => {
 
   console.log({ count });
   res.set("Accept-CH", "Sec-CH-Partitioned-Cookies");
-  res.set(
-    "Set-Cookie",
-    `__Host-count=${count}; Secure; Path=/; SameSite=None; Partitioned;`,
-  );
+  res.set("Set-Cookie", `__Host-count=${count}; Secure; Path=/; SameSite=None; Partitioned;`);
   res.set(
     "Origin-Trial",
     "Am1y6NbY6C9Ho2FGhfWb1eZH3QfBlpim0XpyfR82Im9vbPs81bOkZkEhIYJ6O27obIJv6HMFtp/BD85bYM5klwIAAABieyJvcmlnaW4iOiJodHRwczovL3gtb3JpZ2luLXNyYy5nbGl0Y2gubWU6NDQzIiwiZmVhdHVyZSI6IlBhcnRpdGlvbmVkQ29va2llcyIsImV4cGlyeSI6MTY1NTI1MTE5OX0=",
@@ -168,9 +162,6 @@ const listener = app.listen(process.env.PORT, function () {
   console.log("Your app is listening on port " + listener.address().port);
 
   if (app.get("env") === "development") {
-    console.log(
-      "If you are running locally, try http://localhost:" +
-        listener.address().port,
-    );
+    console.log("If you are running locally, try http://localhost:" + listener.address().port);
   }
 });

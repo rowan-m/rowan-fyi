@@ -68,9 +68,8 @@
 
   <p class="req-check hidden">
     📋 <strong>Quick requirements check:</strong> Make sure you do
-    <a href="https://rowan.fyi/made/first-party-sets"
-      >the set-up instructions on the home page first</a
-    >! 🔎 Chrome 113+: <span class="major-version status">[…]</span> 🔎
+    <a href="https://rowan.fyi/made/first-party-sets">the set-up instructions on the home page first</a>! 🔎 Chrome
+    113+: <span class="major-version status">[…]</span> 🔎
     <code>requestStorageAccess()</code>
     <span class="request-storage-access-for status">[…]</span>
   </p>
@@ -79,34 +78,28 @@
     <li>
       <strong>Bottom-up approach:</strong>
       <a href="https://rowan.fyi/made/fps-member-1/request-storage-access.html"
-        >use <code>requestStorageAccess()</code> in a cross-site, same-set
-        <code>iframe</code></a
+        >use <code>requestStorageAccess()</code> in a cross-site, same-set <code>iframe</code></a
       >.
     </li>
     <li>
       👉 <strong>Top-down approach:</strong>
-      <a
-        href="https://rowan.fyi/made/fps-member-1/request-storage-access-for.html"
-        >use <code>requestStorageAccessFor()</code> for embedded cross-site,
-        same-set resources</a
+      <a href="https://rowan.fyi/made/fps-member-1/request-storage-access-for.html"
+        >use <code>requestStorageAccessFor()</code> for embedded cross-site, same-set resources</a
       >.
     </li>
   </ul>
 
   <p>
     🧑‍💻
-    <a
-      href="https://glitch.com/edit/#!/fps-member-1?path=public%2Frequest-storage-access-for.html"
+    <a href="https://glitch.com/edit/#!/fps-member-1?path=public%2Frequest-storage-access-for.html"
       >Code for this page.</a
     >
   </p>
 
   <p>
-    This demo uses two sites: <code>first-party-sets.glitch.me</code> and
-    <code>fps-member-1.glitch.me</code>, which are both part of the same
-    First-Party Set. <code>first-party-sets.glitch.me</code> sets a cookie named
-    <code>crossSite</code> to that will be allowed in the cross-site, same-set
-    contexts via the Storage Access API.
+    This demo uses two sites: <code>first-party-sets.glitch.me</code> and <code>fps-member-1.glitch.me</code>, which are
+    both part of the same First-Party Set. <code>first-party-sets.glitch.me</code> sets a cookie named
+    <code>crossSite</code> to that will be allowed in the cross-site, same-set contexts via the Storage Access API.
   </p>
 
   <p>
@@ -118,49 +111,37 @@
     <li>
       Check
       <code
-        >navigator.permissions.query({name: 'top-level-storage-access',
-        requestedOrigin: 'https://rowan.fyi/made/first-party-sets'}).then(res
-        =&gt; {…}</code
+        >navigator.permissions.query({name: 'top-level-storage-access', requestedOrigin:
+        'https://rowan.fyi/made/first-party-sets'}).then(res =&gt; {…}</code
       >
-      and see that <code>res.state</code> is
-      <code class="status permission">[…]</code>.
+      and see that <code>res.state</code> is <code class="status permission">[…]</code>.
     </li>
     <li>
       <ol type="a">
         <li>
           If <code class="fail">prompt</code> we need to put the
-          <code
-            >document.requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res
-            =&gt; {…})</code
-          >
-          behind a user gesture, e.g. clicking a button:<br /><button
-            type="button"
-            class="click-for-cookies"
-          >
+          <code>document.requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res =&gt; {…})</code>
+          behind a user gesture, e.g. clicking a button:<br /><button type="button" class="click-for-cookies">
             🍪 Click for cookies
           </button>
           → <span class="rsa-gesture status">[…]</span>
         </li>
         <li>
           If <code class="pass">granted</code> we can just call
-          <code
-            >document.requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res
-            =&gt; {…})</code
-          >
+          <code>document.requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res =&gt; {…})</code>
           immediately → <span class="rsa-immediate status">[…]</span>
         </li>
       </ol>
     </li>
     <li>
-      After a successful <code>requestStorageAccessFor()</code> call, cross-site
-      requests will include cookies if they include CORS or the
-      <code>crossorigin</code> attribute.
+      After a successful <code>requestStorageAccessFor()</code> call, cross-site requests will include cookies if they
+      include CORS or the <code>crossorigin</code> attribute.
     </li>
   </ol>
 
   <p>
-    🍪 <code>crossSite</code> cookie sent on subsequent cross-site, same-set
-    requests? <span class="status cookie-after">[…]</span>
+    🍪 <code>crossSite</code> cookie sent on subsequent cross-site, same-set requests?
+    <span class="status cookie-after">[…]</span>
   </p>
 
   <script>
@@ -175,18 +156,13 @@
     const reqStorageAccess = "requestStorageAccessFor" in document;
 
     if (!reqChromeVer || !reqStorageAccess) {
-      document.querySelector(".major-version").textContent = reqChromeVer
-        ? "pass"
-        : "fail";
-      document
-        .querySelector(".major-version")
-        .classList.add(reqChromeVer ? "pass" : "fail");
+      document.querySelector(".major-version").textContent = reqChromeVer ? "pass" : "fail";
+      document.querySelector(".major-version").classList.add(reqChromeVer ? "pass" : "fail");
 
-      document.querySelector(".request-storage-access-for").textContent =
-        reqStorageAccess ? "enabled" : "not available";
-      document
-        .querySelector(".request-storage-access-for")
-        .classList.add(reqStorageAccess ? "pass" : "fail");
+      document.querySelector(".request-storage-access-for").textContent = reqStorageAccess
+        ? "enabled"
+        : "not available";
+      document.querySelector(".request-storage-access-for").classList.add(reqStorageAccess ? "pass" : "fail");
 
       document.querySelector(".req-check").classList.remove("hidden");
     }
@@ -208,11 +184,8 @@
             `] fetch('https://rowan.fyi/made/first-party-sets/getcookies.json', { method: 'GET', credentials: 'include' }).then(response => response.json()).then(json => {console.log(json)}) → `,
           json,
         );
-        document.querySelector(".cookie-immediate").textContent =
-          "crossSite" in json ? "[SENT]" : "[NOT SENT]";
-        document
-          .querySelector(".cookie-immediate")
-          .classList.add("crossSite" in json ? "pass" : "fail");
+        document.querySelector(".cookie-immediate").textContent = "crossSite" in json ? "[SENT]" : "[NOT SENT]";
+        document.querySelector(".cookie-immediate").classList.add("crossSite" in json ? "pass" : "fail");
 
         nextSteps();
       });
@@ -227,9 +200,7 @@
         })
         .then((res) => {
           console.log(
-            "[" +
-              document.location.hostname +
-              "] 1. Check if the top-level-storage-access permission has been granted",
+            "[" + document.location.hostname + "] 1. Check if the top-level-storage-access permission has been granted",
           );
           console.log(
             "[" +
@@ -245,74 +216,20 @@
 
             // Request storage access without any user gesture
             if ("requestStorageAccessFor" in document) {
-              document
-                .requestStorageAccessFor(
-                  "https://rowan.fyi/made/first-party-sets",
-                )
-                .then(
-                  (res) => {
-                    console.log(
-                      "[" +
-                        document.location.hostname +
-                        "] 2.b. Storage-access permission granted, immediately request storage access.",
-                    );
-                    console.log(
-                      "[" +
-                        document.location.hostname +
-                        "] document.requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res => {…}) → success",
-                    );
-                    document.querySelector(".rsa-immediate").textContent =
-                      "success";
-                    document
-                      .querySelector(".rsa-immediate")
-                      .classList.add("pass");
-
-                    checkCookie();
-                  },
-                  (err) => {
-                    console.log(
-                      "[" +
-                        document.location.hostname +
-                        "] 2.b. Storage-access permission granted, immediately request storage access.",
-                    );
-                    console.log(
-                      "[" +
-                        document.location.hostname +
-                        "] requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res => {…}, err => {…}) → ERROR:",
-                      err,
-                    );
-                  },
-                );
-            }
-          } else if (res.state === "prompt") {
-            document.querySelector(".permission").textContent = "prompt";
-            document.querySelector(".permission").classList.add("fail");
-          }
-        });
-
-      document
-        .querySelector(".click-for-cookies")
-        .addEventListener("click", () => {
-          if ("requestStorageAccess" in document) {
-            document
-              .requestStorageAccessFor(
-                "https://rowan.fyi/made/first-party-sets",
-              )
-              .then(
+              document.requestStorageAccessFor("https://rowan.fyi/made/first-party-sets").then(
                 (res) => {
                   console.log(
                     "[" +
                       document.location.hostname +
-                      "] 2.a. Request storage access after user gesture, e.g. this button click.",
+                      "] 2.b. Storage-access permission granted, immediately request storage access.",
                   );
                   console.log(
                     "[" +
                       document.location.hostname +
                       "] document.requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res => {…}) → success",
                   );
-                  document.querySelector(".rsa-gesture").textContent =
-                    "success";
-                  document.querySelector(".rsa-gesture").classList.add("pass");
+                  document.querySelector(".rsa-immediate").textContent = "success";
+                  document.querySelector(".rsa-immediate").classList.add("pass");
 
                   checkCookie();
                 },
@@ -320,7 +237,7 @@
                   console.log(
                     "[" +
                       document.location.hostname +
-                      "] 2.a. Request storage access after user gesture, e.g. this button click.",
+                      "] 2.b. Storage-access permission granted, immediately request storage access.",
                   );
                   console.log(
                     "[" +
@@ -330,8 +247,48 @@
                   );
                 },
               );
+            }
+          } else if (res.state === "prompt") {
+            document.querySelector(".permission").textContent = "prompt";
+            document.querySelector(".permission").classList.add("fail");
           }
         });
+
+      document.querySelector(".click-for-cookies").addEventListener("click", () => {
+        if ("requestStorageAccess" in document) {
+          document.requestStorageAccessFor("https://rowan.fyi/made/first-party-sets").then(
+            (res) => {
+              console.log(
+                "[" +
+                  document.location.hostname +
+                  "] 2.a. Request storage access after user gesture, e.g. this button click.",
+              );
+              console.log(
+                "[" +
+                  document.location.hostname +
+                  "] document.requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res => {…}) → success",
+              );
+              document.querySelector(".rsa-gesture").textContent = "success";
+              document.querySelector(".rsa-gesture").classList.add("pass");
+
+              checkCookie();
+            },
+            (err) => {
+              console.log(
+                "[" +
+                  document.location.hostname +
+                  "] 2.a. Request storage access after user gesture, e.g. this button click.",
+              );
+              console.log(
+                "[" +
+                  document.location.hostname +
+                  "] requestStorageAccessFor('https://rowan.fyi/made/first-party-sets').then(res => {…}, err => {…}) → ERROR:",
+                err,
+              );
+            },
+          );
+        }
+      });
     }
 
     function checkCookie() {
@@ -352,11 +309,8 @@
               `] fetch('https://rowan.fyi/made/first-party-sets/getcookies.json', { method: 'GET', credentials: 'include' }).then(response => response.json()).then(json => {console.log(json)}) → `,
             json,
           );
-          document.querySelector(".cookie-after").textContent =
-            "crossSite" in json ? "[SENT]" : "[NOT SENT]";
-          document
-            .querySelector(".cookie-after")
-            .classList.add("crossSite" in json ? "pass" : "fail");
+          document.querySelector(".cookie-after").textContent = "crossSite" in json ? "[SENT]" : "[NOT SENT]";
+          document.querySelector(".cookie-after").classList.add("crossSite" in json ? "pass" : "fail");
         });
     }
   </script>

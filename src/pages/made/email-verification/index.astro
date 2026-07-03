@@ -66,14 +66,12 @@ let traceSteps: TraceStep[] = [
   },
   {
     name: "Step 4: Issuer Discovery & JWKS Fetching",
-    description:
-      "Fetch the issuer's well-known configuration and JWKS public keys from their authoritative origin.",
+    description: "Fetch the issuer's well-known configuration and JWKS public keys from their authoritative origin.",
     status: "pending",
   },
   {
     name: "Step 5: Issuer Signature Cryptographic Verification",
-    description:
-      "Cryptographically verify the EVT signature using the fetched issuer public keys from their JWKS.",
+    description: "Cryptographically verify the EVT signature using the fetched issuer public keys from their JWKS.",
     status: "pending",
   },
   {
@@ -105,9 +103,7 @@ if (Astro.request.method === "POST") {
       const parts = rawToken.split("~");
       if (parts.length < 2) {
         traceSteps[0].status = "failed";
-        throw new Error(
-          "Invalid token format. Missing Key Binding JWT (KB-JWT) separator '~'.",
-        );
+        throw new Error("Invalid token format. Missing Key Binding JWT (KB-JWT) separator '~'.");
       }
       const evtJwt = parts[0];
       const kbJwt = parts[1];
@@ -162,9 +158,7 @@ if (Astro.request.method === "POST") {
       // 2B. Ensure the token asserts that the email has been verified
       if (decodedPayload.email_verified !== true) {
         traceSteps[1].status = "failed";
-        throw new Error(
-          "Security Exception: The token 'email_verified' claim must be explicitly true.",
-        );
+        throw new Error("Security Exception: The token 'email_verified' claim must be explicitly true.");
       }
 
       // 2C. Session Nonce Verification: Ensure the nonce matches the one we generated for this rendering
@@ -186,15 +180,12 @@ if (Astro.request.method === "POST") {
       // 2E. EVT Cryptographic Hash Binding: Match the "sd_hash" inside KB-JWT with the SHA-256 hash of the EVT.
       if (decodedKbPayload.sd_hash !== calculatedHash) {
         traceSteps[1].status = "failed";
-        throw new Error(
-          "Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.",
-        );
+        throw new Error("Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.");
       }
 
       traceSteps[1].outputReceived = {
         localChecksPassed: true,
-        details:
-          "All local claims, session nonce, target audience, and hash binding checks matched successfully.",
+        details: "All local claims, session nonce, target audience, and hash binding checks matched successfully.",
       };
       traceSteps[1].status = "success";
 
@@ -209,9 +200,7 @@ if (Astro.request.method === "POST") {
       };
 
       let isAuthoritative = false;
-      const issuerHost = iss.startsWith("http")
-        ? new URL(iss).hostname.toLowerCase()
-        : iss.toLowerCase();
+      const issuerHost = iss.startsWith("http") ? new URL(iss).hostname.toLowerCase() : iss.toLowerCase();
 
       if (issuerHost === "localhost" || issuerHost === "127.0.0.1") {
         isAuthoritative = true;
@@ -251,12 +240,10 @@ if (Astro.request.method === "POST") {
           }
         } catch (dnsErr) {
           traceSteps[2].status = "failed";
-          traceSteps[2].error =
-            dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
-          throw new Error(
-            `DNS delegation lookup failed for _email-verification.${domain}: ${traceSteps[2].error}`,
-            { cause: dnsErr },
-          );
+          traceSteps[2].error = dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
+          throw new Error(`DNS delegation lookup failed for _email-verification.${domain}: ${traceSteps[2].error}`, {
+            cause: dnsErr,
+          });
         }
       }
 
@@ -278,9 +265,7 @@ if (Astro.request.method === "POST") {
       const metadataResponse = await fetch(discoveryUrl);
       if (!metadataResponse.ok) {
         traceSteps[3].status = "failed";
-        throw new Error(
-          `Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`,
-        );
+        throw new Error(`Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`);
       }
       const metadata = await metadataResponse.json();
       traceSteps[3].outputReceived = { issuerMetadata: metadata };
@@ -288,9 +273,7 @@ if (Astro.request.method === "POST") {
       const jwksUri = metadata.jwks_uri;
       if (!jwksUri) {
         traceSteps[3].status = "failed";
-        throw new Error(
-          `Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`,
-        );
+        throw new Error(`Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`);
       }
 
       traceSteps[3].serverCalled = `${discoveryUrl} & ${jwksUri}`;
@@ -332,9 +315,7 @@ if (Astro.request.method === "POST") {
 
       if (!verifiedPayload) {
         traceSteps[4].status = "failed";
-        throw new Error(
-          "Verification error: JWKSNoMatchingKey: no applicable key found in the JSON Web Key Set",
-        );
+        throw new Error("Verification error: JWKSNoMatchingKey: no applicable key found in the JSON Web Key Set");
       }
       const evtPayload = verifiedPayload as unknown as EvtPayload;
       traceSteps[4].outputReceived = {
@@ -354,9 +335,7 @@ if (Astro.request.method === "POST") {
       const browserJwk = evtPayload.cnf?.jwk;
       if (!browserJwk) {
         traceSteps[5].status = "failed";
-        throw new Error(
-          "EVT payload is missing the browser's ephemeral public key (cnf.jwk).",
-        );
+        throw new Error("EVT payload is missing the browser's ephemeral public key (cnf.jwk).");
       }
 
       const kbHeader = decodeProtectedHeader(kbJwt);
@@ -381,17 +360,14 @@ if (Astro.request.method === "POST") {
         kb: kbPayload,
       };
     } else {
-      errorMsg =
-        "No verification token was sent by the browser. Traditional verification flow is required.";
+      errorMsg = "No verification token was sent by the browser. Traditional verification flow is required.";
     }
   } catch (e) {
     console.error("Verification error:", e);
     errorMsg = e instanceof Error ? e.message : "Failed to verify the token.";
 
     // Auto-mark the currently active step as failed with its exact error context
-    const currentStep = traceSteps.find(
-      (s) => s.status === "pending" || s.status === "failed",
-    );
+    const currentStep = traceSteps.find((s) => s.status === "pending" || s.status === "failed");
     if (currentStep) {
       currentStep.status = "failed";
       currentStep.error = errorMsg;
@@ -421,21 +397,12 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Email Verification Protocol (EVP) demo" />
-  <meta
-    property="og:description"
-    content="Demo of an Email Verification Protocol (EVP) Relying Party"
-  />
+  <meta property="og:description" content="Demo of an Email Verification Protocol (EVP) Relying Party" />
   <meta name="twitter:card" content="summary" />
   <meta property="twitter:domain" content="rowan.fyi" />
-  <meta
-    property="twitter:url"
-    content={new URL(Astro.url.pathname, Astro.site)}
-  />
+  <meta property="twitter:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta name="twitter:title" content="Email Verification Protocol (EVP) demo" />
-  <meta
-    name="twitter:description"
-    content="Demo of an Email Verification Protocol (EVP) Relying Party"
-  />
+  <meta name="twitter:description" content="Demo of an Email Verification Protocol (EVP) Relying Party" />
   <link
     rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>"
@@ -689,10 +656,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
   </style>
   <main>
     <h1>Email Verification Protocol (EVP) demo</h1>
-    <p>
-      Select an email address from the autofill dropdown to trigger
-      verification.
-    </p>
+    <p>Select an email address from the autofill dropdown to trigger verification.</p>
     <form method="POST" id="verify-form" class="evp-form">
       <div class="form-group">
         <label for="email">Email address:</label>
@@ -707,12 +671,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
         />
       </div>
       <!-- EVP Hidden Input with Server-Side Dynamic Nonce -->
-      <input
-        type="hidden"
-        name="token"
-        nonce={activeNonce}
-        autocomplete="email-verification-token"
-      />
+      <input type="hidden" name="token" nonce={activeNonce} autocomplete="email-verification-token" />
       <button type="submit" id="submit-btn">Sign up</button>
     </form>
 
@@ -721,8 +680,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
         <div class="msg-box success">
           <h3>🎉 Email Successfully Verified Cryptographically!</h3>
           <p>
-            No verification email was sent. Verified Email identity:{" "}
-            <strong>{verificationResult.email}</strong>
+            No verification email was sent. Verified Email identity: <strong>{verificationResult.email}</strong>
           </p>
         </div>
       )
@@ -741,10 +699,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       activeTrace && (
         <div class="trace-container">
           <h2>EVP Cryptographic Verification Trace</h2>
-          <p>
-            Review the exact server-to-server operations, inputs, and outputs
-            executed during verification:
-          </p>
+          <p>Review the exact server-to-server operations, inputs, and outputs executed during verification:</p>
 
           <ol class="trace-list">
             {activeTrace.map((step) => {
@@ -757,22 +712,15 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
 
                   <p class="trace-step-desc">{step.description}</p>
 
-                  {step.error && (
-                    <p class="trace-step-error">
-                      Exception Details: {step.error}
-                    </p>
-                  )}
+                  {step.error && <p class="trace-step-error">Exception Details: {step.error}</p>}
 
-                  {(step.serverCalled ||
-                    step.inputSent ||
-                    step.outputReceived) && (
+                  {(step.serverCalled || step.inputSent || step.outputReceived) && (
                     <details class="trace-details">
                       <summary>Show Input / Output Data Traces</summary>
                       <div class="trace-details-content">
                         {step.serverCalled && (
                           <p>
-                            <strong>Server Called:</strong>{" "}
-                            <code>{step.serverCalled}</code>
+                            <strong>Server Called:</strong> <code>{step.serverCalled}</code>
                           </p>
                         )}
 
@@ -780,9 +728,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
                           <div class="trace-section-mb">
                             <strong>Inputs Sent:</strong>
                             <pre>
-                              <code>
-                                {JSON.stringify(step.inputSent, null, 2)}
-                              </code>
+                              <code>{JSON.stringify(step.inputSent, null, 2)}</code>
                             </pre>
                           </div>
                         )}
@@ -791,9 +737,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
                           <div class="trace-section-mb">
                             <strong>Outputs Received:</strong>
                             <pre>
-                              <code>
-                                {JSON.stringify(step.outputReceived, null, 2)}
-                              </code>
+                              <code>{JSON.stringify(step.outputReceived, null, 2)}</code>
                             </pre>
                           </div>
                         )}

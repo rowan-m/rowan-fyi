@@ -31,20 +31,13 @@ class WatchHand {
       // initial position
       `M ${this.faceR} ${this.faceR - this.handL}` +
         // upper left-side arm point
-        `a${this.pointXR} ${this.pointYR} 1 0 1 ${-this.pointXR} ${
-          this.pointYR
-        }` +
-        `a${this.pointXR - this.armW / 2} ${this.pointYR} 1 0 1 ${
-          this.pointXR - this.armW / 2
-        } ${this.pointYR}`,
+        `a${this.pointXR} ${this.pointYR} 1 0 1 ${-this.pointXR} ${this.pointYR}` +
+        `a${this.pointXR - this.armW / 2} ${this.pointYR} 1 0 1 ${this.pointXR - this.armW / 2} ${this.pointYR}`,
       // central pivot
       `a${this.pivotOR} ${this.pivotOR} 0 1 0 ${this.armW} 0`,
       // upper right-side arm point
-      `a${this.pointXR - this.armW / 2} ${this.pointYR} 1 0 1 ${
-        this.pointXR - this.armW / 2
-      } ${-this.pointYR}` +
-        `a${this.pointXR} ${this.pointYR} 1 0 1 ${-this.pointXR} ${-this
-          .pointYR}` +
+      `a${this.pointXR - this.armW / 2} ${this.pointYR} 1 0 1 ${this.pointXR - this.armW / 2} ${-this.pointYR}` +
+        `a${this.pointXR} ${this.pointYR} 1 0 1 ${-this.pointXR} ${-this.pointYR}` +
         `z` +
         // central pivot hole
         `M${this.faceR} ${this.faceR + this.pivotIR}` +
@@ -70,10 +63,7 @@ class WatchHand {
     for (var i in this.points) {
       let xFactor = 1;
 
-      if (
-        (this.points[i].orig > 0 && aX < 0) ||
-        (this.points[i].orig < 0 && aX > 0)
-      ) {
+      if ((this.points[i].orig > 0 && aX < 0) || (this.points[i].orig < 0 && aX > 0)) {
         xFactor = 1.15;
       }
 
@@ -144,12 +134,9 @@ class Watch {
       const second = time.getSeconds();
       const millis = time.getMilliseconds();
 
-      const secondAngle =
-        (this._2PI / 60) * second + (this._2PI / 60 / 1000) * millis;
+      const secondAngle = (this._2PI / 60) * second + (this._2PI / 60 / 1000) * millis;
       const minuteAngle =
-        (this._2PI / 60) * minute +
-        (this._2PI / 60 / 60) * second +
-        (this._2PI / 60 / 60 / 1000) * millis;
+        (this._2PI / 60) * minute + (this._2PI / 60 / 60) * second + (this._2PI / 60 / 60 / 1000) * millis;
       const hourAngle =
         (this._2PI / 12) * hour +
         (this._2PI / 12 / 60) * minute +

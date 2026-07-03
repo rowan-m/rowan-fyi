@@ -16,8 +16,7 @@ class ThreeRenderer {
   resizeRendererToDisplay() {
     this.width = this.cvs.width;
     this.height = this.cvs.height;
-    const needResize =
-      this.cvs.width !== this.width || this.cvs.height !== this.height;
+    const needResize = this.cvs.width !== this.width || this.cvs.height !== this.height;
 
     if (needResize) {
       this.renderer.setSize(this.width, this.height, false);
@@ -45,10 +44,7 @@ class ThreeRenderer {
     directionalLight.position.set(1, 1, 4).normalize();
     this.scene.add(directionalLight);
 
-    this.controls = new THREE.OrbitControls(
-      this.camera,
-      this.renderer.domElement,
-    );
+    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
   }
 
   buildAtom(atom) {

@@ -22,10 +22,7 @@ let astroDirs: string[] = [];
 try {
   const astroPath = path.resolve("src/pages/made");
   astroDirs = fs.readdirSync(astroPath).filter((file) => {
-    return (
-      file !== "index.astro" &&
-      fs.statSync(path.join(astroPath, file)).isDirectory()
-    );
+    return file !== "index.astro" && fs.statSync(path.join(astroPath, file)).isDirectory();
   });
 } catch (e) {
   console.warn("Could not read src/pages/made directory", e);
@@ -60,11 +57,9 @@ mergedList.sort((a, b) => a.name.localeCompare(b.name));
     <main>
       <h1>Things I've made</h1>
       <p>
-        This is a quick, dirty, and evolving import of projects from <a
-          href="https://glitch.com">Glitch</a
-        >. There are probably a few absolute links in here which means things
-        might not work. Feel free to ping me on your preferred social network if
-        you find something that's broken.
+        This is a quick, dirty, and evolving import of projects from <a href="https://glitch.com">Glitch</a>. There are
+        probably a few absolute links in here which means things might not work. Feel free to ping me on your preferred
+        social network if you find something that's broken.
       </p>
       <ul>
         {

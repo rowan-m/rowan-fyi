@@ -56,8 +56,7 @@ describe("LinkAge URL Parser", () => {
   });
 
   test("successfully parses Bluesky post URL with query parameters", () => {
-    const url =
-      "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h?ref_src=embed";
+    const url = "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h?ref_src=embed";
     const result = parseUrl(url);
     expect(result).toEqual({
       handle: "rowan.fyi",
@@ -75,8 +74,7 @@ describe("LinkAge URL Parser", () => {
   });
 
   test("successfully parses Bluesky post URL with hash/anchor tag", () => {
-    const url =
-      "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h#comments";
+    const url = "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h#comments";
     const result = parseUrl(url);
     expect(result).toEqual({
       handle: "rowan.fyi",
@@ -85,8 +83,7 @@ describe("LinkAge URL Parser", () => {
   });
 
   test("successfully parses sub-domain URL handles (e.g. staging or user domain)", () => {
-    const url =
-      "https://staging.bsky.app/profile/username.bsky.social/post/123456789";
+    const url = "https://staging.bsky.app/profile/username.bsky.social/post/123456789";
     const result = parseUrl(url);
     expect(result).toEqual({
       handle: "username.bsky.social",

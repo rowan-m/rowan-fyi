@@ -31,12 +31,7 @@
     }
   </style>
   <main>
-    <canvas
-      class="main-canvas"
-      draggable="false"
-      width="512"
-      height="512"
-    ></canvas>
+    <canvas class="main-canvas" draggable="false" width="512" height="512"></canvas>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
   <script>
@@ -79,9 +74,7 @@
         this.handleResize(null);
         window.addEventListener("resize", this.handleResize);
 
-        PIXI.Loader.shared
-          .add(["./assets/alien_1f47d.png"])
-          .load(this.postLoad);
+        PIXI.Loader.shared.add(["./assets/alien_1f47d.png"]).load(this.postLoad);
       }
 
       postLoad() {
@@ -156,10 +149,7 @@
         this.textureNames = {
           alien: "./assets/alien_1f47d.png",
         };
-        this.sprite = new PIXI.Sprite(
-          PIXI.Loader.shared.resources[this.textureNames[this.textureName]]
-            .texture,
-        );
+        this.sprite = new PIXI.Sprite(PIXI.Loader.shared.resources[this.textureNames[this.textureName]].texture);
 
         this.x = x;
         this.y = y;
@@ -196,10 +186,7 @@
       swapTexture(name) {
         if (name !== this.textureName) {
           this.textureName = name;
-          this.sprite.texture =
-            PIXI.Loader.shared.resources[
-              this.textureNames[this.textureName]
-            ].texture;
+          this.sprite.texture = PIXI.Loader.shared.resources[this.textureNames[this.textureName]].texture;
         }
       }
 

@@ -19,8 +19,7 @@ for (let i = 0; i < numAds; i++) {
 
 // Simple reporting mechanism that's just awaiting a postMessage from the ad frame
 const unloadMessage = document.createElement("pre");
-unloadMessage.textContent =
-  "[Reports from ads that trigger an intervention will show here]";
+unloadMessage.textContent = "[Reports from ads that trigger an intervention will show here]";
 document.querySelector("main").appendChild(unloadMessage);
 
 // Handle incoming messages from the iframes

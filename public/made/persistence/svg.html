@@ -7,29 +7,11 @@
 
   <meta name="Description" content="Persistence of Memory" />
 
-  <link
-    rel="apple-touch-icon"
-    sizes="180x180"
-    href="/made/persistence/assets/apple-touch-icon.png"
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="32x32"
-    href="/made/persistence/assets/favicon-32x32.png"
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="16x16"
-    href="/made/persistence/assets/favicon-16x16.png"
-  />
+  <link rel="apple-touch-icon" sizes="180x180" href="/made/persistence/assets/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/made/persistence/assets/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/made/persistence/assets/favicon-16x16.png" />
   <link rel="manifest" href="/made/persistence/manifest.json" />
-  <link
-    rel="mask-icon"
-    href="/made/persistence/assets/safari-pinned-tab.svg"
-    color="#e6994c"
-  />
+  <link rel="mask-icon" href="/made/persistence/assets/safari-pinned-tab.svg" color="#e6994c" />
   <meta name="apple-mobile-web-app-title" content="Persistence" />
   <meta name="application-name" content="Persistence" />
   <meta name="msapplication-TileColor" content="#e6994c" />
@@ -42,10 +24,7 @@
     name="twitter:description"
     content="A melting clock in your browser inspired by Salvador Dalí's painting La persistencia de la memoria (The Persistence of Memory)"
   />
-  <meta
-    name="twitter:image"
-    content="https://rowan.fyi/made/persistence/assets/persistence-preview.jpg"
-  />
+  <meta name="twitter:image" content="https://rowan.fyi/made/persistence/assets/persistence-preview.jpg" />
   <meta name="twitter:image:width" content="1920" />
   <meta name="twitter:image:height" content="1080" />
   <meta name="twitter:image:alt" content="A melting clock" />
@@ -57,10 +36,7 @@
     property="og:description"
     content="A melting clock in your browser inspired by Salvador Dalí's painting La persistencia de la memoria (The Persistence of Memory)"
   />
-  <meta
-    property="og:image"
-    content="https://rowan.fyi/made/persistence/assets/persistence-preview.jpg"
-  />
+  <meta property="og:image" content="https://rowan.fyi/made/persistence/assets/persistence-preview.jpg" />
   <meta property="og:image:width" content="1920" />
   <meta property="og:image:height" content="1080" />
   <meta property="fb:app_id" content="267304771325045" />
@@ -71,11 +47,7 @@
     href="/made/persistence/day.css"
     media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
   />
-  <link
-    rel="stylesheet"
-    href="/made/persistence/night.css"
-    media="(prefers-color-scheme: dark)"
-  />
+  <link rel="stylesheet" href="/made/persistence/night.css" media="(prefers-color-scheme: dark)" />
 
   <header>
     <h1>La persistencia de la memoria</h1>
@@ -99,11 +71,7 @@
           <span class="hour-num num-11"><span>11</span></span>
           <span class="hour-num num-12"><span>12</span></span>
         </div>
-        <svg
-          class="watch-hands"
-          viewBox="0 0 1000 1000"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg class="watch-hands" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
           <path class="watch-hand second-hand" d="" />
           <path class="watch-hand minute-hand" d="" />
           <path class="watch-hand hour-hand" d="" />
@@ -113,16 +81,8 @@
   </main>
   <footer>
     <nav>
-      <dark-mode-toggle
-        id="dmt"
-        appearance="switch"
-        dark="Night"
-        light="Day"
-        remember="Permanent"
-      ></dark-mode-toggle>
-      <a href="https://en.wikipedia.org/wiki/The_Persistence_of_Memory"
-        >🖼️ Salvador Dalí</a
-      >
+      <dark-mode-toggle id="dmt" appearance="switch" dark="Night" light="Day" remember="Permanent"></dark-mode-toggle>
+      <a href="https://en.wikipedia.org/wiki/The_Persistence_of_Memory">🖼️ Salvador Dalí</a>
       <a href="https://glitch.com/edit/#!/persistence">💻 Code</a>
       <a href=" https://twitter.com/rowan_m">🖤 @rowan_m</a><br />
       <a href="/made/persistence/">🎨 Canvas version</a>
@@ -132,10 +92,7 @@
 
   <script src="/made/persistence/page.js"></script>
   <script src="/made/persistence/shared.js"></script>
-  <script
-    type="module"
-    src="https://googlechromelabs.github.io/dark-mode-toggle/src/dark-mode-toggle.mjs"
-  ></script>
+  <script type="module" src="https://googlechromelabs.github.io/dark-mode-toggle/src/dark-mode-toggle.mjs"></script>
   <script>
     "use strict";
     if (location.protocol !== "https:" && location.hostname !== "localhost") {
@@ -147,11 +104,7 @@
     const secondHandEl = document.querySelector(".second-hand");
     const numberEls = document.querySelectorAll(".hour-num>span");
 
-    const watch = new Watch(
-      hands,
-      new SvgRenderer(hourHandEl, minuteHandEl, secondHandEl, numberEls),
-      1,
-    );
+    const watch = new Watch(hands, new SvgRenderer(hourHandEl, minuteHandEl, secondHandEl, numberEls), 1);
     window.requestAnimationFrame(watch.tick);
 
     const startButt = document.querySelector(".start");

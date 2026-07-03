@@ -15,41 +15,16 @@
   <meta name="twitter:player" content="https://rowan.fyi/made/persistence/" />
   <meta name="twitter:player:width" content="480" />
   <meta name="twitter:player:height" content="480" />
-  <meta
-    name="twitter:image"
-    content="https://rowan.fyi/made/persistence/assets/android-chrome-512x512.png"
-  />
+  <meta name="twitter:image" content="https://rowan.fyi/made/persistence/assets/android-chrome-512x512.png" />
   <meta name="twitter:image:alt" content="Tap and watch the clock melt." />
 
   <meta name="Description" content="Persistence of Memory" />
 
-  <link
-    rel="apple-touch-icon"
-    sizes="180x180"
-    href="/made/persistence/assets/apple-touch-icon.png"
-    crossorigin
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="32x32"
-    href="/made/persistence/assets/favicon-32x32.png"
-    crossorigin
-  />
-  <link
-    rel="icon"
-    type="image/png"
-    sizes="16x16"
-    href="/made/persistence/assets/favicon-16x16.png"
-    crossorigin
-  />
+  <link rel="apple-touch-icon" sizes="180x180" href="/made/persistence/assets/apple-touch-icon.png" crossorigin />
+  <link rel="icon" type="image/png" sizes="32x32" href="/made/persistence/assets/favicon-32x32.png" crossorigin />
+  <link rel="icon" type="image/png" sizes="16x16" href="/made/persistence/assets/favicon-16x16.png" crossorigin />
   <link rel="manifest" href="/made/persistence/manifest.json" />
-  <link
-    rel="mask-icon"
-    href="/made/persistence/assets/safari-pinned-tab.svg"
-    color="#e6994c"
-    crossorigin
-  />
+  <link rel="mask-icon" href="/made/persistence/assets/safari-pinned-tab.svg" color="#e6994c" crossorigin />
   <meta name="apple-mobile-web-app-title" content="Persistence" />
   <meta name="application-name" content="Persistence" />
   <meta name="msapplication-TileColor" content="#e6994c" />
@@ -62,11 +37,7 @@
     property="og:description"
     content="A melting clock in your browser inspired by Salvador Dalí's painting La persistencia de la memoria (The Persistence of Memory)"
   />
-  <meta
-    property="og:image"
-    content="https://rowan.fyi/made/persistence/assets/persistence-preview.jpg"
-    crossorigin
-  />
+  <meta property="og:image" content="https://rowan.fyi/made/persistence/assets/persistence-preview.jpg" crossorigin />
   <meta property="og:image:width" content="1920" />
   <meta property="og:image:height" content="1080" />
   <meta property="fb:app_id" content="267304771325045" />
@@ -77,11 +48,7 @@
     href="/made/persistence/day.css"
     media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
   />
-  <link
-    rel="stylesheet"
-    href="/made/persistence/night.css"
-    media="(prefers-color-scheme: dark)"
-  />
+  <link rel="stylesheet" href="/made/persistence/night.css" media="(prefers-color-scheme: dark)" />
 
   <header>
     <h1>La persistencia de la memoria</h1>
@@ -95,16 +62,8 @@
   </main>
   <footer>
     <nav>
-      <dark-mode-toggle
-        id="dmt"
-        appearance="switch"
-        dark="Night"
-        light="Day"
-        remember="Permanent"
-      ></dark-mode-toggle>
-      <a href="https://en.wikipedia.org/wiki/The_Persistence_of_Memory"
-        >🖼️ Salvador Dalí</a
-      >
+      <dark-mode-toggle id="dmt" appearance="switch" dark="Night" light="Day" remember="Permanent"></dark-mode-toggle>
+      <a href="https://en.wikipedia.org/wiki/The_Persistence_of_Memory">🖼️ Salvador Dalí</a>
       <a href="https://glitch.com/edit/#!/persistence">💻 Code</a>
       <a href=" https://twitter.com/rowan_m">🖤 @rowan_m</a><br />
       <a href="/made/persistence/svg.html">🖋️ SVG version</a>
@@ -134,19 +93,14 @@
     const accel = new Acceleration(startButt);
     const baseCanvas = document.querySelector(".face");
     let scale = baseCanvas.getBoundingClientRect().width / 1000;
-    let theme = window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "night"
-      : "day";
+    let theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day";
     let renderer = null;
     let worker = null;
 
     if ("OffscreenCanvas" in window) {
       worker = new Worker("watchmaker.js");
       const faceCanvas = baseCanvas.transferControlToOffscreen();
-      worker.postMessage(
-        { cmd: "start", canvas: faceCanvas, scale: scale, theme: theme },
-        [faceCanvas],
-      );
+      worker.postMessage({ cmd: "start", canvas: faceCanvas, scale: scale, theme: theme }, [faceCanvas]);
       accel.setWorker(worker);
     } else {
       renderer = new CanvasRenderer(baseCanvas, scale, theme);

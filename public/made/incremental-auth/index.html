@@ -10,18 +10,12 @@
   <main>
     <header>
       <h1>
-        <a href="https://rowan.fyi/made/incremental-auth/"
-          >Incremental auth with Google Sign-In</a
-        >
+        <a href="https://rowan.fyi/made/incremental-auth/">Incremental auth with Google Sign-In</a>
       </h1>
       <p>
-        This demo shows a minimal sign-in that only requests a simple ID for
-        authentication and allows additionally requesting the email address
-        afterwards. Take a peek at
-        <a
-          href="https://developers.google.com/identity/sign-in/web/incremental-auth"
-          >the docs here</a
-        >.
+        This demo shows a minimal sign-in that only requests a simple ID for authentication and allows additionally
+        requesting the email address afterwards. Take a peek at
+        <a href="https://developers.google.com/identity/sign-in/web/incremental-auth">the docs here</a>.
       </p>
       <p>If things look out of date, refresh the page.</p>
       <button class="refresh-page">♻️ Refresh page</button>
@@ -41,9 +35,7 @@
     </section>
     <section class="signed-out" style="display: none">
       <h2>🔒 Sign-in</h2>
-      <p>
-        This will just request the <tt>openid</tt> scope that will return an ID.
-      </p>
+      <p>This will just request the <tt>openid</tt> scope that will return an ID.</p>
       <button class="sign-in" id="sign-in-button">🔓 Sign in</button>
     </section>
     <section class="signed-in" style="display: none">
@@ -61,15 +53,12 @@
   <footer>
     <p>
       <em
-        >This demo is all happening client-side, no data is permanently stored,
-        use the "Disconnect" button to remove the sample app connection.</em
+        >This demo is all happening client-side, no data is permanently stored, use the "Disconnect" button to remove
+        the sample app connection.</em
       >
     </p>
   </footer>
-  <div
-    class="glitchButton"
-    style="position: fixed; top: 20px; right: 20px"
-  ></div>
+  <div class="glitchButton" style="position: fixed; top: 20px; right: 20px"></div>
   <script>
     let auth2;
     const loadingSection = document.querySelector(".loading");
@@ -85,35 +74,21 @@
       console.log("init()");
       gapi.load("auth2", () => {
         auth2 = gapi.auth2.init({
-          client_id:
-            "458459959318-u9bmrksmcji8aoqm6p5s5bvveg98nuvp.apps.googleusercontent.com",
+          client_id: "458459959318-u9bmrksmcji8aoqm6p5s5bvveg98nuvp.apps.googleusercontent.com",
           cookiepolicy: "single_host_origin",
           scope: "openid",
           fetch_basic_profile: false,
         });
 
         auth2.isSignedIn.listen(signInChanged);
-        auth2.attachClickHandler(
-          "sign-in-button",
-          {},
-          onSignInSuccess,
-          onSignInFailure,
-        );
+        auth2.attachClickHandler("sign-in-button", {}, onSignInSuccess, onSignInFailure);
 
-        document
-          .querySelector(".sign-out")
-          .addEventListener("click", onSignOut);
-        document
-          .querySelector(".disconnect")
-          .addEventListener("click", onDisconnect);
-        document
-          .querySelector(".request-email")
-          .addEventListener("click", onRequestEmail);
-        document
-          .querySelector(".refresh-page")
-          .addEventListener("click", () => {
-            window.location.reload();
-          });
+        document.querySelector(".sign-out").addEventListener("click", onSignOut);
+        document.querySelector(".disconnect").addEventListener("click", onDisconnect);
+        document.querySelector(".request-email").addEventListener("click", onRequestEmail);
+        document.querySelector(".refresh-page").addEventListener("click", () => {
+          window.location.reload();
+        });
 
         loadingSection.style.display = "none";
 
@@ -210,10 +185,6 @@
       userinfoBlock.textContent = JSON.stringify(userinfo, null, " ");
     }
   </script>
-  <script
-    src="https://apis.google.com/js/platform.js?onload=init"
-    async
-    defer
-  ></script>
+  <script src="https://apis.google.com/js/platform.js?onload=init" async defer></script>
   <script src="https://rowan.fyi/made/button/button.js" async defer></script>
 </html>

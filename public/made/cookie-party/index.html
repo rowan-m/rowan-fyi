@@ -6,16 +6,10 @@
   <meta name="twitter:title" content="Cookie party!" />
   <meta name="twitter:site" content="@rowan_m" />
   <meta name="twitter:description" content="Flying felines" />
-  <meta
-    name="twitter:player"
-    content="https://rowan.fyi/made/overly-particular/"
-  />
+  <meta name="twitter:player" content="https://rowan.fyi/made/overly-particular/" />
   <meta name="twitter:player:width" content="480" />
   <meta name="twitter:player:height" content="480" />
-  <meta
-    name="twitter:image"
-    content="https://rowan.fyi/made/overly-particular/assets/click4cats.png"
-  />
+  <meta name="twitter:image" content="https://rowan.fyi/made/overly-particular/assets/click4cats.png" />
   <meta name="twitter:image:alt" content="Tap and get cats" />
   <link rel="icon" href="./assets/catgrin.png" />
   <title>Cookie party!</title>
@@ -46,12 +40,7 @@
     }
   </style>
   <main>
-    <canvas
-      class="main-canvas"
-      draggable="false"
-      width="512"
-      height="512"
-    ></canvas>
+    <canvas class="main-canvas" draggable="false" width="512" height="512"></canvas>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script> -->
@@ -96,12 +85,7 @@
         window.addEventListener("resize", this.handleResize);
 
         PIXI.Loader.shared
-          .add([
-            "./assets/catgrin.png",
-            "./assets/catgrincry.png",
-            "./assets/catscared.png",
-            "./assets/catghost.png",
-          ])
+          .add(["./assets/catgrin.png", "./assets/catgrincry.png", "./assets/catscared.png", "./assets/catghost.png"])
           .load(this.postLoad);
       }
 
@@ -182,10 +166,7 @@
           catscared: "./assets/catscared.png",
           catghost: "./assets/catghost.png",
         };
-        this.sprite = new PIXI.Sprite(
-          PIXI.Loader.shared.resources[this.textureNames[this.textureName]]
-            .texture,
-        );
+        this.sprite = new PIXI.Sprite(PIXI.Loader.shared.resources[this.textureNames[this.textureName]].texture);
 
         this.x = x;
         this.y = y;
@@ -222,10 +203,7 @@
       swapTexture(name) {
         if (name !== this.textureName) {
           this.textureName = name;
-          this.sprite.texture =
-            PIXI.Loader.shared.resources[
-              this.textureNames[this.textureName]
-            ].texture;
+          this.sprite.texture = PIXI.Loader.shared.resources[this.textureNames[this.textureName]].texture;
         }
       }
 

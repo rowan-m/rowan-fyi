@@ -11,10 +11,7 @@
     }
   </style>
   <h1>alert() x-origin iframe</h1>
-  <p>
-    Use of <code>window.alert()</code> is deprecated in a cross-origin context
-    such as an <code>iframe</code>.
-  </p>
+  <p>Use of <code>window.alert()</code> is deprecated in a cross-origin context such as an <code>iframe</code>.</p>
   <h2>Top-level test</h2>
   <button type="button" name="alert">window.alert()</button>
   <button type="button" name="confirm">window.confirm()</button>
@@ -35,14 +32,10 @@
     );
     observer.observe();
 
-    document
-      .querySelector('button[name="alert"]')
-      .addEventListener("click", (e) => window.alert("Top-level alert"));
+    document.querySelector('button[name="alert"]').addEventListener("click", (e) => window.alert("Top-level alert"));
     document
       .querySelector('button[name="confirm"]')
       .addEventListener("click", (e) => window.confirm("Top-level confirm"));
-    document
-      .querySelector('button[name="prompt"]')
-      .addEventListener("click", (e) => window.prompt("Top-level prompt"));
+    document.querySelector('button[name="prompt"]').addEventListener("click", (e) => window.prompt("Top-level prompt"));
   </script>
 </html>

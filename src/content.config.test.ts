@@ -4,8 +4,7 @@ import { z } from "astro:content";
 
 describe("collections.posts.schema", () => {
   const schema = collections.posts.schema;
-  const zodSchema =
-    typeof schema === "function" ? schema({ image: () => z.any() }) : schema;
+  const zodSchema = typeof schema === "function" ? schema({ image: () => z.any() }) : schema;
 
   const validPost = {
     title: "Test Post",

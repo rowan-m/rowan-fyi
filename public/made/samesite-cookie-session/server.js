@@ -11,10 +11,7 @@ const app = express();
 app.enable("trust proxy");
 app.use(function (req, res, next) {
   if (req.secure) {
-    res.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; inlcudeSubdomains; preload",
-    );
+    res.set("Strict-Transport-Security", "max-age=63072000; inlcudeSubdomains; preload");
     return next();
   }
 

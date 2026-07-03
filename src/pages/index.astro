@@ -50,29 +50,18 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 <!doctype html>
 <html lang="en">
   <DefaultHead title={title} description={description} />
-  <script
-    is:inline
-    type="application/ld+json"
-    set:html={JSON.stringify(profileData)}
-  />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)} />
   <meta property="og:url" content={new URL(Astro.site)} />
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta
-    name="image"
-    property="og:image"
-    content={new URL("img/og-preview.png", Astro.site)}
-  />
+  <meta name="image" property="og:image" content={new URL("img/og-preview.png", Astro.site)} />
   <meta name="twitter:card" content="summary_large_image" />
   <meta property="twitter:domain" content="rowan.fyi" />
   <meta property="twitter:url" content={new URL(Astro.site)} />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
-  <meta
-    name="twitter:image"
-    content={new URL("img/og-preview.png", Astro.site)}
-  />
+  <meta name="twitter:image" content={new URL("img/og-preview.png", Astro.site)} />
   <DefaultBodyLayout useH1Header={true}>
     <style>
       .social-list,
@@ -120,53 +109,35 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
     </style>
     <main class="h-card">
       <a class="u-url" href="/" style="display:none"
-        ><Image
-          src={imgRowanMerewood}
-          alt="Rowan Merewood"
-          width="800"
-          class="u-photo"
-        /></a
+        ><Image src={imgRowanMerewood} alt="Rowan Merewood" width="800" class="u-photo" /></a
       >
       <p>
         <span class="p-note"
-          >Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a
-            href="/">rowan.fyi</a
-          > is where I share my <a href="/made">various projects</a> and posts ranging
-          over graphics, mathematics, optical illusions, and arguably art. At work,
-          I'm Developer Relations for <a href="https://developer.chrome.com/"
-            >Chrome</a
-          > at Google.</span
+          >Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a> is where I share my <a
+            href="/made">various projects</a
+          > and posts ranging over graphics, mathematics, optical illusions, and arguably art. At work, I'm Developer Relations
+          for <a href="https://developer.chrome.com/">Chrome</a> at Google.</span
         >
       </p>
       <p>You can say hello back across these various networks:</p>
       <ul class="social-list">
         <li>
-          <a
-            href="https://bsky.app/profile/rowan.fyi"
-            title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a
-          >
+          <a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"><Bluesky /> @rowan.fyi</a>
         </li>
         <li>
-          <a
-            href="https://mastodon.social/@rowan_m"
-            title="@rowan_m on Mastodon"
+          <a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon"
             ><Mastodon /> @rowan_m@mastodon.social</a
           >
         </li>
         <li>
-          <a href="https://github.com/rowan-m/" title="rowan-m on GitHub"
-            ><GitHub /> rowan-m</a
-          >
+          <a href="https://github.com/rowan-m/" title="rowan-m on GitHub"><GitHub /> rowan-m</a>
         </li>
         <li>
-          <a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"
-            ><Threads /> rowan_m</a
-          >
+          <a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"><Threads /> rowan_m</a>
         </li>
         <li>
-          <a
-            href="https://www.linkedin.com/in/rowanmerewood/"
-            title="rowanmerewood on LinkedIn"><Linkedin /> rowanmerewood</a
+          <a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn"
+            ><Linkedin /> rowanmerewood</a
           >
         </li>
       </ul>
@@ -179,10 +150,7 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
       <section>
         <h2>Experimental widgets</h2>
         <div class="widgets">
-          <p>
-            Let me know if you scroll this far. I haven't really implemented
-            these properly.
-          </p>
+          <p>Let me know if you scroll this far. I haven't really implemented these properly.</p>
           <LastFmTrack />
           <BlueskyPost />
         </div>

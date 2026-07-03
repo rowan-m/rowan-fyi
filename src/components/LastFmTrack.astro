@@ -91,16 +91,11 @@
 
         if (recentTrack) {
           document.getElementById("track-url").href = recentTrack.url;
-          document.getElementById("track-image").src =
-            recentTrack.image[2]["#text"];
+          document.getElementById("track-image").src = recentTrack.image[2]["#text"];
           document.getElementById("track-name").textContent = recentTrack.name;
-          document.getElementById("track-album").textContent =
-            recentTrack.album["#text"];
-          document.getElementById("track-artist").textContent =
-            recentTrack.artist["#text"];
-          document.getElementById("track-status").textContent = recentTrack[
-            "@attr"
-          ]?.nowplaying
+          document.getElementById("track-album").textContent = recentTrack.album["#text"];
+          document.getElementById("track-artist").textContent = recentTrack.artist["#text"];
+          document.getElementById("track-status").textContent = recentTrack["@attr"]?.nowplaying
             ? "now playing"
             : "last played";
         }

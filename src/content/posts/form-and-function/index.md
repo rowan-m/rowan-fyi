@@ -210,9 +210,7 @@ That means instead of just calculating and setting the `_angle` and `value` we n
 ```javascript
 // _rotationChange()
 this._attemptedAngle =
-  this._initialAngle -
-  this._initialTouchAngle +
-  Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
+  this._initialAngle - this._initialTouchAngle + Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
 this._attemptedAngle = (this._attemptedAngle + TWO_PI) % TWO_PI;
 this._attemptedValue = this._attemptedAngle / (TWO_PI / this.scale);
 

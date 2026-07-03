@@ -1,11 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-  importJWK,
-  jwtVerify,
-  SignJWT,
-  generateKeyPair,
-  exportJWK,
-} from "jose";
+import { importJWK, jwtVerify, SignJWT, generateKeyPair, exportJWK } from "jose";
 import type { APIContext } from "astro";
 import { PRIVATE_KEY_JWK, PUBLIC_KEY_JWK } from "./_keys";
 import { GET as getDiscovery } from "../../.well-known/email-verification";
@@ -28,10 +22,7 @@ describe("EVP Cryptographic Flow", () => {
 
     // 3. Provider validates the request token
     const decodedHeader = await importJWK(browserJwkData, "ES256");
-    const { payload: requestPayload } = await jwtVerify(
-      requestToken,
-      decodedHeader,
-    );
+    const { payload: requestPayload } = await jwtVerify(requestToken, decodedHeader);
     expect(requestPayload.email).toBe("demo@rowan.fyi");
 
     // 4. Provider signs an Email Verification Token (EVT)
@@ -60,10 +51,7 @@ describe("EVP Cryptographic Flow", () => {
     // 5. Relying party verifies the EVT signature
     const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
     const parsedEvt = fullEvt.split("~")[0];
-    const { payload: verifiedEvt } = await jwtVerify(
-      parsedEvt,
-      providerPublicKey,
-    );
+    const { payload: verifiedEvt } = await jwtVerify(parsedEvt, providerPublicKey);
     expect(verifiedEvt.email).toBe("demo@rowan.fyi");
     expect(verifiedEvt.email_verified).toBe(true);
 
@@ -91,9 +79,7 @@ describe("EVP Endpoint Unit Tests", () => {
       jwks_uri: string;
       signing_alg_values_supported: string[];
     };
-    expect(data.issuance_endpoint).toBe(
-      "https://rowan.fyi/made/email-provider/issuance",
-    );
+    expect(data.issuance_endpoint).toBe("https://rowan.fyi/made/email-provider/issuance");
     expect(data.jwks_uri).toBe("https://rowan.fyi/made/email-provider/jwks");
     expect(data.signing_alg_values_supported).toContain("EdDSA");
   });

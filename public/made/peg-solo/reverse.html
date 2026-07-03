@@ -22,31 +22,19 @@
     name="twitter:description"
     content="Online version of the classic game of Peg Solitaire AKA Solo Noble AKA Brainvita all with bonus cat emoji."
   />
-  <meta
-    name="twitter:image"
-    content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png"
-  />
+  <meta name="twitter:image" content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png" />
   <meta name="twitter:image:width" content="1919" />
   <meta name="twitter:image:height" content="920" />
-  <meta
-    name="twitter:image:alt"
-    content="Peg solitaire game in progress with cat emoji"
-  />
+  <meta name="twitter:image:alt" content="Peg solitaire game in progress with cat emoji" />
 
-  <meta
-    property="og:url"
-    content="https://rowan.fyi/made/peg-solo/reverse.html"
-  />
+  <meta property="og:url" content="https://rowan.fyi/made/peg-solo/reverse.html" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Play Peg Solitaire" />
   <meta
     property="og:description"
     content="Online version of the classic game of Peg Solitaire AKA Solo Noble AKA Brainvita all with bonus cat emoji."
   />
-  <meta
-    property="og:image"
-    content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png"
-  />
+  <meta property="og:image" content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png" />
   <meta property="og:image:width" content="1919" />
   <meta property="og:image:height" content="920" />
 
@@ -316,10 +304,7 @@
       <p>
         <code>🐱🐱🔹<br />👆&nbsp;&nbsp;&nbsp;&nbsp;</code>
       </p>
-      <p>
-        Tap on an empty space one hop left, right, up, or down from your
-        selected cat.
-      </p>
+      <p>Tap on an empty space one hop left, right, up, or down from your selected cat.</p>
       <p>
         <code>😺🐱🔹<br />&nbsp;&nbsp;&nbsp;&nbsp;👆</code>
       </p>
@@ -327,9 +312,7 @@
       <p>
         <code>🔹🔹😸<br />&nbsp;&nbsp;&nbsp;&nbsp;🤌</code>
       </p>
-      <p>
-        To win, hop until all cats are removed except for one in the centre!
-      </p>
+      <p>To win, hop until all cats are removed except for one in the centre!</p>
       <p>
         <code>🔹🔹🔹<br />🔹😻🔹<br />🔹🔹🔹</code>
       </p>
@@ -412,10 +395,7 @@
       }
 
       handleClick(ev) {
-        if (
-          ![Board.NEW, Board.PLAYING].includes(this.gameState) ||
-          !ev.target.classList.contains("cell")
-        ) {
+        if (![Board.NEW, Board.PLAYING].includes(this.gameState) || !ev.target.classList.contains("cell")) {
           return;
         }
 
@@ -718,12 +698,9 @@
     const registerServiceWorker = async () => {
       if ("serviceWorker" in navigator) {
         try {
-          const registration = await navigator.serviceWorker.register(
-            "/made/peg-solo/sw.js",
-            {
-              scope: "/made/peg-solo/",
-            },
-          );
+          const registration = await navigator.serviceWorker.register("/made/peg-solo/sw.js", {
+            scope: "/made/peg-solo/",
+          });
           if (registration.installing) {
             console.log("Service worker installing");
           } else if (registration.waiting) {

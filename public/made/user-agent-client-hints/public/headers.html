@@ -4,12 +4,7 @@
   <title>User-Agent 👀 Client Hints</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link
-    id="favicon"
-    rel="icon"
-    href="./assets/eyes_1f440.png"
-    type="image/x-icon"
-  />
+  <link id="favicon" rel="icon" href="./assets/eyes_1f440.png" type="image/x-icon" />
   <meta name="Description" content="User-Agent 👀 Client Hints" />
   <style>
     body {
@@ -116,84 +111,39 @@
       <fieldset class="hints">
         <legend>Available hints</legend>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-arch"
-            value="Sec-CH-UA-Arch"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-arch" value="Sec-CH-UA-Arch" />
           <code>Sec-CH-UA-Arch</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-bitness"
-            value="Sec-CH-UA-Bitness"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-bitness" value="Sec-CH-UA-Bitness" />
           <code>Sec-CH-UA-Bitness</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-full-version"
-            value="Sec-CH-UA-Full-Version"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-full-version" value="Sec-CH-UA-Full-Version" />
           <code>Sec-CH-UA-Full-Version</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-full-version-list"
-            value="Sec-CH-UA-Full-Version-List"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-full-version-list" value="Sec-CH-UA-Full-Version-List" />
           <code>Sec-CH-UA-Full-Version-List</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-mobile"
-            value="Sec-CH-UA-Mobile"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-mobile" value="Sec-CH-UA-Mobile" />
           <code>Sec-CH-UA-Mobile</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-model"
-            value="Sec-CH-UA-Model"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-model" value="Sec-CH-UA-Model" />
           <code>Sec-CH-UA-Model</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-platform-version"
-            value="Sec-CH-UA-Platform-Version"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-platform-version" value="Sec-CH-UA-Platform-Version" />
           <code>Sec-CH-UA-Platform-Version</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-platform"
-            value="Sec-CH-UA-Platform"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-platform" value="Sec-CH-UA-Platform" />
           <code>Sec-CH-UA-Platform</code>
         </label>
         <label>
-          <input
-            type="checkbox"
-            name="uach"
-            id="sec-ch-ua-wow64"
-            value="Sec-CH-UA-Wow64"
-          />
+          <input type="checkbox" name="uach" id="sec-ch-ua-wow64" value="Sec-CH-UA-Wow64" />
           <code>Sec-CH-UA-Wow64</code>
         </label>
         <label>
@@ -213,14 +163,9 @@
     <p>
       *️⃣ Requires Chrome 84 or equivalent.<br />
       📃 Read the proposal at
-      <a href="https://github.com/WICG/ua-client-hints"
-        >github.com/WICG/ua-client-hints</a
-      ><br />
+      <a href="https://github.com/WICG/ua-client-hints">github.com/WICG/ua-client-hints</a><br />
       💻
-      <a
-        href="https://glitch.com/edit/#!/user-agent-client-hints?path=public%2Findex.html"
-        >See the demo code</a
-      >.
+      <a href="https://glitch.com/edit/#!/user-agent-client-hints?path=public%2Findex.html">See the demo code</a>.
     </p>
   </footer>
   <script>
@@ -254,8 +199,7 @@
           }
 
           document.querySelector(".request").textContent = secChText;
-          document.querySelector(".user-agent").textContent =
-            data["User-Agent"];
+          document.querySelector(".user-agent").textContent = data["User-Agent"];
         });
       }
     });

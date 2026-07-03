@@ -70,8 +70,8 @@
   <div class="not-chrome hidden">
     <h2>Did not detect Chrome</h2>
     <p>
-      This demo only shows how Chrome is reducing its user-agent string. Your
-      browser reports as: <code class="other-ua"></code>.
+      This demo only shows how Chrome is reducing its user-agent string. Your browser reports as:
+      <code class="other-ua"></code>.
     </p>
   </div>
 </header>
@@ -79,23 +79,19 @@
   <div class="current ua">
     <h2>Current user-agent</h2>
     <code class="string"
-      >Mozilla/5.0 (<span class="segment platform">…</span>) AppleWebKit/537.36
-      (KHTML, like Gecko) Chrome/<span class="segment major">…</span>.<span
-        class="segment minor"
+      >Mozilla/5.0 (<span class="segment platform">…</span>) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/<span
+        class="segment major"
         >…</span
-      >
-      <span class="segment mobile"></span> Safari/537.36</code
+      >.<span class="segment minor">…</span> <span class="segment mobile"></span> Safari/537.36</code
     >
   </div>
   <div class="reduced ua">
     <h2>Fully reduced user-agent</h2>
     <code class="string"
-      >Mozilla/5.0 (<span class="segment platform">…</span>) AppleWebKit/537.36
-      (KHTML, like Gecko) Chrome/<span class="segment major">…</span>.<span
-        class="segment minor"
+      >Mozilla/5.0 (<span class="segment platform">…</span>) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/<span
+        class="segment major"
         >…</span
-      >
-      <span class="segment mobile"></span> Safari/537.36</code
+      >.<span class="segment minor">…</span> <span class="segment mobile"></span> Safari/537.36</code
     >
   </div>
 </main>
@@ -106,16 +102,11 @@
     <li>📱 Mobile platform and device reduced from Chrome 110.</li>
     <li>
       📖 Learn more about
-      <a href="https://developer.chrome.com/docs/privacy-sandbox/user-agent/"
-        >Chrome's user-agent reduction</a
-      >.
+      <a href="https://developer.chrome.com/docs/privacy-sandbox/user-agent/">Chrome's user-agent reduction</a>.
     </li>
     <li>
       🧑‍💻
-      <a
-        href="https://glitch.com/edit/#!/reduced-ua?path=public%2Fpartial%2Freduced.html"
-        >Code</a
-      >
+      <a href="https://glitch.com/edit/#!/reduced-ua?path=public%2Fpartial%2Freduced.html">Code</a>
       from 🐦 <a href="https://twitter.com/rowan_m">@rowan_m</a>
     </li>
   </ul>
@@ -140,22 +131,15 @@
       "X11; L": "X11; Linux x86_64",
     };
 
-    document.querySelector(".current>.string>.platform").textContent =
-      matched.groups.fullplatform;
-    document.querySelector(".current>.string>.major").textContent =
-      matched.groups.major;
-    document.querySelector(".current>.string>.minor").textContent =
-      matched.groups.minor;
-    document.querySelector(".current>.string>.mobile").textContent =
-      matched.groups.mobile;
+    document.querySelector(".current>.string>.platform").textContent = matched.groups.fullplatform;
+    document.querySelector(".current>.string>.major").textContent = matched.groups.major;
+    document.querySelector(".current>.string>.minor").textContent = matched.groups.minor;
+    document.querySelector(".current>.string>.mobile").textContent = matched.groups.mobile;
 
-    document.querySelector(".reduced>.string>.platform").textContent =
-      unifiedPlatform[matched.groups.platform];
-    document.querySelector(".reduced>.string>.major").textContent =
-      matched.groups.major;
+    document.querySelector(".reduced>.string>.platform").textContent = unifiedPlatform[matched.groups.platform];
+    document.querySelector(".reduced>.string>.major").textContent = matched.groups.major;
     document.querySelector(".reduced>.string>.minor").textContent = "0.0.0";
-    document.querySelector(".reduced>.string>.mobile").textContent =
-      matched.groups.mobile;
+    document.querySelector(".reduced>.string>.mobile").textContent = matched.groups.mobile;
   } else {
     document.querySelector(".other-ua").textContent = navigator.userAgent;
     document.querySelector(".not-chrome").classList.remove("hidden");

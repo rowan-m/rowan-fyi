@@ -25,10 +25,7 @@
   <meta name="twitter:site" content="@rowan_m" />
   <meta name="twitter:title" content="Jake in the Box" />
   <meta name="twitter:description" content="Jake in the Box" />
-  <meta
-    name="twitter:image"
-    content="https://rowan.fyi/made/jake-in-the-box/assets/itb-preview.png"
-  />
+  <meta name="twitter:image" content="https://rowan.fyi/made/jake-in-the-box/assets/itb-preview.png" />
   <meta name="twitter:image:width" content="565" />
   <meta name="twitter:image:height" content="565" />
   <meta name="twitter:image:alt" content="Jake in the Box" />
@@ -37,10 +34,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Jake in the Box" />
   <meta property="og:description" content="Jake in the Box" />
-  <meta
-    property="og:image"
-    content="https://rowan.fyi/made/jake-in-the-box/assets/itb-preview.png"
-  />
+  <meta property="og:image" content="https://rowan.fyi/made/jake-in-the-box/assets/itb-preview.png" />
   <meta property="og:image:width" content="565" />
   <meta property="og:image:height" content="565" />
 
@@ -140,13 +134,7 @@
       animation-timing-function: ease-in-out;
       animation-duration: 2s;
       will-change: transform;
-      background: repeating-linear-gradient(
-        15deg,
-        rgba(0, 0, 0, 0) 0,
-        rgba(0, 0, 0, 0) 5px,
-        gray 5px,
-        gray 10px
-      );
+      background: repeating-linear-gradient(15deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 5px, gray 5px, gray 10px);
       z-index: 1;
     }
 
@@ -165,13 +153,7 @@
       animation-timing-function: ease-in-out;
       animation-duration: 0.6s;
       will-change: transform;
-      background: repeating-linear-gradient(
-        15deg,
-        rgba(0, 0, 0, 0) 0,
-        rgba(0, 0, 0, 0) 5px,
-        gray 5px,
-        gray 10px
-      );
+      background: repeating-linear-gradient(15deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0) 5px, gray 5px, gray 10px);
       z-index: 1;
     }
 
@@ -343,8 +325,7 @@
   <section class="blurb">
     <h1>Jake in the Box</h1>
     <p class="instructions">
-      Test your sound <button class="beep">🔊 Little beep</button> and try 🔁
-      turning the crank!
+      Test your sound <button class="beep">🔊 Little beep</button> and try 🔁 turning the crank!
       <a href="https://dev.to/rowan_m/form-and-function-emm">📑 Learn more.</a>
     </p>
   </section>
@@ -494,23 +475,12 @@
         window.oncontextmenu = () => {
           return false;
         };
-        this._centerX =
-          this.offsetLeft -
-          this.scrollLeft +
-          this.clientLeft +
-          this.offsetWidth / 2;
-        this._centerY =
-          this.offsetTop -
-          this.scrollTop +
-          this.clientTop +
-          this.offsetHeight / 2;
+        this._centerX = this.offsetLeft - this.scrollLeft + this.clientLeft + this.offsetWidth / 2;
+        this._centerY = this.offsetTop - this.scrollTop + this.clientTop + this.offsetHeight / 2;
         this._initialAngle = this._angle;
         this._attemptedAngle = this._angle;
         this._attemptedRotations = this._rotations;
-        this._initialTouchAngle = Math.atan2(
-          this._touchY - this._centerY,
-          this._touchX - this._centerX,
-        );
+        this._initialTouchAngle = Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
 
         const evt = new CustomEvent("knob-move-start", { bubbles: true });
         this.dispatchEvent(evt);
@@ -521,29 +491,18 @@
         this._attemptedAngle =
           this._initialAngle -
           this._initialTouchAngle +
-          Math.atan2(
-            this._touchY - this._centerY,
-            this._touchX - this._centerX,
-          );
+          Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
         this._attemptedAngle = (this._attemptedAngle + TWO_PI) % TWO_PI;
 
         if (this.max !== null && this.min !== null) {
-          if (
-            this._attemptedAngle < 1.57 &&
-            this._previousAttemptedAngle > 4.71
-          ) {
+          if (this._attemptedAngle < 1.57 && this._previousAttemptedAngle > 4.71) {
             this._attemptedRotations++;
-          } else if (
-            this._previousAttemptedAngle < 1.57 &&
-            this._attemptedAngle > 4.71
-          ) {
+          } else if (this._previousAttemptedAngle < 1.57 && this._attemptedAngle > 4.71) {
             this._attemptedRotations--;
           }
         }
 
-        this._attemptedValue =
-          this._attemptedAngle / (TWO_PI / this.scale) +
-          this.scale * this._attemptedRotations;
+        this._attemptedValue = this._attemptedAngle / (TWO_PI / this.scale) + this.scale * this._attemptedRotations;
 
         if (
           (this.min === null || this._attemptedValue >= this.min) &&
@@ -649,12 +608,10 @@
     const popout = document.querySelector(".popout");
     let synth = null;
 
-    const button = document
-      .querySelector(".beep")
-      .addEventListener("click", (e) => {
-        initTone();
-        synth.triggerAttackRelease("C4", "8n");
-      });
+    const button = document.querySelector(".beep").addEventListener("click", (e) => {
+      initTone();
+      synth.triggerAttackRelease("C4", "8n");
+    });
 
     const tune = {
       1: "C4",

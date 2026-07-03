@@ -11,18 +11,12 @@
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@rowan_m" />
   <meta name="twitter:title" content="SameSite 🍪 sandbox" />
-  <meta
-    name="twitter:description"
-    content="Test SameSite cookie compatibility"
-  />
+  <meta name="twitter:description" content="Test SameSite cookie compatibility" />
 
   <meta property="og:url" content="https://rowan.fyi/made/samesite-sandbox/" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="SameSite 🍪 sandbox" />
-  <meta
-    property="og:description"
-    content="Test SameSite cookie compatibility"
-  />
+  <meta property="og:description" content="Test SameSite cookie compatibility" />
 
   <style>
     body {
@@ -117,27 +111,19 @@
       ↕️ Tap for more info
     </summary>
     <p>
-      This page attempts to set a number of cookies and then tests if they are
-      available for use in a cross-site / third-party context in your browser.
-      The results are compared with the expected behaviour defined in the IETF
+      This page attempts to set a number of cookies and then tests if they are available for use in a cross-site /
+      third-party context in your browser. The results are compared with the expected behaviour defined in the IETF
       draft
-      <a href="https://tools.ietf.org/html/draft-west-cookie-incrementalism-00"
-        >"Incrementally Better Cookies"</a
-      >
+      <a href="https://tools.ietf.org/html/draft-west-cookie-incrementalism-00">"Incrementally Better Cookies"</a>
       (IBC).
     </p>
     <p>
       For more context, see
-      <a href="https://web.dev/samesite-cookies-explained"
-        >"SameSite cookies explained"</a
-      >.
+      <a href="https://web.dev/samesite-cookies-explained">"SameSite cookies explained"</a>.
     </p>
     <p>
-      Ping <a href="https://twitter.com/rowan_m">@rowan_m</a> for issues /
-      questions with these tests. You can
-      <a href="https://glitch.com/edit/#!/samesite-sandbox"
-        >💻 access the code on Glitch.</a
-      >
+      Ping <a href="https://twitter.com/rowan_m">@rowan_m</a> for issues / questions with these tests. You can
+      <a href="https://glitch.com/edit/#!/samesite-sandbox">💻 access the code on Glitch.</a>
     </p>
   </details>
   <details>
@@ -146,19 +132,13 @@
       ↕️ Tap for details
     </summary>
     <p>
-      Each row shows the method used to set the cookie, if that cookie was
-      successfully set, if it's available in a cross-site / third-party context,
-      and if that behaviour matches the new
+      Each row shows the method used to set the cookie, if that cookie was successfully set, if it's available in a
+      cross-site / third-party context, and if that behaviour matches the new
       <abbr title="Incrementally Better Cookies">IBC</abbr> defaults.
     </p>
     <ul>
-      <li>
-        <strong>🍪 set</strong>: The cookie was set or included in this request
-      </li>
-      <li>
-        <strong>🚫 not set</strong>: The cookie was not set or not included in
-        this request
-      </li>
+      <li><strong>🍪 set</strong>: The cookie was set or included in this request</li>
+      <li><strong>🚫 not set</strong>: The cookie was not set or not included in this request</li>
       <li>
         <strong class="valid">✔</strong>: A correct result according to
         <abbr title="Incrementally Better Cookies">IBC</abbr>
@@ -168,20 +148,16 @@
         <abbr title="Incrementally Better Cookies">IBC</abbr>
       </li>
       <li>
-        <strong class="warning">Careful 🚩</strong>: This cookie will affected
-        by <abbr title="Incrementally Better Cookies">IBC</abbr>, mostly
-        restricted to first-party only.
+        <strong class="warning">Careful 🚩</strong>: This cookie will affected by
+        <abbr title="Incrementally Better Cookies">IBC</abbr>, mostly restricted to first-party only.
       </li>
       <li>
-        <strong class="error"
-          ><abbr title="This will explain why you may be seeing the error."
-            >ℹ️</abbr
-          ></strong
+        <strong class="error"><abbr title="This will explain why you may be seeing the error.">ℹ️</abbr></strong
         >: Tap the icon for more information about the status.
       </li>
       <li>
-        <strong class="error">Invalid ✘</strong>: This cookie is just doing the
-        wrong thing and probably shouldn't be working currently.
+        <strong class="error">Invalid ✘</strong>: This cookie is just doing the wrong thing and probably shouldn't be
+        working currently.
       </li>
       <li>
         <strong class="valid">Compliant ✔</strong>: Cookie behaviour inline with
@@ -190,9 +166,7 @@
     </ul>
   </details>
   <p>
-    <b
-      >If all rows show a <span class="valid">green ✔</span> then your browser
-      is implementing the new behaviour.</b
+    <b>If all rows show a <span class="valid">green ✔</span> then your browser is implementing the new behaviour.</b
     ><br />
     User-Agent: <tt class="ua"></tt>
   </p>
@@ -201,15 +175,11 @@
       <tr>
         <th>Cookie set?</th>
         <th>Cross-site?</th>
-        <th>
-          <abbr title="Incrementally Better Cookies">IBC</abbr> compliant?
-        </th>
+        <th><abbr title="Incrementally Better Cookies">IBC</abbr> compliant?</th>
       </tr>
     </thead>
     <tr>
-      <td class="progress" colspan="3">
-        Baking cookies… 🍪 results will display here…
-      </td>
+      <td class="progress" colspan="3">Baking cookies… 🍪 results will display here…</td>
     </tr>
   </table>
 
@@ -287,8 +257,7 @@
       for (var i = 0; i < expectedCookieNames.length; i++) {
         var cookie = expectedCookieNames[i];
         var resultRow = document.importNode(rowTemplate.content, true);
-        resultRow.querySelector(".setWith").textContent =
-          expectedCookies[cookie].setWith;
+        resultRow.querySelector(".setWith").textContent = expectedCookies[cookie].setWith;
 
         var cookieSet = document.cookie.indexOf(cookie) !== -1;
         var crossSite = csCookies.hasOwnProperty(cookie);
@@ -368,10 +337,7 @@
     window.addEventListener("message", receiveMessage, false);
 
     var crossSiteFrame = document.createElement("iframe");
-    crossSiteFrame.setAttribute(
-      "src",
-      "https://rowan.fyi/made/x-origin-src/samesite-sandbox-embed.html",
-    );
+    crossSiteFrame.setAttribute("src", "https://rowan.fyi/made/x-origin-src/samesite-sandbox-embed.html");
     document.body.appendChild(crossSiteFrame);
   </script>
 </html>

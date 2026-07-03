@@ -45,10 +45,7 @@ app.use(function (req, res, next) {
 
   // Set the HSTS header if we're already on HTTPS
   if (req.secure) {
-    res.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubDomains; preload",
-    );
+    res.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
     return next();
   }
 
@@ -133,13 +130,7 @@ app.get("/headers", (req, res) => {
 
 app.get("/critical-ch", (req, res) => {
   const tokens = "Sec-CH-UA-Full-Version";
-  console.log(
-    "Request from",
-    req.ip,
-    "[Sec-CH-UA-Full-Version:",
-    req.get(tokens),
-    " ]",
-  );
+  console.log("Request from", req.ip, "[Sec-CH-UA-Full-Version:", req.get(tokens), " ]");
   res.set("Accept-CH", tokens);
   res.set("Critical-CH", tokens);
   res.set("Set-Cookie", "abc=123; SameSite=Lax; Secure");
@@ -185,9 +176,6 @@ const listener = app.listen(process.env.PORT, function () {
   console.log("Your app is listening on port " + listener.address().port);
 
   if (app.get("env") === "development") {
-    console.log(
-      "If you are running locally, try http://localhost:" +
-        listener.address().port,
-    );
+    console.log("If you are running locally, try http://localhost:" + listener.address().port);
   }
 });

@@ -33,11 +33,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // To protect user privacy and prevent CSRF / cross-site state detection,
     // standard-compliant browsers SHOULD set "Sec-Fetch-Dest: email-verification" or "webidentity".
     const secFetchDest = request.headers.get("sec-fetch-dest");
-    if (
-      secFetchDest &&
-      secFetchDest !== "email-verification" &&
-      secFetchDest !== "webidentity"
-    ) {
+    if (secFetchDest && secFetchDest !== "email-verification" && secFetchDest !== "webidentity") {
       console.warn(`Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
     }
 
@@ -51,8 +47,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       return new Response(
         JSON.stringify({
           error: "authentication_required",
-          error_description:
-            "User must be authenticated and have control of the requested email address.",
+          error_description: "User must be authenticated and have control of the requested email address.",
         }),
         {
           status: 401,
@@ -108,8 +103,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
         return new Response(
           JSON.stringify({
             error: "invalid_signature",
-            error_description:
-              "Missing ephemeral public key (jwk) in request token header.",
+            error_description: "Missing ephemeral public key (jwk) in request token header.",
           }),
           {
             status: 400,
@@ -139,8 +133,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       return new Response(
         JSON.stringify({
           error: "invalid_request",
-          error_description:
-            "Only demo@rowan.fyi is supported for this demo provider.",
+          error_description: "Only demo@rowan.fyi is supported for this demo provider.",
         }),
         {
           status: 400,
@@ -201,10 +194,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     );
   } catch (error) {
     console.error("Issuance error:", error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "An internal error occurred during token issuance.";
+    const message = error instanceof Error ? error.message : "An internal error occurred during token issuance.";
     return new Response(
       JSON.stringify({
         error: "server_error",

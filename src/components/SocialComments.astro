@@ -151,10 +151,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
 <script>
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  function getSearchQueries(
-    urlStr: string,
-    blogHostname: string = "rowan.fyi",
-  ): string[] {
+  function getSearchQueries(urlStr: string, blogHostname: string = "rowan.fyi"): string[] {
     try {
       const url = new URL(urlStr);
 
@@ -229,12 +226,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
 
     try {
-      const comments = await fetchAllComments(
-        canonicalUrl,
-        locationUrl,
-        bskyUrl,
-        mastodonUrl,
-      );
+      const comments = await fetchAllComments(canonicalUrl, locationUrl, bskyUrl, mastodonUrl);
       localStorage.setItem(
         cacheKey,
         JSON.stringify({
@@ -265,10 +257,8 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     for (const comment of comments) {
       const isMe =
         (comment.source === "bluesky" &&
-          (comment.authorHandle === MY_BSKY_HANDLE ||
-            comment.id.includes(MY_BSKY_DID))) ||
-        (comment.source === "mastodon" &&
-          comment.authorUrl === MY_MASTODON_URL);
+          (comment.authorHandle === MY_BSKY_HANDLE || comment.id.includes(MY_BSKY_DID))) ||
+        (comment.source === "mastodon" && comment.authorUrl === MY_MASTODON_URL);
       if (isMe) {
         if (comment.replies) {
           result.push(...unwrapUserComments(comment.replies));
@@ -306,9 +296,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     promises.push(fetchBlueskyComments(canonicalUrl, locationUrl, bskyUrl));
 
     // Mastodon
-    promises.push(
-      fetchMastodonComments(canonicalUrl, locationUrl, mastodonUrl),
-    );
+    promises.push(fetchMastodonComments(canonicalUrl, locationUrl, mastodonUrl));
 
     const results = await Promise.all(promises);
     let allComments = results.flat();
@@ -320,20 +308,14 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const uniqueMap = new Map<string, Comment>();
     for (const c of allComments) {
       const existing = uniqueMap.get(c.id);
-      if (
-        !existing ||
-        (c.replies?.length || 0) > (existing.replies?.length || 0)
-      ) {
+      if (!existing || (c.replies?.length || 0) > (existing.replies?.length || 0)) {
         uniqueMap.set(c.id, c);
       }
     }
     allComments = Array.from(uniqueMap.values());
 
     // Sort by date
-    allComments.sort(
-      (a, b) =>
-        new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime(),
-    );
+    allComments.sort((a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime());
 
     return allComments;
   }
@@ -373,22 +355,15 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     const uniqueSearchUrls = Array.from(new Set(searchUrls));
 
     const searchResults = await Promise.all(
-      uniqueSearchUrls.map((urlToSearch) =>
-        searchBlueskyUrl(urlToSearch, comments),
-      ),
+      uniqueSearchUrls.map((urlToSearch) => searchBlueskyUrl(urlToSearch, comments)),
     );
 
     const allComments = [...comments, ...searchResults.flat()];
-    const uniqueComments = Array.from(
-      new Map(allComments.map((c) => [c.id, c])).values(),
-    );
+    const uniqueComments = Array.from(new Map(allComments.map((c) => [c.id, c])).values());
     return uniqueComments;
   }
 
-  async function searchBlueskyUrl(
-    urlToSearch: string,
-    comments: Comment[],
-  ): Promise<Comment[]> {
+  async function searchBlueskyUrl(urlToSearch: string, comments: Comment[]): Promise<Comment[]> {
     const newComments: Comment[] = [];
     try {
       const searchUrl = `https://api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=${encodeURIComponent(urlToSearch)}&limit=20`;
@@ -461,9 +436,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
   async function fetchBlueskyThreadByUri(uri: string): Promise<Comment | null> {
     try {
-      const threadRes = await fetch(
-        `https://api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${uri}`,
-      );
+      const threadRes = await fetch(`https://api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=${uri}`);
       if (!threadRes.ok) return null;
       const data = await threadRes.json();
       const thread = data.thread;
@@ -479,11 +452,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     let content = post.record.text;
 
     // If the post is just an embed with no text, we might want to still show it
-    if (
-      !content &&
-      post.embed &&
-      post.embed.$type === "app.bsky.embed.external#view"
-    ) {
+    if (!content && post.embed && post.embed.$type === "app.bsky.embed.external#view") {
       content = post.embed.external.uri;
     } else if (
       !content &&
@@ -523,8 +492,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         ];
       } else if (
         post.embed.$type === "app.bsky.embed.external#view" &&
-        (post.embed.external.uri.includes("tenor.com") ||
-          post.embed.external.uri.includes("giphy.com"))
+        (post.embed.external.uri.includes("tenor.com") || post.embed.external.uri.includes("giphy.com"))
       ) {
         comment.images = [
           {
@@ -587,16 +555,12 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
     const uniqueSearchUrls = Array.from(new Set(searchUrls));
 
-    const searchResults = await Promise.all(
-      uniqueSearchUrls.map((urlToSearch) => searchMastodonUrl(urlToSearch)),
-    );
+    const searchResults = await Promise.all(uniqueSearchUrls.map((urlToSearch) => searchMastodonUrl(urlToSearch)));
 
     const allComments = [...comments, ...searchResults.flat()];
 
     // Deduplicate
-    const uniqueComments = Array.from(
-      new Map(allComments.map((c) => [c.id, c])).values(),
-    );
+    const uniqueComments = Array.from(new Map(allComments.map((c) => [c.id, c])).values());
     return uniqueComments;
   }
 
@@ -616,10 +580,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         const statusPromises = statuses.map(async (status: any) => {
           if (existingIds.has(status.id)) return null;
 
-          const thread = await fetchMastodonThread(
-            status.id,
-            "mastodon.social",
-          );
+          const thread = await fetchMastodonThread(status.id, "mastodon.social");
           return thread || mapMastodonStatus(status);
         });
 
@@ -651,10 +612,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
   }
 
-  async function fetchMastodonThread(
-    id: string,
-    host: string,
-  ): Promise<Comment | null> {
+  async function fetchMastodonThread(id: string, host: string): Promise<Comment | null> {
     try {
       const [statusRes, contextRes] = await Promise.all([
         fetch(`https://${host}/api/v1/statuses/${id}`),
@@ -688,10 +646,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
   }
 
-  function buildMastodonTree(
-    parentId: string,
-    descendantsByParent: Map<string, any[]>,
-  ): Comment[] {
+  function buildMastodonTree(parentId: string, descendantsByParent: Map<string, any[]>): Comment[] {
     const children = descendantsByParent.get(parentId) || [];
     return children.map((d) => {
       const c = mapMastodonStatus(d);
@@ -715,10 +670,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
     if (status.media_attachments) {
       comment.images = status.media_attachments
-        .filter(
-          (m: any) =>
-            m.type === "image" || m.type === "gifv" || m.type === "video",
-        )
+        .filter((m: any) => m.type === "image" || m.type === "gifv" || m.type === "video")
         .map((m: any) => ({
           url: m.preview_url || m.url,
           alt: m.description,
@@ -735,8 +687,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     if (comments.length === 0) {
       container.textContent = "";
       const p = document.createElement("p");
-      p.textContent =
-        "No comments found yet. Be the first to share your thoughts!";
+      p.textContent = "No comments found yet. Be the first to share your thoughts!";
       container.appendChild(p);
       return;
     }
@@ -750,11 +701,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
   function isSafeUrl(url: string): boolean {
     if (!url) return false;
     const lower = url.toLowerCase().trim();
-    if (
-      lower.startsWith("javascript:") ||
-      lower.startsWith("data:") ||
-      lower.startsWith("vbscript:")
-    ) {
+    if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
       return false;
     }
     return true;
@@ -770,9 +717,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
 
     while ((match = urlRegex.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        fragment.appendChild(
-          document.createTextNode(text.substring(lastIndex, match.index)),
-        );
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
       }
 
       const url = match[0];
@@ -797,10 +742,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     return fragment;
   }
 
-  function linkifyBlueskyText(
-    text: string,
-    facets: any[] | undefined,
-  ): DocumentFragment {
+  function linkifyBlueskyText(text: string, facets: any[] | undefined): DocumentFragment {
     if (!text) return document.createDocumentFragment();
     if (!facets || facets.length === 0) {
       return linkify(text);
@@ -813,9 +755,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     let lastByteIndex = 0;
 
     const linkFacets = facets.filter((f) =>
-      f.features.some(
-        (feature: any) => feature.$type === "app.bsky.richtext.facet#link",
-      ),
+      f.features.some((feature: any) => feature.$type === "app.bsky.richtext.facet#link"),
     );
     linkFacets.sort((a, b) => a.index.byteStart - b.index.byteStart);
 
@@ -824,9 +764,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     }
 
     for (const facet of linkFacets) {
-      const linkFeature = facet.features.find(
-        (f: any) => f.$type === "app.bsky.richtext.facet#link",
-      );
+      const linkFeature = facet.features.find((f: any) => f.$type === "app.bsky.richtext.facet#link");
       if (!linkFeature) continue;
 
       if (facet.index.byteStart > lastByteIndex) {
@@ -836,10 +774,7 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
         fragment.appendChild(fragChunk);
       }
 
-      const linkBytes = textBytes.slice(
-        facet.index.byteStart,
-        facet.index.byteEnd,
-      );
+      const linkBytes = textBytes.slice(facet.index.byteStart, facet.index.byteEnd);
       const linkText = decoder.decode(linkBytes);
       const url = linkFeature.uri;
 

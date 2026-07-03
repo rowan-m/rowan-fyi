@@ -48,10 +48,8 @@ class Atomatic {
     this.curIndex = this.elements.findIndex((structure) => {
       return structure.tag === this.curTag;
     });
-    this.prevIndex =
-      this.curIndex > 0 ? this.curIndex - 1 : this.elements.length - 1;
-    this.nextIndex =
-      this.curIndex + 1 < this.elements.length ? this.curIndex + 1 : 0;
+    this.prevIndex = this.curIndex > 0 ? this.curIndex - 1 : this.elements.length - 1;
+    this.nextIndex = this.curIndex + 1 < this.elements.length ? this.curIndex + 1 : 0;
 
     this.curAtom = this.elements[this.curIndex];
     this.prevAtom = this.elements[this.prevIndex];

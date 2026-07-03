@@ -388,10 +388,8 @@ Next, we need to initialise some values when the user first touches the element.
 // _onPointerdown(e)
 this._touchX = e.clientX;
 this._touchY = e.clientY;
-this._centerX =
-  this.offsetLeft - this.scrollLeft + this.clientLeft + this.offsetWidth / 2;
-this._centerY =
-  this.offsetTop - this.scrollTop + this.clientTop + this.offsetHeight / 2;
+this._centerX = this.offsetLeft - this.scrollLeft + this.clientLeft + this.offsetWidth / 2;
+this._centerY = this.offsetTop - this.scrollTop + this.clientTop + this.offsetHeight / 2;
 this._initialAngle = this._angle;
 ```
 
@@ -401,10 +399,7 @@ Next we need the starting angle of the touch away from a zero rotation. We can v
 
 ```javascript
 // _onPointerdown(e)
-this._initialTouchAngle = Math.atan2(
-  this._touchY - this._centerY,
-  this._touchX - this._centerX,
-);
+this._initialTouchAngle = Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
 ```
 
 Now when the user moves the pointer, we want to track that movement so we can rotate the element accordingly.

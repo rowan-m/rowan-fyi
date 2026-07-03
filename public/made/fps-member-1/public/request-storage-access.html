@@ -60,9 +60,8 @@
 
   <p class="req-check hidden">
     📋 <strong>Quick requirements check:</strong> Make sure you do
-    <a href="https://rowan.fyi/made/first-party-sets"
-      >the set-up instructions on the home page first</a
-    >! 🔎 Chrome 113+: <span class="major-version status">[…]</span> 🔎
+    <a href="https://rowan.fyi/made/first-party-sets">the set-up instructions on the home page first</a>! 🔎 Chrome
+    113+: <span class="major-version status">[…]</span> 🔎
     <code>requestStorageAccess()</code>
     <span class="request-storage-access status">[…]</span>
   </p>
@@ -71,39 +70,31 @@
     <li>
       👉 <strong>Bottom-up approach:</strong>
       <a href="https://rowan.fyi/made/fps-member-1/request-storage-access.html"
-        >use <code>requestStorageAccess()</code> in a cross-site, same-set
-        <code>iframe</code></a
+        >use <code>requestStorageAccess()</code> in a cross-site, same-set <code>iframe</code></a
       >.
     </li>
     <li>
       <strong>Top-down approach:</strong>
-      <a
-        href="https://rowan.fyi/made/fps-member-1/request-storage-access-for.html"
-        >use <code>requestStorageAccessFor()</code> for embedded cross-site,
-        same-set resources</a
+      <a href="https://rowan.fyi/made/fps-member-1/request-storage-access-for.html"
+        >use <code>requestStorageAccessFor()</code> for embedded cross-site, same-set resources</a
       >.
     </li>
   </ul>
 
   <p>
     🧑‍💻
-    <a
-      href="https://glitch.com/edit/#!/first-party-sets?path=public%2Frequest-storage-access.html"
+    <a href="https://glitch.com/edit/#!/first-party-sets?path=public%2Frequest-storage-access.html"
       >Code for the iframe.</a
     >
   </p>
 
   <p>
-    This demo uses two sites: <code>first-party-sets.glitch.me</code> and
-    <code>fps-member-1.glitch.me</code>, which are both part of the same
-    First-Party Set. <code>first-party-sets.glitch.me</code> sets a cookie named
-    <code>crossSite</code> to that will be allowed in the cross-site, same-set
-    contexts via the Storage Access API.
+    This demo uses two sites: <code>first-party-sets.glitch.me</code> and <code>fps-member-1.glitch.me</code>, which are
+    both part of the same First-Party Set. <code>first-party-sets.glitch.me</code> sets a cookie named
+    <code>crossSite</code> to that will be allowed in the cross-site, same-set contexts via the Storage Access API.
   </p>
 
-  <iframe
-    src="https://rowan.fyi/made/first-party-sets/request-storage-access.html"
-  ></iframe>
+  <iframe src="https://rowan.fyi/made/first-party-sets/request-storage-access.html"></iframe>
   <script>
     "use strict";
     if (location.protocol !== "https:" && location.hostname !== "localhost") {
@@ -116,18 +107,11 @@
     const reqStorageAccess = "requestStorageAccess" in document;
 
     if (!reqChromeVer || !reqStorageAccess) {
-      document.querySelector(".major-version").textContent = reqChromeVer
-        ? "pass"
-        : "fail";
-      document
-        .querySelector(".major-version")
-        .classList.add(reqChromeVer ? "pass" : "fail");
+      document.querySelector(".major-version").textContent = reqChromeVer ? "pass" : "fail";
+      document.querySelector(".major-version").classList.add(reqChromeVer ? "pass" : "fail");
 
-      document.querySelector(".request-storage-access").textContent =
-        reqStorageAccess ? "enabled" : "not available";
-      document
-        .querySelector(".request-storage-access")
-        .classList.add(reqStorageAccess ? "pass" : "fail");
+      document.querySelector(".request-storage-access").textContent = reqStorageAccess ? "enabled" : "not available";
+      document.querySelector(".request-storage-access").classList.add(reqStorageAccess ? "pass" : "fail");
 
       document.querySelector(".req-check").classList.remove("hidden");
     }

@@ -24,10 +24,7 @@ app.use(function (req, res, next) {
 
   // Set the HSTS header if we're already on HTTPS
   if (req.secure) {
-    res.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubdomains; preload",
-    );
+    res.set("Strict-Transport-Security", "max-age=63072000; includeSubdomains; preload");
     return next();
   }
 
@@ -41,10 +38,7 @@ app.use(function (req, res, next) {
 // });
 
 app.get("/request-storage-access.html", (req, res) => {
-  res.set(
-    "Permissions-Policy",
-    'storage-access=(self "https://rowan.fyi/made/first-party-sets")',
-  );
+  res.set("Permissions-Policy", 'storage-access=(self "https://rowan.fyi/made/first-party-sets")');
   res.render("request-storage-access");
 });
 
@@ -58,9 +52,6 @@ const listener = app.listen(process.env.PORT, function () {
   console.log("Your app is listening on port " + listener.address().port);
 
   if (app.get("env") === "development") {
-    console.log(
-      "If you are running locally, try http://localhost:" +
-        listener.address().port,
-    );
+    console.log("If you are running locally, try http://localhost:" + listener.address().port);
   }
 });

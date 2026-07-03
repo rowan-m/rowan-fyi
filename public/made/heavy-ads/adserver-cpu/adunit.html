@@ -43,10 +43,7 @@
     <h1>Heavy CPU ad</h1>
     <p>🚫👆 <b>Do not</b> tap or click in the frame.</p>
     <p>
-      <em
-        >This ad should be unloaded after ~30s of CPU usage if the tab is kept
-        focused.</em
-      >
+      <em>This ad should be unloaded after ~30s of CPU usage if the tab is kept focused.</em>
     </p>
   </header>
   <main>
@@ -97,13 +94,10 @@
       setTimeout(doHash, 0);
       document.querySelector(".hashes").textContent = ++hashes;
       document.querySelector(".hash").textContent = seed;
-      document.querySelector(".seconds").textContent = Math.floor(
-        (Date.now() - start) / 1000,
-      );
+      document.querySelector(".seconds").textContent = Math.floor((Date.now() - start) / 1000);
       // These are intentionally bad, expensive animations to trigger paint and layout
       // Don't judge me
-      document.querySelector(".bad-anim").style.height =
-        `${10 + anim * 0.0001}px`;
+      document.querySelector(".bad-anim").style.height = `${10 + anim * 0.0001}px`;
       document.querySelector(".bad-anim").style.width = `${10 + anim * 0.01}px`;
       document.querySelector(".bad-anim").style.border =
         `${1 + anim * 0.001}px solid hsl(${(anim * 0.01) % 360}, 100%, 50%)`;

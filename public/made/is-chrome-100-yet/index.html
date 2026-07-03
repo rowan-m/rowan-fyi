@@ -59,13 +59,9 @@
   <footer>
     <p>
       Read
-      <a href="https://developer.chrome.com/blog/force-major-version-to-100/"
-        >the article</a
-      >, try the <code>chrome://flags/#force-major-version-to-100</code>, see
-      the
-      <a href="https://glitch.com/edit/#!/is-chrome-100-yet?path=index.html"
-        >code for this demo</a
-      >, ask
+      <a href="https://developer.chrome.com/blog/force-major-version-to-100/">the article</a>, try the
+      <code>chrome://flags/#force-major-version-to-100</code>, see the
+      <a href="https://glitch.com/edit/#!/is-chrome-100-yet?path=index.html">code for this demo</a>, ask
       <a href="https://twitter.com/ChromiumDev">@ChromiumDev</a> questions!
     </p>
   </footer>
@@ -75,8 +71,7 @@
       location.protocol = "https:";
     }
 
-    document.querySelector(".user-agent-string").textContent =
-      navigator.userAgent;
+    document.querySelector(".user-agent-string").textContent = navigator.userAgent;
 
     const chromeUAs =
       /^Mozilla\/5\.0 \((.+[^\)]+)\) AppleWebKit\/[\d\.]+ \(KHTML, like Gecko\) C(hrome|riOS)\/(?<major>\d+)[\d\.]+[ Mobile]*[\/15E148]* Safari\/[\d\.]+$/;
@@ -98,8 +93,7 @@
       }
     } else {
       document.querySelector(".is-hundred").textContent = "No.";
-      document.querySelector(".why").textContent =
-        `Because this doesn't look like a Chrome user-agent. 🤔`;
+      document.querySelector(".why").textContent = `Because this doesn't look like a Chrome user-agent. 🤔`;
       document.querySelector("body").classList.add("no");
     }
   </script>

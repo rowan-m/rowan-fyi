@@ -53,20 +53,7 @@
 
     import * as THREE from "three";
     import WebGPURenderer from "three/addons/renderers/webgpu/WebGPURenderer.js";
-    import {
-      vec3,
-      vec4,
-      storage,
-      tslFn,
-      instanceIndex,
-      add,
-      sub,
-      mul,
-      div,
-      abs,
-      atan2,
-      max,
-    } from "three/nodes";
+    import { vec3, vec4, storage, tslFn, instanceIndex, add, sub, mul, div, abs, atan2, max } from "three/nodes";
     import StorageBufferAttribute from "three/addons/renderers/common/StorageBufferAttribute.js";
     import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
@@ -142,14 +129,8 @@
     const pointsBaseAttribute = new THREE.Float32BufferAttribute(points, 3);
     const colorsBaseAttribute = new THREE.Float32BufferAttribute(colors, 3);
 
-    const pointsStorageBufferAttribute = new StorageBufferAttribute(
-      pointsBaseAttribute.count,
-      4,
-    );
-    const colorsStorageBufferAttribute = new StorageBufferAttribute(
-      colorsBaseAttribute.count,
-      4,
-    );
+    const pointsStorageBufferAttribute = new StorageBufferAttribute(pointsBaseAttribute.count, 4);
+    const colorsStorageBufferAttribute = new StorageBufferAttribute(colorsBaseAttribute.count, 4);
 
     const material = new THREE.PointsMaterial({ size: 15, vertexColors: true });
     const geometry = new THREE.BufferGeometry();
@@ -164,23 +145,11 @@
     const controls = new OrbitControls(camera, renderer.domElement);
 
     const computeFn = tslFn(() => {
-      const pointsAttribute = storage(
-        pointsBaseAttribute,
-        "vec3",
-        pointsBaseAttribute.count,
-      );
+      const pointsAttribute = storage(pointsBaseAttribute, "vec3", pointsBaseAttribute.count);
       // const colorsAttribute = storage(colorsBaseAttribute, 'vec3', colorsBaseAttribute.count);
 
-      const pointsStorageAttribute = storage(
-        pointsStorageBufferAttribute,
-        "vec3",
-        pointsStorageBufferAttribute.count,
-      );
-      const colorsStorageAttribute = storage(
-        colorsStorageBufferAttribute,
-        "vec3",
-        colorsStorageBufferAttribute.count,
-      );
+      const pointsStorageAttribute = storage(pointsStorageBufferAttribute, "vec3", pointsStorageBufferAttribute.count);
+      const colorsStorageAttribute = storage(colorsStorageBufferAttribute, "vec3", colorsStorageBufferAttribute.count);
 
       const point = vec3(pointsAttribute.element(instanceIndex));
       // const color = vec3( colorsAttribute.element( instanceIndex ) );
@@ -192,11 +161,7 @@
       // const dz = point.x*point.y - (8/3) * point.z;
       let dz = sub(mul(point.x, point.y), mul(div(8, 3), point.z));
 
-      const pNext = vec3(
-        add(point.x, mul(0.005, dx)),
-        add(point.y, mul(0.005, dy)),
-        add(point.z, mul(0.005, dz)),
-      );
+      const pNext = vec3(add(point.x, mul(0.005, dx)), add(point.y, mul(0.005, dy)), add(point.z, mul(0.005, dz)));
 
       const cr = div(abs(atan2(dx, dy)), 6.28318530718);
       const cg = div(abs(atan2(dy, dz)), 6.28318530718);

@@ -192,9 +192,9 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   <main>
     <h1>Musaic Box</h1>
     <div>
-      Use <a href="https://developer.chrome.com/docs/ai/get-started"
-        >Chrome's built-in AI</a
-      > and <a href="https://tonejs.github.io/">Tone.js</a> to power a music box.
+      Use <a href="https://developer.chrome.com/docs/ai/get-started">Chrome's built-in AI</a> and <a
+        href="https://tonejs.github.io/">Tone.js</a
+      > to power a music box.
     </div>
     <div>Enter a vibe and generate.</div>
     <label>Vibe: <input type="text" name="vibe" /></label>
@@ -221,9 +221,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   </dialog>
   <dialog id="not-supported-status">
     <div>
-      <div>
-        It looks like the on-device Prompt API is not supported on this device.
-      </div>
+      <div>It looks like the on-device Prompt API is not supported on this device.</div>
       <div>You can still play generated melodies though!</div>
       <form method="dialog">
         <button>OK</button>
@@ -344,14 +342,10 @@ Your tune should be approximately 20 notes or fewer.`;
       generateButt.disabled = true;
 
       try {
-        console.log(
-          "User prompt: ",
-          `Create a melody based on the vibe: ${vibe}`,
-        );
-        const result = await model.prompt(
-          `Create a melody based on the vibe: ${vibe}`,
-          { responseConstraint: { schema } },
-        );
+        console.log("User prompt: ", `Create a melody based on the vibe: ${vibe}`);
+        const result = await model.prompt(`Create a melody based on the vibe: ${vibe}`, {
+          responseConstraint: { schema },
+        });
         const generated = JSON.parse(result);
         console.log("Generated notes: ", generated.notes);
         const notes = generated.notes;

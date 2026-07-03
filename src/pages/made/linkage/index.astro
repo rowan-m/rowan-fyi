@@ -16,17 +16,10 @@ import previewImg from "./linkage-preview.jpg";
     property="og:description"
     content="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
   />
-  <meta
-    name="image"
-    property="og:image"
-    content={new URL(previewImg.src, Astro.site)}
-  />
+  <meta name="image" property="og:image" content={new URL(previewImg.src, Astro.site)} />
   <meta name="twitter:card" content="summary_large_image" />
   <meta property="twitter:domain" content="rowan.fyi" />
-  <meta
-    property="twitter:url"
-    content={new URL(Astro.url.pathname, Astro.site)}
-  />
+  <meta property="twitter:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta name="twitter:title" content="LinkAge" />
   <meta
     name="twitter:description"
@@ -276,59 +269,39 @@ import previewImg from "./linkage-preview.jpg";
         placeholder="Enter Bluesky or Mastodon post URL"
         aria-label="Bluesky or Mastodon post URL"
       />
-      <button id="load-btn"><span aria-hidden="true">🌐</span> Visualize</button
-      >
+      <button id="load-btn"><span aria-hidden="true">🌐</span> Visualize</button>
     </div>
 
     <div class="bottom-bar hidden" id="playback-bar">
       <div class="controls hidden" id="playback-controls">
-        <button id="play-pause-btn"
-          ><span aria-hidden="true">▶️</span> Play</button
-        >
-        <button id="tour-btn"
-          ><span aria-hidden="true">🔄</span> Tour: On</button
-        >
+        <button id="play-pause-btn"><span aria-hidden="true">▶️</span> Play</button>
+        <button id="tour-btn"><span aria-hidden="true">🔄</span> Tour: On</button>
         <div class="timeline">
-          <input
-            type="range"
-            id="time-slider"
-            min="0"
-            max="1000"
-            value="0"
-            aria-label="Timeline position slider"
-          />
+          <input type="range" id="time-slider" min="0" max="1000" value="0" aria-label="Timeline position slider" />
           <div class="time-display" id="time-text">0:00</div>
         </div>
       </div>
-      <div
-        style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%;"
-      >
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%;">
         <span id="loading-spinner" class="spinner hidden"></span>
         <div id="status-message" class="status-text">Ready to visualize</div>
       </div>
 
       <footer class="app-footer">
-        <a
-          href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/linkage"
-          target="_blank"
-          rel="noopener"><span aria-hidden="true">🧑‍💻</span> Code</a
+        <a href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/linkage" target="_blank" rel="noopener"
+          ><span aria-hidden="true">🧑‍💻</span> Code</a
         >
-        <a href="https://rowan.fyi" target="_blank" rel="noopener"
-          ><span aria-hidden="true">🌐</span> rowan.fyi</a
-        >
+        <a href="https://rowan.fyi" target="_blank" rel="noopener"><span aria-hidden="true">🌐</span> rowan.fyi</a>
         <a
           href="https://bsky.app/profile/rowan.fyi"
           target="_blank"
           rel="noopener"
-          aria-label="Bluesky profile rowan.fyi"
-          ><span aria-hidden="true">🦋</span> rowan.fyi</a
+          aria-label="Bluesky profile rowan.fyi"><span aria-hidden="true">🦋</span> rowan.fyi</a
         >
         <a
           href="https://mastodon.social/@rowan_m"
           target="_blank"
           rel="noopener"
-          aria-label="Mastodon profile rowan_m@mastodon.social"
-          ><span aria-hidden="true">🦣</span> rowan_m</a
+          aria-label="Mastodon profile rowan_m@mastodon.social"><span aria-hidden="true">🦣</span> rowan_m</a
         >
       </footer>
     </div>
@@ -374,10 +347,9 @@ import previewImg from "./linkage-preview.jpg";
       }
 
       async resolveHandle(handle) {
-        const resp = await fetch(
-          `${API_BASE}/com.atproto.identity.resolveHandle?handle=${handle}`,
-          { signal: this.signal },
-        );
+        const resp = await fetch(`${API_BASE}/com.atproto.identity.resolveHandle?handle=${handle}`, {
+          signal: this.signal,
+        });
         if (!resp.ok) {
           throw new Error(`Failed to resolve handle: ${resp.statusText}`);
         }
@@ -389,10 +361,9 @@ import previewImg from "./linkage-preview.jpg";
       }
 
       async getThread(uri) {
-        const resp = await fetch(
-          `${API_BASE}/app.bsky.feed.getPostThread?uri=${uri}&depth=10`,
-          { signal: this.signal },
-        );
+        const resp = await fetch(`${API_BASE}/app.bsky.feed.getPostThread?uri=${uri}&depth=10`, {
+          signal: this.signal,
+        });
         if (!resp.ok) {
           throw new Error(`Failed to get post thread: ${resp.statusText}`);
         }
@@ -403,13 +374,7 @@ import previewImg from "./linkage-preview.jpg";
         return data;
       }
 
-      async getInteractions(
-        uri,
-        likeCount = 0,
-        repostCount = 0,
-        quoteCount = 1,
-        maxCount = 100,
-      ) {
+      async getInteractions(uri, likeCount = 0, repostCount = 0, quoteCount = 1, maxCount = 100) {
         const fetchCollection = async (endpoint, key, count) => {
           if (count === 0) return [];
           let items = [];
@@ -455,20 +420,15 @@ import previewImg from "./linkage-preview.jpg";
 
         const [likes, reposts] = await Promise.all([
           fetchCollection("app.bsky.feed.getLikes", "likes", likeCount),
-          fetchCollection(
-            "app.bsky.feed.getRepostedBy",
-            "repostedBy",
-            repostCount,
-          ),
+          fetchCollection("app.bsky.feed.getRepostedBy", "repostedBy", repostCount),
         ]);
 
         let quotesResp = { posts: [] };
         if (quoteCount > 0) {
           try {
-            quotesResp = await fetch(
-              `${API_BASE}/app.bsky.feed.getQuotes?uri=${uri}&limit=50`,
-              { signal: this.signal },
-            ).then((r) => r.json());
+            quotesResp = await fetch(`${API_BASE}/app.bsky.feed.getQuotes?uri=${uri}&limit=50`, {
+              signal: this.signal,
+            }).then((r) => r.json());
           } catch (e) {
             if (e.name !== "AbortError") {
               console.warn(`Error fetching quotes for ${uri}`, e);
@@ -545,27 +505,17 @@ import previewImg from "./linkage-preview.jpg";
       }
 
       async getStatus(domain, statusId) {
-        const resp = await fetch(
-          `https://${domain}/api/v1/statuses/${statusId}`,
-          { signal: this.signal },
-        );
+        const resp = await fetch(`https://${domain}/api/v1/statuses/${statusId}`, { signal: this.signal });
         if (!resp.ok) {
-          throw new Error(
-            `Failed to get status from ${domain}: ${resp.statusText}`,
-          );
+          throw new Error(`Failed to get status from ${domain}: ${resp.statusText}`);
         }
         return await resp.json();
       }
 
       async getContext(domain, statusId) {
-        const resp = await fetch(
-          `https://${domain}/api/v1/statuses/${statusId}/context`,
-          { signal: this.signal },
-        );
+        const resp = await fetch(`https://${domain}/api/v1/statuses/${statusId}/context`, { signal: this.signal });
         if (!resp.ok) {
-          throw new Error(
-            `Failed to get thread context from ${domain}: ${resp.statusText}`,
-          );
+          throw new Error(`Failed to get thread context from ${domain}: ${resp.statusText}`);
         }
         return await resp.json();
       }
@@ -573,10 +523,9 @@ import previewImg from "./linkage-preview.jpg";
       async getInteractions(domain, statusId) {
         const fetchEndpoint = async (endpoint) => {
           try {
-            const resp = await fetch(
-              `https://${domain}/api/v1/statuses/${statusId}/${endpoint}?limit=80`,
-              { signal: this.signal },
-            );
+            const resp = await fetch(`https://${domain}/api/v1/statuses/${statusId}/${endpoint}?limit=80`, {
+              signal: this.signal,
+            });
             if (!resp.ok) return [];
             return await resp.json();
           } catch (e) {
@@ -621,9 +570,7 @@ import previewImg from "./linkage-preview.jpg";
           data,
           time,
           parentId,
-          id:
-            data.uri ||
-            `${data.did || data.handle || "anon"}-${time}-${this._eventCounter++}`,
+          id: data.uri || `${data.did || data.handle || "anon"}-${time}-${this._eventCounter++}`,
         };
         this.events.push(event);
         return event;
@@ -633,8 +580,7 @@ import previewImg from "./linkage-preview.jpg";
         const priority = { root: 0, reply: 1, quote: 1, like: 2, repost: 2 };
         this.events.sort((a, b) => {
           if (a.time !== b.time) return a.time - b.time;
-          if (priority[a.type] !== priority[b.type])
-            return priority[a.type] - priority[b.type];
+          if (priority[a.type] !== priority[b.type]) return priority[a.type] - priority[b.type];
           return a.id < b.id ? -1 : 1;
         });
       }
@@ -693,10 +639,7 @@ import previewImg from "./linkage-preview.jpg";
         this.renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(this.renderer.domElement);
 
-        this.controls = new TrackballControls(
-          this.camera,
-          this.renderer.domElement,
-        );
+        this.controls = new TrackballControls(this.camera, this.renderer.domElement);
         this.controls.rotateSpeed = 2.0;
         this.controls.zoomSpeed = 1.2;
         this.controls.panSpeed = 0.8;
@@ -794,16 +737,10 @@ import previewImg from "./linkage-preview.jpg";
         this.currentTourTarget = this.controls.target.clone();
 
         // Initialize rotation based on current camera offset
-        const offset = new THREE.Vector3().subVectors(
-          this.camera.position,
-          this.currentTourTarget,
-        );
+        const offset = new THREE.Vector3().subVectors(this.camera.position, this.currentTourTarget);
 
         const defaultLook = new THREE.Vector3(0, 0, 1);
-        this.tourRotation.setFromUnitVectors(
-          defaultLook,
-          offset.clone().normalize(),
-        );
+        this.tourRotation.setFromUnitVectors(defaultLook, offset.clone().normalize());
 
         if (this.onTourChange) this.onTourChange(true);
       }
@@ -862,9 +799,7 @@ import previewImg from "./linkage-preview.jpg";
           this.tourRotation.multiply(frameRotation);
 
           const radius = this.graphRadius * 3;
-          const offset = new THREE.Vector3(0, 0, radius).applyQuaternion(
-            this.tourRotation,
-          );
+          const offset = new THREE.Vector3(0, 0, radius).applyQuaternion(this.tourRotation);
 
           this._scratchVec3_1.copy(this.graphCenter).add(offset);
           this.currentTourTarget.lerp(this.graphCenter, delta * 2.0);
@@ -872,9 +807,7 @@ import previewImg from "./linkage-preview.jpg";
 
           this.camera.position.lerp(this._scratchVec3_1, delta * 1.5);
 
-          const upVector = new THREE.Vector3(0, 1, 0).applyQuaternion(
-            this.tourRotation,
-          );
+          const upVector = new THREE.Vector3(0, 1, 0).applyQuaternion(this.tourRotation);
           this.camera.up.copy(upVector);
 
           this.camera.lookAt(this.currentTourTarget);
@@ -903,8 +836,7 @@ import previewImg from "./linkage-preview.jpg";
 
           // Calculate perspective frustum size at the current distance to fit bounds
           const dist = this.camera.position.distanceTo(this.currentTourTarget);
-          const frustumHeight =
-            2 * dist * Math.tan((this.camera.fov * Math.PI) / 360);
+          const frustumHeight = 2 * dist * Math.tan((this.camera.fov * Math.PI) / 360);
           const frustumWidth = frustumHeight * this.camera.aspect;
 
           // Increased padding (especially vertically) to keep nodes clear of top/bottom UI overlays
@@ -1063,9 +995,7 @@ import previewImg from "./linkage-preview.jpg";
         if (!nodeMesh || !nodeMesh.visible) return;
 
         // Cap active particles for this node to prevent white-out
-        const nodeParticles = this.activeParticles.filter(
-          (p) => p.nodeId === nodeId,
-        );
+        const nodeParticles = this.activeParticles.filter((p) => p.nodeId === nodeId);
         if (nodeParticles.length > 2) return;
 
         const material = new THREE.SpriteMaterial({
@@ -1183,12 +1113,7 @@ import previewImg from "./linkage-preview.jpg";
           const offsetY = (((hash >> 8) % 100) / 100 - 0.5) * 5;
           const offsetZ = (((hash >> 16) % 100) / 100 - 0.5) * 5;
 
-          this.physicsLayout.setNodePosition(
-            nodeId,
-            pPos.x + offsetX,
-            pPos.y + offsetY,
-            pPos.z + offsetZ,
-          );
+          this.physicsLayout.setNodePosition(nodeId, pPos.x + offsetX, pPos.y + offsetY, pPos.z + offsetZ);
           const parentMesh = this.nodeMeshes.get(edge.source);
           if (parentMesh) mesh.position.copy(parentMesh.position);
           else mesh.position.set(pPos.x, pPos.y, pPos.z || 0);
@@ -1204,24 +1129,14 @@ import previewImg from "./linkage-preview.jpg";
       _addPhysicsEdges(network, visibleNodeIds) {
         // Ensure all edges between visible nodes are linked in the physics graph dynamically
         for (const edge of network.edges) {
-          if (
-            visibleNodeIds.has(edge.source) &&
-            visibleNodeIds.has(edge.target)
-          ) {
+          if (visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)) {
             const edgeId = `${edge.source}-${edge.target}`;
             const sourceInPhysics = this.physicsGraph.getNode(edge.source);
             const targetInPhysics = this.physicsGraph.getNode(edge.target);
-            if (
-              !this.edgeLines.has(edgeId) &&
-              sourceInPhysics &&
-              targetInPhysics
-            ) {
+            if (!this.edgeLines.has(edgeId) && sourceInPhysics && targetInPhysics) {
               this.physicsGraph.addLink(edge.source, edge.target);
               const targetNode = network.nodes.get(edge.target);
-              this.createEdgeLine(
-                edgeId,
-                targetNode ? targetNode.type : "reply",
-              );
+              this.createEdgeLine(edgeId, targetNode ? targetNode.type : "reply");
               this.edgeDiscoveryTimes.set(edgeId, Date.now());
             }
           }
@@ -1240,9 +1155,7 @@ import previewImg from "./linkage-preview.jpg";
           if (!node) continue;
 
           const baseRadius = node.type === "root" ? 8.0 : 5.0;
-          const totalVolume =
-            Math.pow(baseRadius, 3) +
-            (node.metrics.likes + node.metrics.reposts) * 10.0;
+          const totalVolume = Math.pow(baseRadius, 3) + (node.metrics.likes + node.metrics.reposts) * 10.0;
           this.targetScales.set(nodeId, Math.pow(totalVolume, 1 / 3));
 
           if (!this.nodeMeshes.has(nodeId)) {
@@ -1346,11 +1259,7 @@ import previewImg from "./linkage-preview.jpg";
             mesh.scale.lerp(this._scratchTargetScale, 0.1);
           }
 
-          mesh.material.opacity = THREE.MathUtils.lerp(
-            mesh.material.opacity,
-            targetO,
-            0.1,
-          );
+          mesh.material.opacity = THREE.MathUtils.lerp(mesh.material.opacity, targetO, 0.1);
           mesh.visible = mesh.material.opacity > 0.01;
 
           if (halo) {
@@ -1367,8 +1276,7 @@ import previewImg from "./linkage-preview.jpg";
 
         for (const [id, line] of edgeLines) {
           const [sourceId, targetId] = id.split("-");
-          const isVisible =
-            visibleNodes.has(sourceId) && visibleNodes.has(targetId);
+          const isVisible = visibleNodes.has(sourceId) && visibleNodes.has(targetId);
           let pulse = 0;
           if (isVisible && edgeDiscoveryTimes.has(id)) {
             const elapsed = now - edgeDiscoveryTimes.get(id);
@@ -1382,16 +1290,10 @@ import previewImg from "./linkage-preview.jpg";
           if (pulse > 0) {
             line.material.color.setRGB(1, 1, 1);
           } else {
-            const baseColor = new THREE.Color(
-              COLORS[(line.userData.type || "REPLY").toUpperCase()] || 0x444444,
-            );
+            const baseColor = new THREE.Color(COLORS[(line.userData.type || "REPLY").toUpperCase()] || 0x444444);
             line.material.color.lerp(baseColor, 0.1);
           }
-          line.material.opacity = THREE.MathUtils.lerp(
-            line.material.opacity,
-            targetO,
-            0.1,
-          );
+          line.material.opacity = THREE.MathUtils.lerp(line.material.opacity, targetO, 0.1);
           line.visible = line.material.opacity > 0.01;
 
           if (line.visible && shouldUpdate) {
@@ -1402,43 +1304,24 @@ import previewImg from "./linkage-preview.jpg";
               this._scratchStart.copy(sMesh.position);
               this._scratchEnd.copy(tMesh.position);
 
-              this._scratchMid
-                .copy(this._scratchStart)
-                .add(this._scratchEnd)
-                .multiplyScalar(0.5);
+              this._scratchMid.copy(this._scratchStart).add(this._scratchEnd).multiplyScalar(0.5);
               this._scratchDir.copy(this._scratchEnd).sub(this._scratchStart);
 
               this._scratchNormal
-                .set(
-                  -this._scratchDir.y,
-                  this._scratchDir.x,
-                  this._scratchDir.z * 0.5,
-                )
+                .set(-this._scratchDir.y, this._scratchDir.x, this._scratchDir.z * 0.5)
                 .normalize()
                 .multiplyScalar(this._scratchDir.length() * 0.15);
 
-              this._scratchControl
-                .copy(this._scratchMid)
-                .add(this._scratchNormal);
+              this._scratchControl.copy(this._scratchMid).add(this._scratchNormal);
 
               const rS = sMesh.scale.x * 0.5;
               const rT = tMesh.scale.x * 0.5;
 
-              this._scratchDirToControl
-                .copy(this._scratchControl)
-                .sub(this._scratchStart)
-                .normalize();
-              this._scratchOffsetStart
-                .copy(this._scratchStart)
-                .addScaledVector(this._scratchDirToControl, rS);
+              this._scratchDirToControl.copy(this._scratchControl).sub(this._scratchStart).normalize();
+              this._scratchOffsetStart.copy(this._scratchStart).addScaledVector(this._scratchDirToControl, rS);
 
-              this._scratchDirFromControl
-                .copy(this._scratchEnd)
-                .sub(this._scratchControl)
-                .normalize();
-              this._scratchOffsetEnd
-                .copy(this._scratchEnd)
-                .addScaledVector(this._scratchDirFromControl, -rT);
+              this._scratchDirFromControl.copy(this._scratchEnd).sub(this._scratchControl).normalize();
+              this._scratchOffsetEnd.copy(this._scratchEnd).addScaledVector(this._scratchDirFromControl, -rT);
 
               this._scratchCurve.v0.copy(this._scratchOffsetStart);
               this._scratchCurve.v1.copy(this._scratchControl);
@@ -1457,9 +1340,7 @@ import previewImg from "./linkage-preview.jpg";
       animate() {
         requestAnimationFrame(() => this.animate());
         const now = Date.now();
-        const delta = this._lastFrameTime
-          ? (now - this._lastFrameTime) / 1000
-          : 0.016;
+        const delta = this._lastFrameTime ? (now - this._lastFrameTime) / 1000 : 0.016;
         this._lastFrameTime = now;
 
         this._animateParticles(now);
@@ -1495,9 +1376,7 @@ import previewImg from "./linkage-preview.jpg";
         this.mastodonClient = new MastodonClient();
         this.timeline = new EventTimeline();
         this.network = new InteractionNetwork();
-        this.visualizer = new Visualizer(
-          document.getElementById("canvas-container"),
-        );
+        this.visualizer = new Visualizer(document.getElementById("canvas-container"));
         this.visualizer.onTourChange = (enabled) => this.updateTourBtn(enabled);
         this.isPlaying = false;
         this.currentStep = 0;
@@ -1507,23 +1386,15 @@ import previewImg from "./linkage-preview.jpg";
         this.checkUrlParams();
       }
       setupEventListeners() {
-        document
-          .getElementById("load-btn")
-          .addEventListener("click", () => this.loadFromInput());
+        document.getElementById("load-btn").addEventListener("click", () => this.loadFromInput());
         document.getElementById("post-url").addEventListener("keydown", (e) => {
           if (e.key === "Enter") this.loadFromInput();
         });
-        document
-          .getElementById("play-pause-btn")
-          .addEventListener("click", () => this.togglePlayback());
-        document
-          .getElementById("tour-btn")
-          .addEventListener("click", () => this.toggleTour());
+        document.getElementById("play-pause-btn").addEventListener("click", () => this.togglePlayback());
+        document.getElementById("tour-btn").addEventListener("click", () => this.toggleTour());
         document
           .getElementById("time-slider")
-          .addEventListener("input", () =>
-            this.seek(parseFloat(document.getElementById("time-slider").value)),
-          );
+          .addEventListener("input", () => this.seek(parseFloat(document.getElementById("time-slider").value)));
       }
       async checkUrlParams() {
         const params = new URLSearchParams(window.location.search);
@@ -1538,19 +1409,12 @@ import previewImg from "./linkage-preview.jpg";
         if (!url) return;
         const params = new URLSearchParams(window.location.search);
         params.set("url", url);
-        window.history.replaceState(
-          {},
-          "",
-          `${window.location.pathname}?${params.toString()}`,
-        );
+        window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
         this.load(url);
       }
       async load(urlStr) {
-        const isMastodon =
-          urlStr.includes("@") || urlStr.includes("/statuses/");
-        const parsedMastodon = isMastodon
-          ? this.mastodonClient.parseUrl(urlStr)
-          : null;
+        const isMastodon = urlStr.includes("@") || urlStr.includes("/statuses/");
+        const parsedMastodon = isMastodon ? this.mastodonClient.parseUrl(urlStr) : null;
 
         if (isMastodon && !parsedMastodon) {
           this.setStatus("Invalid Mastodon URL format");
@@ -1587,8 +1451,7 @@ import previewImg from "./linkage-preview.jpg";
           const processedUris = new Set();
           const allThreads = [threadData.thread];
 
-          const delay = (ms) =>
-            new Promise((resolve) => setTimeout(resolve, ms));
+          const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
           const fetchInteractionsRecursively = async (thread) => {
             const post = thread.post;
@@ -1598,8 +1461,7 @@ import previewImg from "./linkage-preview.jpg";
 
             const likeCount = post.likeCount || 0;
             const repostCount = post.repostCount || 0;
-            const quoteCount =
-              typeof post.quoteCount === "number" ? post.quoteCount : 1;
+            const quoteCount = typeof post.quoteCount === "number" ? post.quoteCount : 1;
             const hasEngagement = likeCount + repostCount + quoteCount > 0;
 
             if (processedUris.size < 250) {
@@ -1618,11 +1480,7 @@ import previewImg from "./linkage-preview.jpg";
                   if (inter.quotes.posts && inter.quotes.posts.length > 0) {
                     await Promise.all(
                       inter.quotes.posts.slice(0, 15).map(async (q) => {
-                        if (
-                          processedUris.size >= 250 ||
-                          processedUris.has(q.uri)
-                        )
-                          return;
+                        if (processedUris.size >= 250 || processedUris.has(q.uri)) return;
                         try {
                           // Only fetch full thread if quote has replies, saving massive requests
                           if (q.replyCount && q.replyCount > 0) {
@@ -1637,10 +1495,7 @@ import previewImg from "./linkage-preview.jpg";
                           }
                         } catch (e) {
                           if (e.name !== "AbortError") {
-                            console.warn(
-                              `Could not fetch thread for quote ${q.uri}`,
-                              e,
-                            );
+                            console.warn(`Could not fetch thread for quote ${q.uri}`, e);
                           }
                         }
                       }),
@@ -1653,10 +1508,7 @@ import previewImg from "./linkage-preview.jpg";
                 }
               }
             }
-            if (thread.replies)
-              await Promise.all(
-                thread.replies.map((r) => fetchInteractionsRecursively(r)),
-              );
+            if (thread.replies) await Promise.all(thread.replies.map((r) => fetchInteractionsRecursively(r)));
           };
           await fetchInteractionsRecursively(threadData.thread);
           this.processData(allThreads, interactionMap);
@@ -1675,22 +1527,13 @@ import previewImg from "./linkage-preview.jpg";
         const { domain, statusId } = parsed;
         this.setStatus("Fetching Mastodon status...", true);
         try {
-          const rootStatus = await this.mastodonClient.getStatus(
-            domain,
-            statusId,
-          );
+          const rootStatus = await this.mastodonClient.getStatus(domain, statusId);
           this.setStatus("Fetching thread context...", true);
-          const context = await this.mastodonClient.getContext(
-            domain,
-            statusId,
-          );
+          const context = await this.mastodonClient.getContext(domain, statusId);
           this.setStatus("Fetching interactions...", true);
-          const { favourites, reblogs } =
-            await this.mastodonClient.getInteractions(domain, statusId);
+          const { favourites, reblogs } = await this.mastodonClient.getInteractions(domain, statusId);
 
-          const rootUri =
-            rootStatus.uri ||
-            `https://${domain}/@${rootStatus.account?.acct}/${rootStatus.id}`;
+          const rootUri = rootStatus.uri || `https://${domain}/@${rootStatus.account?.acct}/${rootStatus.id}`;
 
           // Map interactions using spread interaction timestamps
           const maxReplyTimeIso =
@@ -1699,9 +1542,7 @@ import previewImg from "./linkage-preview.jpg";
                   .map((d) => d.created_at)
                   .sort()
                   .at(-1)
-              : new Date(
-                  new Date(rootStatus.created_at).getTime() + 2 * 3600 * 1000,
-                ).toISOString();
+              : new Date(new Date(rootStatus.created_at).getTime() + 2 * 3600 * 1000).toISOString();
 
           const mappedLikes = favourites.map((acc) => ({
             id: acc.id,
@@ -1712,16 +1553,8 @@ import previewImg from "./linkage-preview.jpg";
             createdAt: null,
           }));
 
-          const spreadLikes = this.spreadInteractionTimestamps(
-            mappedLikes,
-            rootStatus.created_at,
-            maxReplyTimeIso,
-          );
-          const spreadReposts = this.spreadInteractionTimestamps(
-            mappedReposts,
-            rootStatus.created_at,
-            maxReplyTimeIso,
-          );
+          const spreadLikes = this.spreadInteractionTimestamps(mappedLikes, rootStatus.created_at, maxReplyTimeIso);
+          const spreadReposts = this.spreadInteractionTimestamps(mappedReposts, rootStatus.created_at, maxReplyTimeIso);
 
           const interactionMap = new Map();
           interactionMap.set(rootUri, {
@@ -1731,11 +1564,7 @@ import previewImg from "./linkage-preview.jpg";
           });
 
           // Build tree structure
-          const threads = this.buildMastodonThreadTree(
-            rootStatus,
-            context.descendants,
-            domain,
-          );
+          const threads = this.buildMastodonThreadTree(rootStatus, context.descendants, domain);
 
           this.processData(threads, interactionMap);
           this.setStatus("Visualization ready", false);
@@ -1772,9 +1601,7 @@ import previewImg from "./linkage-preview.jpg";
         };
 
         const mapMastodonStatus = (status) => {
-          const uri =
-            status.uri ||
-            `https://${domain}/@${status.account?.acct}/${status.id}`;
+          const uri = status.uri || `https://${domain}/@${status.account?.acct}/${status.id}`;
           return {
             uri,
             id: status.id,
@@ -1787,10 +1614,7 @@ import previewImg from "./linkage-preview.jpg";
               handle: status.account?.acct?.includes("@")
                 ? status.account.acct
                 : `${status.account?.acct || "user"}@${domain}`,
-              displayName:
-                status.account?.display_name ||
-                status.account?.username ||
-                "Mastodon User",
+              displayName: status.account?.display_name || status.account?.username || "Mastodon User",
               avatar: status.account?.avatar,
             },
             likeCount: status.favourites_count || 0,
@@ -1822,12 +1646,7 @@ import previewImg from "./linkage-preview.jpg";
         return [rootNode];
       }
       processData(threads, interactionMap) {
-        if (
-          !threads ||
-          threads.length === 0 ||
-          !threads[0] ||
-          !threads[0].post
-        ) {
+        if (!threads || threads.length === 0 || !threads[0] || !threads[0].post) {
           throw new Error("No valid thread data to visualize");
         }
         document.getElementById("playback-controls").classList.remove("hidden");
@@ -1841,19 +1660,12 @@ import previewImg from "./linkage-preview.jpg";
           document.title = `LinkAge - @${rootPost.author.handle}`;
         }
 
-        this.timeline.setStart(
-          rootPost.record?.createdAt || rootPost.indexedAt,
-        );
+        this.timeline.setStart(rootPost.record?.createdAt || rootPost.indexedAt);
         const processPost = (post, parentUri = null) => {
           const postTimestamp = post.record?.createdAt || post.indexedAt;
           const postTime = new Date(postTimestamp).getTime();
           const isNew = !this.network.nodes.has(post.uri);
-          this.network.addNode(
-            post.uri,
-            parentUri ? "reply" : "root",
-            postTime,
-            post,
-          );
+          this.network.addNode(post.uri, parentUri ? "reply" : "root", postTime, post);
           if (parentUri) {
             this.network.addEdge(parentUri, post.uri);
             this.timeline.addEvent("reply", post, postTimestamp, parentUri);
@@ -1872,12 +1684,7 @@ import previewImg from "./linkage-preview.jpg";
           if (interactions) {
             for (const quote of interactions.quotes.posts || []) {
               const qTimestamp = quote.record?.createdAt || quote.indexedAt;
-              this.network.addNode(
-                quote.uri,
-                "quote",
-                new Date(qTimestamp).getTime(),
-                quote,
-              );
+              this.network.addNode(quote.uri, "quote", new Date(qTimestamp).getTime(), quote);
               this.network.addEdge(post.uri, quote.uri);
               this.timeline.addEvent("quote", quote, qTimestamp, post.uri);
             }
@@ -1889,50 +1696,33 @@ import previewImg from "./linkage-preview.jpg";
               const likes = (interactions.likes.likes || [])
                 .map((l) => new Date(l.createdAt).getTime())
                 .sort((a, b) => a - b);
-              const end =
-                likes.length > 0
-                  ? likes.at(-1)
-                  : Math.min(Date.now(), start + 24 * 3600 * 1000);
+              const end = likes.length > 0 ? likes.at(-1) : Math.min(Date.now(), start + 24 * 3600 * 1000);
               reposts.forEach((r, idx) => {
                 let time;
                 if (likes.length > 1) {
                   const s = Math.floor(Math.random() * (likes.length - 1));
-                  time =
-                    likes.at(s) +
-                    Math.random() * (likes.at(s + 1) - likes.at(s));
+                  time = likes.at(s) + Math.random() * (likes.at(s + 1) - likes.at(s));
                 } else {
                   time = start + (end - start) * (idx / reposts.length);
                 }
-                this.timeline.addEvent(
-                  "repost",
-                  r,
-                  new Date(time).toISOString(),
-                  post.uri,
-                );
+                this.timeline.addEvent("repost", r, new Date(time).toISOString(), post.uri);
               });
             }
             const total = post.likeCount + (post.repostCount || 0);
-            const fetched =
-              (interactions.likes.likes?.length || 0) +
-              (interactions.reposts.reposts?.length || 0);
+            const fetched = (interactions.likes.likes?.length || 0) + (interactions.reposts.reposts?.length || 0);
             if (total > fetched) {
               const start = new Date(postTimestamp).getTime();
               // Find the maximum timestamp in the current visualization set to spread events naturally
               let threadMaxTime = start;
               threads.forEach((t) => {
                 if (t.post) {
-                  const pt = new Date(
-                    t.post.record?.createdAt || t.post.indexedAt,
-                  ).getTime();
+                  const pt = new Date(t.post.record?.createdAt || t.post.indexedAt).getTime();
                   if (pt > threadMaxTime) threadMaxTime = pt;
                 }
               });
 
               // Ensure we spread at least over 2 hours if thread is very new
-              const spreadEnd = Math.max(
-                threadMaxTime,
-                start + 2 * 3600 * 1000,
-              );
+              const spreadEnd = Math.max(threadMaxTime, start + 2 * 3600 * 1000);
               const duration = spreadEnd - start;
 
               // Cap synthetic events to 100 per post to prevent visual drowning
@@ -1940,12 +1730,7 @@ import previewImg from "./linkage-preview.jpg";
               for (let i = 0; i < missing; i++) {
                 const time = start + Math.random() * duration;
                 const type = Math.random() > 0.2 ? "like" : "repost";
-                this.timeline.addEvent(
-                  type,
-                  { did: "synthetic" },
-                  new Date(time).toISOString(),
-                  post.uri,
-                );
+                this.timeline.addEvent(type, { did: "synthetic" }, new Date(time).toISOString(), post.uri);
               }
             }
           }
@@ -1953,8 +1738,7 @@ import previewImg from "./linkage-preview.jpg";
         const walkThread = (thread, parentUri = null) => {
           if (thread.post) {
             processPost(thread.post, parentUri);
-            if (thread.replies)
-              for (const r of thread.replies) walkThread(r, thread.post.uri);
+            if (thread.replies) for (const r of thread.replies) walkThread(r, thread.post.uri);
           }
         };
         threads.forEach((t) => walkThread(t));
@@ -2007,10 +1791,8 @@ import previewImg from "./linkage-preview.jpg";
         if (this.isPlaying) {
           const maxAnimationTime = 30000; // 30 seconds
           const totalSteps = this.timeline.events.length - 1;
-          const currentProgress =
-            totalSteps > 0 ? this.currentStep / totalSteps : 0;
-          this.playbackStartTime =
-            Date.now() - currentProgress * maxAnimationTime;
+          const currentProgress = totalSteps > 0 ? this.currentStep / totalSteps : 0;
+          this.playbackStartTime = Date.now() - currentProgress * maxAnimationTime;
           this.play();
         }
         this.updatePlayPauseBtn();
@@ -2027,9 +1809,7 @@ import previewImg from "./linkage-preview.jpg";
         }
 
         const elapsed = now - this.playbackStartTime;
-        const targetStep = Math.floor(
-          (elapsed / maxAnimationTime) * totalSteps,
-        );
+        const targetStep = Math.floor((elapsed / maxAnimationTime) * totalSteps);
 
         if (targetStep > this.currentStep) {
           const startStep = this.currentStep;
@@ -2038,15 +1818,8 @@ import previewImg from "./linkage-preview.jpg";
           for (let step = startStep + 1; step <= endStep; step++) {
             this.currentStep = step;
             const event = this.timeline.events.at(step);
-            if (
-              event &&
-              (event.type === "like" || event.type === "repost") &&
-              event.parentId
-            ) {
-              this.visualizer.spawnInteractionParticle(
-                event.parentId,
-                event.type,
-              );
+            if (event && (event.type === "like" || event.type === "repost") && event.parentId) {
+              this.visualizer.spawnInteractionParticle(event.parentId, event.type);
             }
           }
           this.visualize();
@@ -2065,10 +1838,8 @@ import previewImg from "./linkage-preview.jpg";
         this.currentStep = Math.floor((percent / 1000) * totalSteps);
         if (this.isPlaying) {
           const maxAnimationTime = 30000;
-          const currentProgress =
-            totalSteps > 0 ? this.currentStep / totalSteps : 0;
-          this.playbackStartTime =
-            Date.now() - currentProgress * maxAnimationTime;
+          const currentProgress = totalSteps > 0 ? this.currentStep / totalSteps : 0;
+          this.playbackStartTime = Date.now() - currentProgress * maxAnimationTime;
         }
         this.visualize();
         this.updateUI();
@@ -2093,8 +1864,7 @@ import previewImg from "./linkage-preview.jpg";
         const visible = new Set();
         for (let i = 0; i <= this.currentStep; i++) {
           const e = events.at(i);
-          if (e.type === "root" || e.type === "reply" || e.type === "quote")
-            visible.add(e.id);
+          if (e.type === "root" || e.type === "reply" || e.type === "quote") visible.add(e.id);
         }
         this.visualizer.update(this.network, visible);
       }

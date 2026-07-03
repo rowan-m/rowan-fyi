@@ -22,9 +22,7 @@
     );
     observer.observe();
 
-    document
-      .querySelector('button[name="alert"]')
-      .addEventListener("click", (e) => window.alert("Cross-origin alert"));
+    document.querySelector('button[name="alert"]').addEventListener("click", (e) => window.alert("Cross-origin alert"));
     document
       .querySelector('button[name="confirm"]')
       .addEventListener("click", (e) => window.confirm("Cross-origin confirm"));

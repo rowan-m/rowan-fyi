@@ -25,10 +25,7 @@ app.use(function (req, res, next) {
 
   // Set the HSTS header if we're already on HTTPS
   if (req.secure) {
-    res.set(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubdomains; preload",
-    );
+    res.set("Strict-Transport-Security", "max-age=63072000; includeSubdomains; preload");
     // Doesn't do much, but more a reminder to actually do one for a real project
     res.set(
       "Content-Security-Policy",
@@ -62,9 +59,6 @@ const listener = app.listen(process.env.PORT, function () {
   console.log("Your app is listening on port " + listener.address().port);
 
   if (app.get("env") === "development") {
-    console.log(
-      "If you are running locally, try http://localhost:" +
-        listener.address().port,
-    );
+    console.log("If you are running locally, try http://localhost:" + listener.address().port);
   }
 });

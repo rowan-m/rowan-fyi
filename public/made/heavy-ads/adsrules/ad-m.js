@@ -18,9 +18,7 @@ if (urlParams.get("ad")) {
   iframeSrc = urlParams.get("ad") + "?n=" + loadedAt;
 } else if (urlParams.get("site")) {
   // or load the user's content
-  iframeSrc =
-    "/adserver-proxy/adunit.html?site=" +
-    encodeURIComponent(urlParams.get("site"));
+  iframeSrc = "/adserver-proxy/adunit.html?site=" + encodeURIComponent(urlParams.get("site"));
 }
 
 // update the iframe URL and add it to the page
@@ -30,8 +28,7 @@ document.querySelector(".ad-area").appendChild(frame);
 
 // Simple reporting mechanism that's just awaiting a postMessage from the ad frame
 const unloadMessage = document.createElement("pre");
-unloadMessage.textContent =
-  "[Reports from ads that trigger an intervention will show here]";
+unloadMessage.textContent = "[Reports from ads that trigger an intervention will show here]";
 document.querySelector(".ad-area").appendChild(unloadMessage);
 
 // Handle incoming messages from the iframes

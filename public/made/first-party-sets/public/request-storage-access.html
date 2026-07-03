@@ -51,21 +51,15 @@
 
   <ol>
     <li>
-      Check <code>document.hasStorageAccess().then(status => {…})</code> and see
-      that <code>status</code> is
-      <code class="status storage-access">[…]</code>. If this returns
-      <code>true</code> then cross-site cookies will be available, if
-      <code>false</code> the page will need to request access.
+      Check <code>document.hasStorageAccess().then(status => {…})</code> and see that <code>status</code> is
+      <code class="status storage-access">[…]</code>. If this returns <code>true</code> then cross-site cookies will be
+      available, if <code>false</code> the page will need to request access.
     </li>
 
     <li>
       Check
-      <code
-        >navigator.permissions.query({name: 'storage-access'}).then(res =>
-        {…}</code
-      >
-      and see that <code>res.state</code> is
-      <code class="status permission">[…]</code>.
+      <code>navigator.permissions.query({name: 'storage-access'}).then(res => {…}</code>
+      and see that <code>res.state</code> is <code class="status permission">[…]</code>.
     </li>
 
     <li>
@@ -77,12 +71,9 @@
         </li>
 
         <li>
-          If <code>prompt</code> we need to put the
-          <code>document.requestStorageAccess().then(res => {…})</code> behind a
-          user gesture, e.g. clicking a button.<br />
-          <button type="button" class="click-for-cookies">
-            🍪 Click for cookies</button
-          ><br />
+          If <code>prompt</code> we need to put the <code>document.requestStorageAccess().then(res => {…})</code> behind
+          a user gesture, e.g. clicking a button.<br />
+          <button type="button" class="click-for-cookies">🍪 Click for cookies</button><br />
 
           <code>document.requestStorageAccess().then(res => {…})</code> →
           <span class="rsa status">[…]</span>
@@ -90,22 +81,18 @@
       </ol>
     </li>
     <li>
-      Subsequent requests initiated within this frame will now include cookies,
-      so if you
+      Subsequent requests initiated within this frame will now include cookies, so if you
       <a href="./request-storage-access.html">🔃 navigate back here again</a>
-      you should see the page immediate has storage access and can see the
-      cross-site cookie.
+      you should see the page immediate has storage access and can see the cross-site cookie.
     </li>
   </ol>
 
   <p>
     <strong>Notes:</strong><br />
-    💡 If you reload the entire page, you will see that storage access is not
-    automatically granted. <code>requestStorageAccess()</code> must be called
-    per frame.<br />
-    💡 After a successful <code>requestStorageAccess()</code> call, you won't
-    see the cross-site cookie in <code>document.cookie</code> immediately
-    because the cookie was not sent with the page request.
+    💡 If you reload the entire page, you will see that storage access is not automatically granted.
+    <code>requestStorageAccess()</code> must be called per frame.<br />
+    💡 After a successful <code>requestStorageAccess()</code> call, you won't see the cross-site cookie in
+    <code>document.cookie</code> immediately because the cookie was not sent with the page request.
   </p>
   <script>
     "use strict";
@@ -114,20 +101,13 @@
     }
 
     console.log(
-      "[" +
-        document.location.hostname +
-        "] 🍪 Cookies visible to JavaScript at page load: " +
-        document.cookie,
+      "[" + document.location.hostname + "] 🍪 Cookies visible to JavaScript at page load: " + document.cookie,
     );
     document.querySelector(".cookies-load").textContent = document.cookie;
 
     // Check if storage access is already enabled
     document.hasStorageAccess().then((access) => {
-      console.log(
-        "[" +
-          document.location.hostname +
-          "] 1️⃣ Check if storage access is enabled",
-      );
+      console.log("[" + document.location.hostname + "] 1️⃣ Check if storage access is enabled");
       console.log(
         "[" +
           document.location.hostname +
@@ -135,22 +115,14 @@
           access,
       );
 
-      document.querySelector(".storage-access").textContent = access
-        ? "true"
-        : "false";
-      document
-        .querySelector(".storage-access")
-        .classList.add(access ? "pass" : "fail");
+      document.querySelector(".storage-access").textContent = access ? "true" : "false";
+      document.querySelector(".storage-access").classList.add(access ? "pass" : "fail");
     });
 
     // If storage access is not enabled, we will need to request it.
     // Check the storage access permission to see if that requires a user gesture or can be automatically granted
     navigator.permissions.query({ name: "storage-access" }).then((res) => {
-      console.log(
-        "[" +
-          document.location.hostname +
-          "] 2️⃣ Check if the storage-access permission has been granted",
-      );
+      console.log("[" + document.location.hostname + "] 2️⃣ Check if the storage-access permission has been granted");
       console.log(
         "[" +
           document.location.hostname +
@@ -173,9 +145,7 @@
                   "] 3️⃣🅰 Storage-access permission granted, immediately request storage access.",
               );
               console.log(
-                "[" +
-                  document.location.hostname +
-                  "] document.requestStorageAccess().then(res => {…}) → success",
+                "[" + document.location.hostname + "] document.requestStorageAccess().then(res => {…}) → success",
               );
               document.querySelector(".rsa").textContent = "success";
               document.querySelector(".rsa").classList.add("pass");
@@ -201,40 +171,36 @@
       }
     });
 
-    document
-      .querySelector(".click-for-cookies")
-      .addEventListener("click", () => {
-        if ("requestStorageAccess" in document) {
-          document.requestStorageAccess().then(
-            (res) => {
-              console.log(
-                "[" +
-                  document.location.hostname +
-                  "] 3️⃣🅱 Request storage access after user gesture, e.g. this button click.",
-              );
-              console.log(
-                "[" +
-                  document.location.hostname +
-                  "] document.requestStorageAccess().then(res => {…}) → success",
-              );
-              document.querySelector(".rsa").textContent = "success";
-              document.querySelector(".rsa").classList.add("pass");
-            },
-            (err) => {
-              console.log(
-                "[" +
-                  document.location.hostname +
-                  "] 3️⃣🅱 Request storage access after user gesture, e.g. this button click.",
-              );
-              console.log(
-                "[" +
-                  document.location.hostname +
-                  "] document.requestStorageAccess().then(res => {…}, err => {…}) → ERROR:",
-                err,
-              );
-            },
-          );
-        }
-      });
+    document.querySelector(".click-for-cookies").addEventListener("click", () => {
+      if ("requestStorageAccess" in document) {
+        document.requestStorageAccess().then(
+          (res) => {
+            console.log(
+              "[" +
+                document.location.hostname +
+                "] 3️⃣🅱 Request storage access after user gesture, e.g. this button click.",
+            );
+            console.log(
+              "[" + document.location.hostname + "] document.requestStorageAccess().then(res => {…}) → success",
+            );
+            document.querySelector(".rsa").textContent = "success";
+            document.querySelector(".rsa").classList.add("pass");
+          },
+          (err) => {
+            console.log(
+              "[" +
+                document.location.hostname +
+                "] 3️⃣🅱 Request storage access after user gesture, e.g. this button click.",
+            );
+            console.log(
+              "[" +
+                document.location.hostname +
+                "] document.requestStorageAccess().then(res => {…}, err => {…}) → ERROR:",
+              err,
+            );
+          },
+        );
+      }
+    });
   </script>
 </html>

@@ -20,11 +20,7 @@
       margin: 0;
       padding: 0;
       background: rgb(97, 161, 246);
-      background: linear-gradient(
-        0deg,
-        hsl(214, 90%, 70%) 0%,
-        hsl(214, 40%, 30%) 100%
-      );
+      background: linear-gradient(0deg, hsl(214, 90%, 70%) 0%, hsl(214, 40%, 30%) 100%);
     }
 
     .main-canvas {
@@ -49,12 +45,7 @@
     }
   </style>
   <main>
-    <canvas
-      class="main-canvas"
-      draggable="false"
-      width="512"
-      height="512"
-    ></canvas>
+    <canvas class="main-canvas" draggable="false" width="512" height="512"></canvas>
     <button type="button" class="snow-butt">👆➡️❄️</button>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
@@ -147,42 +138,24 @@
       }
 
       handleAccel(e) {
-        const orientation =
-          (screen.orientation || {}).type ||
-          screen.mozOrientation ||
-          screen.msOrientation;
+        const orientation = (screen.orientation || {}).type || screen.mozOrientation || screen.msOrientation;
 
         switch (orientation) {
           case "portrait-primary":
-            this.gravity.x =
-              this.gravity.xdir * e.accelerationIncludingGravity.x;
-            this.gravity.y =
-              e.accelerationIncludingGravity.y +
-              e.accelerationIncludingGravity.z * 0.1;
+            this.gravity.x = this.gravity.xdir * e.accelerationIncludingGravity.x;
+            this.gravity.y = e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * 0.1;
             break;
           case "landscape-primary":
-            this.gravity.y = -(
-              this.gravity.xdir * e.accelerationIncludingGravity.x
-            );
-            this.gravity.x =
-              e.accelerationIncludingGravity.y +
-              e.accelerationIncludingGravity.z * 0.1;
+            this.gravity.y = -(this.gravity.xdir * e.accelerationIncludingGravity.x);
+            this.gravity.x = e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * 0.1;
             break;
           case "landscape-secondary":
-            this.gravity.y =
-              this.gravity.xdir * e.accelerationIncludingGravity.x;
-            this.gravity.x = -(
-              e.accelerationIncludingGravity.y +
-              e.accelerationIncludingGravity.z * 0.1
-            );
+            this.gravity.y = this.gravity.xdir * e.accelerationIncludingGravity.x;
+            this.gravity.x = -(e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * 0.1);
             break;
           case "portrait-secondary":
-            this.gravity.x =
-              this.gravity.xdir * e.accelerationIncludingGravity.x;
-            this.gravity.y = -(
-              e.accelerationIncludingGravity.y +
-              e.accelerationIncludingGravity.z * 0.1
-            );
+            this.gravity.x = this.gravity.xdir * e.accelerationIncludingGravity.x;
+            this.gravity.y = -(e.accelerationIncludingGravity.y + e.accelerationIncludingGravity.z * 0.1);
             break;
         }
       }
@@ -274,10 +247,7 @@
       resize(width, height) {
         this.cellx = Math.ceil(width / this.precision);
         this.celly = Math.ceil(height / this.precision);
-        this.friction = Array.from(
-          Array(this.precision),
-          () => new Array(this.precision),
-        );
+        this.friction = Array.from(Array(this.precision), () => new Array(this.precision));
       }
 
       reduce(x, y) {
@@ -351,11 +321,8 @@
 
       calc() {
         this.lifeprogress = this.age / this.inceptDate;
-        this.scaleBase =
-          (this.world.width + this.world.height) / (6000 * this.mass);
-        this.scale =
-          this.scaleBase -
-          this.scaleBase * this.lifeprogress * this.lifeprogress;
+        this.scaleBase = (this.world.width + this.world.height) / (6000 * this.mass);
+        this.scale = this.scaleBase - this.scaleBase * this.lifeprogress * this.lifeprogress;
         this.melted = this.age >= this.inceptDate;
       }
 
@@ -400,8 +367,7 @@
       }
 
       applyWind() {
-        const windFactor =
-          Math.random() * 0.2 + 0.2 + this.dt * this.lifeprogress;
+        const windFactor = Math.random() * 0.2 + 0.2 + this.dt * this.lifeprogress;
         this.dx += this.world.wind.x * windFactor;
         this.dy += this.world.wind.y * windFactor * 1.1;
       }

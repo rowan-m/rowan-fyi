@@ -1,18 +1,14 @@
 <!doctype html>
 <meta charset="UTF-8" />
 <title>Advent Calendar</title>
-<meta
-  name="viewport"
-  content="width=device-width,height=device-height,minimum-scale=1"
-/>
+<meta name="viewport" content="width=device-width,height=device-height,minimum-scale=1" />
 <meta name="theme-color" content="#1f3b08" />
 
 <style>
   @font-face {
     font-family: "Mountains of Christmas";
     font-display: swap;
-    src: url("./assets/mountains-of-christmas-v10-latin-regular.woff")
-      format("woff2");
+    src: url("./assets/mountains-of-christmas-v10-latin-regular.woff") format("woff2");
   }
 
   body {
@@ -73,13 +69,11 @@
   }
 
   #door:hover {
-    transform: perspective(500px) translateZ(0px) translateX(0px)
-      translateY(0px) rotateY(-20deg);
+    transform: perspective(500px) translateZ(0px) translateX(0px) translateY(0px) rotateY(-20deg);
   }
 
   #door.open {
-    transform: perspective(500px) translateZ(0px) translateX(0px)
-      translateY(0px) rotateY(-120deg);
+    transform: perspective(500px) translateZ(0px) translateX(0px) translateY(0px) rotateY(-120deg);
   }
 </style>
 
@@ -106,22 +100,7 @@
   var periodicUpdateDate = setInterval(updateDate, 60000);
   var door = document.getElementById("door");
   var scene = document.querySelector("#scene>span");
-  var scenes = [
-    "🎁",
-    "🎄",
-    "⛄",
-    "☃️",
-    "❄️",
-    "🌟",
-    "🍷",
-    "🍪",
-    "🦌",
-    "🤶",
-    "🎅",
-    "🍾",
-    "💞",
-    "🎉",
-  ];
+  var scenes = ["🎁", "🎄", "⛄", "☃️", "❄️", "🌟", "🍷", "🍪", "🦌", "🤶", "🎅", "🍾", "💞", "🎉"];
   document.getElementById("scene").addEventListener("click", function (ev) {
     if (door.className == "open") {
       door.className = "";

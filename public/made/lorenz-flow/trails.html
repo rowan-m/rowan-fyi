@@ -103,11 +103,7 @@
     const numPoints = 10;
     const tailSegments = 3;
 
-    const pointsBufferAttribute = storage(
-      new StorageBufferAttribute(numPoints, 3),
-      "vec3",
-      numPoints,
-    );
+    const pointsBufferAttribute = storage(new StorageBufferAttribute(numPoints, 3), "vec3", numPoints);
     const tracerBufferAttribute = storage(
       new StorageBufferAttribute(numPoints * tailSegments * 2, 3),
       "vec3",

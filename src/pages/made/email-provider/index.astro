@@ -37,28 +37,13 @@ if (Astro.request.method === "POST") {
 >
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
-  <meta
-    property="og:title"
-    content="Issuer - Email Verification Protocol (EVP) demo"
-  />
-  <meta
-    property="og:description"
-    content="Demo of an Email Verification Protocol (EVP) Issuer"
-  />
+  <meta property="og:title" content="Issuer - Email Verification Protocol (EVP) demo" />
+  <meta property="og:description" content="Demo of an Email Verification Protocol (EVP) Issuer" />
   <meta name="twitter:card" content="summary" />
   <meta property="twitter:domain" content="rowan.fyi" />
-  <meta
-    property="twitter:url"
-    content={new URL(Astro.url.pathname, Astro.site)}
-  />
-  <meta
-    name="twitter:title"
-    content="Issuer - Email Verification Protocol (EVP) demo"
-  />
-  <meta
-    name="twitter:description"
-    content="Demo of an Email Verification Protocol (EVP) Issuer"
-  />
+  <meta property="twitter:url" content={new URL(Astro.url.pathname, Astro.site)} />
+  <meta name="twitter:title" content="Issuer - Email Verification Protocol (EVP) demo" />
+  <meta name="twitter:description" content="Demo of an Email Verification Protocol (EVP) Issuer" />
   <link
     rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📧</text></svg>"
@@ -145,10 +130,8 @@ if (Astro.request.method === "POST") {
   <main class="evp-demo-container">
     <h1>Issuer - Email Verification Protocol (EVP) demo</h1>
     <p class="evp-intro-text">
-      Simulates an email provider that is authoritative for <code
-        >rowan.fyi</code
-      >. Manage your login session here to control whether the browser can
-      verify your email identity.
+      Simulates an email provider that is authoritative for <code>rowan.fyi</code>. Manage your login session here to
+      control whether the browser can verify your email identity.
     </p>
 
     {
@@ -182,22 +165,11 @@ if (Astro.request.method === "POST") {
     // Synchronize browser's login status with the Issuer session
     // This is required for FedCM accounts-discovery and verification steps.
     // We ONLY invoke setStatus when an explicit action (login/logout) was performed, NOT on standard GET requests.
-    if (
-      triggerLoginStatusUpdate &&
-      navigator.login &&
-      navigator.login.setStatus
-    ) {
+    if (triggerLoginStatusUpdate && navigator.login && navigator.login.setStatus) {
       navigator.login
         .setStatus(triggerLoginStatusUpdate)
-        .then(() =>
-          console.log(`navigator.login.setStatus(${triggerLoginStatusUpdate})`),
-        )
-        .catch((err) =>
-          console.error(
-            `navigator.login.setStatus(${triggerLoginStatusUpdate}) error:`,
-            err,
-          ),
-        );
+        .then(() => console.log(`navigator.login.setStatus(${triggerLoginStatusUpdate})`))
+        .catch((err) => console.error(`navigator.login.setStatus(${triggerLoginStatusUpdate}) error:`, err));
     }
   </script>
 </MetaOnlyLayout>

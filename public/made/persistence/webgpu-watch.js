@@ -75,8 +75,7 @@ async function initWebGPU() {
       particleView.setFloat32(offset + 20, r, true); // radius
 
       // Pin the particle closest to the pivot (dist near 0) AND the tip (last particle)
-      const isPinned =
-        Math.abs(dist) < segLen || i === numSegments - 1 ? 1.0 : 0.0;
+      const isPinned = Math.abs(dist) < segLen || i === numSegments - 1 ? 1.0 : 0.0;
       particleView.setFloat32(offset + 24, isPinned, true); // is_pinned
     }
   };
@@ -91,9 +90,7 @@ async function initWebGPU() {
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
-  new Uint8Array(particleBuffer.getMappedRange()).set(
-    new Uint8Array(initialParticleData),
-  );
+  new Uint8Array(particleBuffer.getMappedRange()).set(new Uint8Array(initialParticleData));
   particleBuffer.unmap();
 
   // Pipelines
@@ -213,10 +210,7 @@ async function initWebGPU() {
     const millis = time.getMilliseconds();
 
     const secondAngle = (_2PI / 60) * second + (_2PI / 60 / 1000) * millis;
-    const minuteAngle =
-      (_2PI / 60) * minute +
-      (_2PI / 60 / 60) * second +
-      (_2PI / 60 / 60 / 1000) * millis;
+    const minuteAngle = (_2PI / 60) * minute + (_2PI / 60 / 60) * second + (_2PI / 60 / 60 / 1000) * millis;
     const hourAngle =
       (_2PI / 12) * hour +
       (_2PI / 12 / 60) * minute +
@@ -276,8 +270,7 @@ async function initWebGPU() {
   const numberEls = document.querySelectorAll(".hour-num>span");
 
   function rotateNumbers() {
-    let gRot =
-      (Math.atan2(currentAccel.y, currentAccel.x) * 180) / Math.PI - 90;
+    let gRot = (Math.atan2(currentAccel.y, currentAccel.x) * 180) / Math.PI - 90;
     numberEls.forEach((num) => {
       num.style.transform = `rotate(${num.textContent * -30 + gRot}deg)`;
     });

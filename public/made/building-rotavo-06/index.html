@@ -19,10 +19,7 @@
   <title>Building Rotavo</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link
-    rel="shortcut icon"
-    href="https://rotavo-pwa.firebaseapp.com/favicon.ico"
-  />
+  <link rel="shortcut icon" href="https://rotavo-pwa.firebaseapp.com/favicon.ico" />
   <style>
     body {
       font-family: monospace;
@@ -255,21 +252,10 @@
         window.oncontextmenu = () => {
           return false;
         };
-        this._centerX =
-          this.offsetLeft -
-          this.scrollLeft +
-          this.clientLeft +
-          this.offsetWidth / 2;
-        this._centerY =
-          this.offsetTop -
-          this.scrollTop +
-          this.clientTop +
-          this.offsetHeight / 2;
+        this._centerX = this.offsetLeft - this.scrollLeft + this.clientLeft + this.offsetWidth / 2;
+        this._centerY = this.offsetTop - this.scrollTop + this.clientTop + this.offsetHeight / 2;
         this._initialAngle = this._angle;
-        this._initialTouchAngle = Math.atan2(
-          this._touchY - this._centerY,
-          this._touchX - this._centerX,
-        );
+        this._initialTouchAngle = Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
 
         const evt = new Event("knob-move-start", { bubbles: true });
         this.dispatchEvent(evt);
@@ -279,10 +265,7 @@
         this._angle =
           this._initialAngle -
           this._initialTouchAngle +
-          Math.atan2(
-            this._touchY - this._centerY,
-            this._touchX - this._centerX,
-          );
+          Math.atan2(this._touchY - this._centerY, this._touchX - this._centerX);
         this._angle = (this._angle + TWO_PI) % TWO_PI;
         this.value = this._angle / (TWO_PI / this.scale);
 

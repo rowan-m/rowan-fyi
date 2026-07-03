@@ -50,14 +50,9 @@ class Acceleration {
     const now = Date.now();
     const elapsedTime = now - this.updated;
 
-    this.x +=
-      (elapsedTime * (e.gamma * this.sensorDirection - this.x)) /
-      this.smoothing;
-    this.y +=
-      (elapsedTime * (e.beta * this.sensorDirection - this.y)) / this.smoothing;
-    this.z +=
-      (elapsedTime * (e.alpha * this.sensorDirection - this.z)) /
-      this.smoothing;
+    this.x += (elapsedTime * (e.gamma * this.sensorDirection - this.x)) / this.smoothing;
+    this.y += (elapsedTime * (e.beta * this.sensorDirection - this.y)) / this.smoothing;
+    this.z += (elapsedTime * (e.alpha * this.sensorDirection - this.z)) / this.smoothing;
     this.updated = now;
 
     if (this.worker !== null) {

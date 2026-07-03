@@ -16,11 +16,6 @@ export default [
     },
   },
   {
-    ignores: [
-      "dist/**/*",
-      ".astro/**/*",
-      "node_modules/**/*",
-      "public/made/**/*",
-    ],
+    ignores: ["dist/**/*", ".astro/**/*", "node_modules/**/*", "public/made/**/*"],
   },
 ];

@@ -1,7 +1,5 @@
 "use strict";
-document
-  .querySelector('input[name="nocache"]')
-  .setAttribute("value", Date.now());
+document.querySelector('input[name="nocache"]').setAttribute("value", Date.now());
 
 const tag = document.createElement("script");
 tag.src = "https://www.youtube.com/player_api";

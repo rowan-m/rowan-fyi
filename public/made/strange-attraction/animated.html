@@ -118,30 +118,9 @@
       <button type="button" class="saveimage">💾</button>
       <button type="button" class="toggle-pp">⏸️</button>
       <button type="button" class="shuffle">🔀</button>
-      <label
-        >↔
-        <input
-          type="range"
-          name="xOff"
-          min="-500"
-          max="500"
-          value="0"
-          step="25"
-      /></label>
-      <label
-        >↕
-        <input
-          type="range"
-          name="yOff"
-          min="-500"
-          max="500"
-          value="0"
-          step="25"
-      /></label>
-      <label
-        >🔎
-        <input type="range" name="zoom" min="-1" max="3" value="0" step=".1"
-      /></label>
+      <label>↔ <input type="range" name="xOff" min="-500" max="500" value="0" step="25" /></label>
+      <label>↕ <input type="range" name="yOff" min="-500" max="500" value="0" step="25" /></label>
+      <label>🔎 <input type="range" name="zoom" min="-1" max="3" value="0" step=".1" /></label>
     </form>
     <section>
       <a href="https://twitter.com/rowan_m">🦤 @rowan_m</a>
@@ -152,29 +131,18 @@
     "use strict";
 
     if (location.protocol !== "https:") {
-      location.replace(
-        `https:${location.href.substring(location.protocol.length)}`,
-      );
+      location.replace(`https:${location.href.substring(location.protocol.length)}`);
     }
 
     document.querySelector(".saveimage").addEventListener("click", (e) => {
       const d = new Date();
       const timestamp =
-        "" +
-        d.getFullYear() +
-        d.getMonth() +
-        d.getDay() +
-        d.getHours() +
-        d.getMinutes() +
-        d.getSeconds();
+        "" + d.getFullYear() + d.getMonth() + d.getDay() + d.getHours() + d.getMinutes() + d.getSeconds();
       // e.target.download = `strange-attraction-${timestamp}.png`;
       // e.target.href = document.querySelector('canvas').toDataURL('image/png').replace('image/png', 'image/octet-stream');
 
       const tmpA = document.createElement("a");
-      tmpA.href = document
-        .querySelector("canvas")
-        .toDataURL("image/png")
-        .replace("image/png", "image/octet-stream");
+      tmpA.href = document.querySelector("canvas").toDataURL("image/png").replace("image/png", "image/octet-stream");
       tmpA.target = "_blank";
       tmpA.download = `strange-attraction-${timestamp}.png`;
       tmpA.click();
@@ -261,16 +229,8 @@
         this.ctx.translate(0, 0);
         this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
         this.ctx.fillStyle = "hsl(0deg, 0%, 20%)";
-        this.ctx.translate(
-          Math.floor(this.w / 2 + this.xOff),
-          Math.floor(this.h / 2 + this.yOff),
-        );
-        this.ctx.fillRect(
-          -Math.floor(this.w / 2 + this.xOff),
-          -Math.floor(this.h / 2 + this.yOff),
-          this.w,
-          this.h,
-        );
+        this.ctx.translate(Math.floor(this.w / 2 + this.xOff), Math.floor(this.h / 2 + this.yOff));
+        this.ctx.fillRect(-Math.floor(this.w / 2 + this.xOff), -Math.floor(this.h / 2 + this.yOff), this.w, this.h);
         this.ctx.globalCompositeOperation = "screen";
         this.ctx.globalAlpha = 0.3;
       }
@@ -402,19 +362,11 @@
       render(t) {
         const distFactor = this.dist / this.maxDist;
         this.distFactor += (distFactor - this.distFactor) * 0.8;
-        const hue =
-          (this.distFactor * 720 + this.hueoffset + this.anim.delta * 100) %
-          360;
+        const hue = (this.distFactor * 720 + this.hueoffset + this.anim.delta * 100) % 360;
         this.ctx.fillStyle = `hsl(${hue}deg, 100%, 30%)`;
         this.dotSize = 1;
         this.ctx.beginPath();
-        this.ctx.arc(
-          this.p1.x * this.scale,
-          this.p1.y * this.scale,
-          this.dotSize,
-          0,
-          2 * Math.PI,
-        );
+        this.ctx.arc(this.p1.x * this.scale, this.p1.y * this.scale, this.dotSize, 0, 2 * Math.PI);
         this.ctx.fill();
       }
 
@@ -428,12 +380,7 @@
         this.ctx.globalCompositeOperation = "multiply";
         this.ctx.globalAlpha = 0.01;
         this.ctx.fillStyle = `hsl(0deg, 0%, 10%)`;
-        this.ctx.fillRect(
-          -Math.floor(this.w / 2 + this.xOff),
-          -Math.floor(this.h / 2 + this.yOff),
-          this.w,
-          this.h,
-        );
+        this.ctx.fillRect(-Math.floor(this.w / 2 + this.xOff), -Math.floor(this.h / 2 + this.yOff), this.w, this.h);
         this.ctx.globalCompositeOperation = "screen";
         this.ctx.globalAlpha = 0.3;
       }

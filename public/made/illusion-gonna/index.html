@@ -123,8 +123,7 @@
       display: grid;
       align-items: start;
       justify-items: center;
-      animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite
-        reverse rotate;
+      animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite reverse rotate;
     }
 
     .point::before {
@@ -252,8 +251,7 @@
     .square {
       width: calc(var(--inner-radius) * 1.4142);
       height: calc(var(--inner-radius) * 1.4142);
-      animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite
-        rotate;
+      animation: calc(var(--anim-base-dur) / var(--factor)) linear infinite rotate;
       border: var(--border) lightsteelblue;
     }
 
@@ -412,20 +410,14 @@
       location.protocol = "https:";
     }
 
-    document
-      .querySelector("button.tracks-butt")
-      .addEventListener("click", () => {
-        document.querySelector(".tracks").classList.toggle("hide");
-      });
-    document
-      .querySelector("button.circles-butt")
-      .addEventListener("click", () => {
-        document.querySelector(".circles").classList.toggle("hide");
-      });
-    document
-      .querySelector("button.squares-butt")
-      .addEventListener("click", () => {
-        document.querySelector(".squares").classList.toggle("hide");
-      });
+    document.querySelector("button.tracks-butt").addEventListener("click", () => {
+      document.querySelector(".tracks").classList.toggle("hide");
+    });
+    document.querySelector("button.circles-butt").addEventListener("click", () => {
+      document.querySelector(".circles").classList.toggle("hide");
+    });
+    document.querySelector("button.squares-butt").addEventListener("click", () => {
+      document.querySelector(".squares").classList.toggle("hide");
+    });
   </script>
 </html>

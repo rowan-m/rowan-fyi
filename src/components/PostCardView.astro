@@ -35,19 +35,11 @@ const { post } = Astro.props;
 </style>
 <div class="card">
   <a href={"/posts/" + post.id + "/"} tabindex="-1" aria-hidden="true">
-    <Image
-      src={post.data.image}
-      alt={post.data.imageAlt || `Preview for ${post.data.title}`}
-      width="800"
-    />
+    <Image src={post.data.image} alt={post.data.imageAlt || `Preview for ${post.data.title}`} width="800" />
   </a>
   <a href={"/posts/" + post.id + "/"}>
     <h3>{post.data.title}</h3>
   </a>
-  <span class="pubdate"
-    >Published: {
-      new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)
-    }</span
-  >
+  <span class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</span>
   <p>{post.data.description}</p>
 </div>

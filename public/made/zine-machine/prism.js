@@ -3,8 +3,7 @@ https://prismjs.com/download.html#themes=prism&languages=css&plugins=toolbar */
 var _self =
     "undefined" != typeof window
       ? window
-      : "undefined" != typeof WorkerGlobalScope &&
-          self instanceof WorkerGlobalScope
+      : "undefined" != typeof WorkerGlobalScope && self instanceof WorkerGlobalScope
         ? self
         : {},
   Prism = (function (g) {
@@ -12,8 +11,7 @@ var _self =
       a = 0,
       C = {
         manual: g.Prism && g.Prism.manual,
-        disableWorkerMessageHandler:
-          g.Prism && g.Prism.disableWorkerMessageHandler,
+        disableWorkerMessageHandler: g.Prism && g.Prism.disableWorkerMessageHandler,
         util: {
           encode: function (e) {
             return e instanceof M
@@ -29,10 +27,7 @@ var _self =
             return Object.prototype.toString.call(e).slice(8, -1);
           },
           objId: function (e) {
-            return (
-              e.__id || Object.defineProperty(e, "__id", { value: ++a }),
-              e.__id
-            );
+            return (e.__id || Object.defineProperty(e, "__id", { value: ++a }), e.__id);
           },
           clone: function n(e, t) {
             var r,
@@ -41,8 +36,7 @@ var _self =
             switch (((t = t || {}), i)) {
               case "Object":
                 if (((a = C.util.objId(e)), t[a])) return t[a];
-                for (var l in ((r = {}), (t[a] = r), e))
-                  e.hasOwnProperty(l) && (r[l] = n(e[l], t));
+                for (var l in ((r = {}), (t[a] = r), e)) e.hasOwnProperty(l) && (r[l] = n(e[l], t));
                 return r;
               case "Array":
                 return (
@@ -72,8 +66,7 @@ var _self =
               i = {};
             for (var l in r)
               if (r.hasOwnProperty(l)) {
-                if (l == e)
-                  for (var o in a) a.hasOwnProperty(o) && (i[o] = a[o]);
+                if (l == e) for (var o in a) a.hasOwnProperty(o) && (i[o] = a[o]);
                 a.hasOwnProperty(l) || (i[l] = r[l]);
               }
             var s = t[n];
@@ -110,29 +103,17 @@ var _self =
               'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code',
           };
           C.hooks.run("before-highlightall", t);
-          for (
-            var r, i = t.elements || e.querySelectorAll(t.selector), l = 0;
-            (r = i[l++]);
-          )
+          for (var r, i = t.elements || e.querySelectorAll(t.selector), l = 0; (r = i[l++]); )
             C.highlightElement(r, !0 === a, t.callback);
         },
         highlightElement: function (e, a, n) {
-          for (var t, r = "none", i = e; i && !c.test(i.className); )
-            i = i.parentNode;
-          (i &&
-            ((r = (i.className.match(c) || [, "none"])[1].toLowerCase()),
-            (t = C.languages[r])),
-            (e.className =
-              e.className.replace(c, "").replace(/\s+/g, " ") +
-              " language-" +
-              r),
+          for (var t, r = "none", i = e; i && !c.test(i.className); ) i = i.parentNode;
+          (i && ((r = (i.className.match(c) || [, "none"])[1].toLowerCase()), (t = C.languages[r])),
+            (e.className = e.className.replace(c, "").replace(/\s+/g, " ") + " language-" + r),
             e.parentNode &&
               ((i = e.parentNode),
               /pre/i.test(i.nodeName) &&
-                (i.className =
-                  i.className.replace(c, "").replace(/\s+/g, " ") +
-                  " language-" +
-                  r)));
+                (i.className = i.className.replace(c, "").replace(/\s+/g, " ") + " language-" + r)));
           var l = { element: e, language: r, grammar: t, code: e.textContent },
             o = function (e) {
               ((l.highlightedCode = e),
@@ -194,11 +175,7 @@ var _self =
                     if (f && y != a.length - 1) {
                       if (((c.lastIndex = v), !(x = c.exec(e)))) break;
                       for (
-                        var b = x.index + (h ? x[1].length : 0),
-                          w = x.index + x[0].length,
-                          A = y,
-                          P = v,
-                          O = a.length;
+                        var b = x.index + (h ? x[1].length : 0), w = x.index + x[0].length, A = y, P = v, O = a.length;
                         A < O && (P < w || (!a[A].type && !a[A - 1].greedy));
                         ++A
                       )
@@ -286,9 +263,7 @@ var _self =
         C.hooks.run("wrap", n);
         var r = Object.keys(n.attributes)
           .map(function (e) {
-            return (
-              e + '="' + (n.attributes[e] || "").replace(/"/g, "&quot;") + '"'
-            );
+            return e + '="' + (n.attributes[e] || "").replace(/"/g, "&quot;") + '"';
           })
           .join(" ");
         return (
@@ -317,16 +292,13 @@ var _self =
                   n = a.language,
                   t = a.code,
                   r = a.immediateClose;
-                (g.postMessage(C.highlight(t, C.languages[n], n)),
-                  r && g.close());
+                (g.postMessage(C.highlight(t, C.languages[n], n)), r && g.close());
               },
               !1,
             )),
         C
       );
-    var e =
-      document.currentScript ||
-      [].slice.call(document.getElementsByTagName("script")).pop();
+    var e = document.currentScript || [].slice.call(document.getElementsByTagName("script")).pop();
     return (
       e &&
         ((C.filename = e.src),
@@ -408,25 +380,13 @@ var _self =
                   e
                 );
               }),
-          t in i
-            ? console.warn(
-                'There is a button with the key "' +
-                  t +
-                  '" registered already.',
-              )
-            : r.push((i[t] = e)));
+          t in i ? console.warn('There is a button with the key "' + t + '" registered already.') : r.push((i[t] = e)));
       }),
       e = (Prism.plugins.toolbar.hook = function (a) {
         var t = a.element.parentNode;
-        if (
-          t &&
-          /pre/i.test(t.nodeName) &&
-          !t.parentNode.classList.contains("code-toolbar")
-        ) {
+        if (t && /pre/i.test(t.nodeName) && !t.parentNode.classList.contains("code-toolbar")) {
           var e = document.createElement("div");
-          (e.classList.add("code-toolbar"),
-            t.parentNode.insertBefore(e, t),
-            e.appendChild(t));
+          (e.classList.add("code-toolbar"), t.parentNode.insertBefore(e, t), e.appendChild(t));
           var o = document.createElement("div");
           (o.classList.add("toolbar"),
             document.body.hasAttribute("data-toolbar-order") &&
@@ -440,9 +400,7 @@ var _self =
               var e = t(a);
               if (e) {
                 var n = document.createElement("div");
-                (n.classList.add("toolbar-item"),
-                  n.appendChild(e),
-                  o.appendChild(n));
+                (n.classList.add("toolbar-item"), n.appendChild(e), o.appendChild(n));
               }
             }),
             e.appendChild(o));
@@ -461,8 +419,7 @@ var _self =
           a
             ? (n = a.content)
             : (e.hasAttribute("data-url")
-                ? ((n = document.createElement("a")).href =
-                    e.getAttribute("data-url"))
+                ? ((n = document.createElement("a")).href = e.getAttribute("data-url"))
                 : (n = document.createElement("span")),
               (n.textContent = o)),
           n

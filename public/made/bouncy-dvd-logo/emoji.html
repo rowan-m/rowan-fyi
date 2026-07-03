@@ -12,10 +12,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Emoji&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Emoji&display=swap" rel="stylesheet" />
   <style>
     :root {
       --scale: 15;
@@ -24,13 +21,7 @@
     }
 
     body {
-      background:
-        radial-gradient(
-          circle,
-          rgba(128, 128, 128, 0.2) 0%,
-          rgba(0, 0, 0, 0.1) 100%
-        ),
-        black;
+      background: radial-gradient(circle, rgba(128, 128, 128, 0.2) 0%, rgba(0, 0, 0, 0.1) 100%), black;
       margin: 0;
       overflow: hidden;
       height: 100vh;
@@ -84,28 +75,13 @@
     }
 
     // Hack to deal with vh going offscreen
-    document.documentElement.style.setProperty(
-      "--vh",
-      `${window.innerHeight * 0.01}px`,
-    );
+    document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
     window.addEventListener("resize", () => {
-      document.documentElement.style.setProperty(
-        "--vh",
-        `${window.innerHeight * 0.01}px`,
-      );
+      document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
     });
 
     // Select a random color for the logo
-    const colors = [
-      "red",
-      "orange",
-      "yellow",
-      "green",
-      "cyan",
-      "blue",
-      "purple",
-      "magenta",
-    ];
+    const colors = ["red", "orange", "yellow", "green", "cyan", "blue", "purple", "magenta"];
     var current = Math.floor(Math.random() * (colors.length - 1));
     const logo = document.querySelector(".logo");
     logo.style.color = colors[current];
