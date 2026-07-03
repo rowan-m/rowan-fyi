@@ -130,8 +130,10 @@ if (Astro.request.method === "POST") {
   <main class="evp-demo-container">
     <h1>Issuer - Email Verification Protocol (EVP) demo</h1>
     <p class="evp-intro-text">
-      Simulates an email provider that is authoritative for <code>rowan.fyi</code>. Manage your login session here to
-      control whether the browser can verify your email identity.
+      This is a demo of a mock email provider for the <a href="https://github.com/WICG/email-verification"
+        >Email Verification API</a
+      > and <a href="https://github.com/dickhardt/email-verification">protocol</a>. Once you've signed in, you can use
+      the <a href="/made/email-verification/">verifier demo</a> to verify your email address.
     </p>
 
     {
@@ -159,6 +161,12 @@ if (Astro.request.method === "POST") {
         </div>
       )
     }
+    <p>
+      🧑‍💻 View the code for the demo on <a
+        href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/email-provider"
+        target="_blank">GitHub</a
+      >
+    </p>
   </main>
 
   <script is:inline define:vars={{ triggerLoginStatusUpdate }}>

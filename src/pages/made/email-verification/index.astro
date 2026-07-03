@@ -47,35 +47,35 @@ let expectedNonce = Astro.cookies.get(nonceCookieName)?.value;
 // Initialize the 6-Step Verification Trace Array
 let traceSteps: TraceStep[] = [
   {
-    name: "Step 1: Token Decomposition & Parsing",
+    name: "Step 1: Parse the token",
     description:
       "Decompose the submitted token into its distinct EVT and Key Binding JWT (KB-JWT) components, and perform unverified local decoding of their headers and payloads.",
     status: "pending",
   },
   {
-    name: "Step 2: Local Claims & Session Binding Verification",
+    name: "Step 2: Validate expected values and session binding",
     description:
       "Verify local, non-cryptographic claims (email match, verification status, audience, nonce, and cryptographic hash binding) to fail fast before doing network or crypto operations.",
     status: "pending",
   },
   {
-    name: "Step 3: DNS Delegation Authority Verification",
+    name: "Step 3: Validate DNS record",
     description:
       "Perform dynamic server-side DNS queries to confirm that the email's domain delegated verification authority to the token issuer.",
     status: "pending",
   },
   {
-    name: "Step 4: Issuer Discovery & JWKS Fetching",
+    name: "Step 4: Issuer discovery & JWKS fetching",
     description: "Fetch the issuer's well-known configuration and JWKS public keys from their authoritative origin.",
     status: "pending",
   },
   {
-    name: "Step 5: Issuer Signature Cryptographic Verification",
+    name: "Step 5: Issuer signature verification",
     description: "Cryptographically verify the EVT signature using the fetched issuer public keys from their JWKS.",
     status: "pending",
   },
   {
-    name: "Step 6: Ephemeral Key Binding Cryptographic Verification",
+    name: "Step 6: Ephemeral key binding verification",
     description:
       "Extract the browser's ephemeral public key from the validated EVT and cryptographically verify the KB-JWT signature to prove possession of the private key.",
     status: "pending",
@@ -517,6 +517,14 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       color: #c00000;
     }
 
+    /* User Agent Support States */
+    .ua-supported {
+      color: #28a745;
+    }
+    .ua-unsupported {
+      color: #dc3545;
+    }
+
     /* Trace Section Container */
     .trace-container {
       margin-top: 2rem;
@@ -655,7 +663,28 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     }
   </style>
   <main>
-    <h1>Email Verification Protocol (EVP) demo</h1>
+    <h1>Email Verification demo</h1>
+    <p>
+      Entering an email and then having to leave the site to go check your email for a magic link or OTP is annoying.
+      What if we could just skip it? The <a href="https://github.com/WICG/email-verification">Email Verification API</a> and
+      &nbsp;<a href="https://github.com/dickhardt/email-verification">protocol</a> are a proposal that would allow the browser
+      to communicate directly with the email provider to do exactly that - verify that the provided email is owned by the
+      current user.
+    </p>
+    <p>
+      For this demo you need Chrome 150+, it looks like you're on <span id="ua-browser">[...]</span>&nbsp;
+      <span id="ua-version">[...]</span> so the API is <strong><span id="ua-supported">[...]</span></strong>.
+    </p>
+    <p>
+      You can <a href="/made/email-provider/" target="_blank">sign in to the demo provider here</a> to create your session
+      for the <code>demo@rowan.fyi</code> account.
+    </p>
+    <p>
+      🧑‍💻 View the code for the demo on <a
+        href="https://github.com/rowan-m/rowan-fyi/blob/main/src/pages/made/email-verification/index.astro"
+        target="_blank">GitHub</a
+      >
+    </p>
     <p>Select an email address from the autofill dropdown to trigger verification.</p>
     <form method="POST" id="verify-form" class="evp-form">
       <div class="form-group">
@@ -678,9 +707,9 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     {
       verificationResult && (
         <div class="msg-box success">
-          <h3>🎉 Email Successfully Verified Cryptographically!</h3>
+          <h3>🎉 Email successfully verified!</h3>
           <p>
-            No verification email was sent. Verified Email identity: <strong>{verificationResult.email}</strong>
+            Verified email as: <strong>{verificationResult.email}</strong>
           </p>
         </div>
       )
@@ -689,7 +718,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     {
       errorMsg && (
         <div class="msg-box error">
-          <h3>⚠️ Verification Blocked / Redirected</h3>
+          <h3>⚠️ Verification failed.</h3>
           <p>{errorMsg}</p>
         </div>
       )
@@ -698,7 +727,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     {
       activeTrace && (
         <div class="trace-container">
-          <h2>EVP Cryptographic Verification Trace</h2>
+          <h2>Verification steps</h2>
           <p>Review the exact server-to-server operations, inputs, and outputs executed during verification:</p>
 
           <ol class="trace-list">
@@ -761,6 +790,29 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       form.addEventListener("submit", () => {
         submitBtn.setAttribute("disabled", "true");
       });
+    }
+
+    // Direct check for Chrome and its major version
+    const ua = navigator.userAgent;
+    const isChrome = /Chrome\/(\d+)/i.test(ua) && !/Edg|OPR/i.test(ua);
+    const match = isChrome ? ua.match(/Chrome\/(\d+)/i) : null;
+    const version = match ? parseInt(match[1], 10) : 0;
+
+    const browserEl = document.getElementById("ua-browser");
+    const versionEl = document.getElementById("ua-version");
+    const supportedEl = document.getElementById("ua-supported");
+
+    if (browserEl && versionEl && supportedEl) {
+      browserEl.textContent = isChrome ? "Chrome" : "an unsupported browser";
+      versionEl.textContent = isChrome ? `${version}` : "";
+
+      if (isChrome && version >= 150) {
+        supportedEl.textContent = "supported";
+        supportedEl.classList.add("ua-supported");
+      } else {
+        supportedEl.textContent = "not supported";
+        supportedEl.classList.add("ua-unsupported");
+      }
     }
   </script>
 </MetaOnlyLayout>
