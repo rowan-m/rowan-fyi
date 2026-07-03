@@ -415,18 +415,56 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     /* Container layout */
     main {
       max-width: 800px;
-      margin: 3rem auto;
+      margin: 1.5rem auto;
       padding: 0 1.5rem;
       color: #333;
       line-height: 1.5;
     }
 
     h1 {
-      font-size: 2.2em;
+      font-size: 2em;
       margin-top: 0;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
       color: #111;
       letter-spacing: -0.5px;
+    }
+
+    /* Intro Typography styling */
+    .evp-intro-text {
+      color: #555;
+      font-size: 1.1em;
+      line-height: 1.5;
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    /* Highlight box for prerequisites and setup */
+    .evp-setup-notice {
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      padding: 0.5rem 0.8rem;
+      border-radius: 4px;
+      margin: 0.6rem 0;
+      font-size: 0.9em;
+      color: #495057;
+      line-height: 1.4;
+    }
+
+    /* Instruction text */
+    .evp-instruction {
+      font-weight: bold;
+      color: #444;
+      margin-top: 1.2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    /* GitHub link structure */
+    .evp-github-link {
+      color: #6c757d;
+      font-size: 0.9em;
+      margin-top: 1.5rem;
+      border-top: 1px solid #dee2e6;
+      padding-top: 0.8rem;
     }
 
     /* Form styling */
@@ -434,7 +472,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       display: flex;
       gap: 1rem;
       align-items: flex-end;
-      margin-bottom: 2.5rem;
+      margin-bottom: 1.5rem;
       flex-wrap: wrap;
     }
 
@@ -664,28 +702,28 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
   </style>
   <main>
     <h1>Email Verification demo</h1>
-    <p>
-      Entering an email and then having to leave the site to go check your email for a magic link or OTP is annoying.
-      What if we could just skip it? The <a href="https://github.com/WICG/email-verification">Email Verification API</a> and
-      &nbsp;<a href="https://github.com/dickhardt/email-verification">protocol</a> are a proposal that would allow the browser
-      to communicate directly with the email provider to do exactly that - verify that the provided email is owned by the
-      current user.
+    <p class="evp-intro-text">
+      The <a href="https://github.com/WICG/email-verification">Email Verification API</a> and <a
+        href="https://github.com/dickhardt/email-verification">protocol</a
+      > are a proposal to allow the browser and email provider to communicate directly to verify an email address, letting
+      you skip the magic link or OTP completely. Give it a try!
     </p>
-    <p>
-      For this demo you need Chrome 150+, it looks like you're on <span id="ua-browser">[...]</span>&nbsp;
-      <span id="ua-version">[...]</span> so the API is <strong><span id="ua-supported">[...]</span></strong>.
+    <p class="evp-setup-notice">
+      Requires Chrome 150+, you're on <span id="ua-browser">[...]</span>&nbsp;
+      <span id="ua-version">[...]</span>: the API is <strong><span id="ua-supported">[...]</span></strong>.
     </p>
-    <p>
-      You can <a href="/made/email-provider/" target="_blank">sign in to the demo provider here</a> to create your session
-      for the <code>demo@rowan.fyi</code> account.
+    <p class="evp-setup-notice">
+      <a href="/made/email-provider/" target="_blank">Sign in to the demo provider</a> to create a session for the <code
+        >demo@rowan.fyi</code
+      >.
     </p>
-    <p>
+    <p class="evp-github-link">
       🧑‍💻 View the code for the demo on <a
         href="https://github.com/rowan-m/rowan-fyi/blob/main/src/pages/made/email-verification/index.astro"
         target="_blank">GitHub</a
       >
     </p>
-    <p>Select an email address from the autofill dropdown to trigger verification.</p>
+    <p class="evp-instruction">Select an email address from the autofill dropdown to trigger verification.</p>
     <form method="POST" id="verify-form" class="evp-form">
       <div class="form-group">
         <label for="email">Email address:</label>

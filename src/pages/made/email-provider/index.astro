@@ -75,6 +75,15 @@ if (Astro.request.method === "POST") {
       font-size: 1.1em;
       margin-top: 0;
       margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .evp-github-link {
+      color: #6c757d;
+      font-size: 0.9em;
+      margin-top: 2rem;
+      border-top: 1px solid #dee2e6;
+      padding-top: 1rem;
     }
 
     /* State Panels */
@@ -161,7 +170,7 @@ if (Astro.request.method === "POST") {
         </div>
       )
     }
-    <p>
+    <p class="evp-github-link">
       🧑‍💻 View the code for the demo on <a
         href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/email-provider"
         target="_blank">GitHub</a
