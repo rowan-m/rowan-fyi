@@ -134,10 +134,28 @@ if (Astro.request.method === "POST") {
     .btn-success:hover {
       background-color: #004085;
     }
+
+    .evp-setup-notice {
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      padding: 0.5rem 0.8rem;
+      border-radius: 4px;
+      margin: 0.6rem 0;
+      font-size: 0.9em;
+      color: #495057;
+      line-height: 1.4;
+    }
   </style>
 
   <main class="evp-demo-container">
     <h1>Issuer - Email Verification Protocol (EVP) demo</h1>
+    <p class="evp-setup-notice">
+      <strong
+        >📣 Read the <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial"
+          >announcement and implementation guide</a
+        >.</strong
+      >
+    </p>
     <p class="evp-intro-text">
       This is a demo of a mock email provider for the <a href="https://github.com/WICG/email-verification"
         >Email Verification API</a
