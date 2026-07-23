@@ -712,7 +712,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     <p class="evp-intro-text">
       The <a href="https://github.com/WICG/email-verification">Email Verification API</a> and <a
         href="https://github.com/dickhardt/email-verification">protocol</a
-      > are a proposal to allow the browser and email provider to communicate directly to verify an email address, letting
+      > form a proposal to allow the browser and email provider to communicate directly to verify an email address, letting
       you skip the magic link or OTP completely. Give it a try!
     </p>
     <p class="evp-setup-notice">
@@ -730,7 +730,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
         target="_blank">GitHub</a
       >
     </p>
-    <p class="evp-instruction">Select an email address from the autofill dropdown to trigger verification.</p>
+    <p class="evp-instruction">Enter an email address to trigger verification.</p>
     <form method="POST" id="verify-form" class="evp-form">
       <div class="form-group">
         <label for="email">Email address:</label>
@@ -740,7 +740,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
           name="email"
           autocomplete="email"
           value={submittedEmail || ""}
-          placeholder="Use an autofilled email"
+          placeholder="e.g. demo@rowan.fyi"
           required
         />
       </div>
