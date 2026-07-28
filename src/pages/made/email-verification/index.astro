@@ -38,7 +38,6 @@ interface TraceStep {
 
 let verificationResult: VerificationResult | null = null;
 let errorMsg = "";
-let submittedEmail = "";
 
 // Cookie and Nonce Configuration
 const nonceCookieName = "evp_rp_nonce";
@@ -91,7 +90,7 @@ if (Astro.request.method === "POST") {
     Astro.cookies.delete(nonceCookieName, { path: "/" });
 
     const formData = await Astro.request.formData();
-    submittedEmail = formData.get("email") as string;
+    const submittedEmail = formData.get("email") as string;
     const rawToken = formData.get("token") as string;
 
     if (rawToken) {
@@ -728,15 +727,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     <form method="POST" id="verify-form" class="evp-form">
       <div class="form-group">
         <label for="email">Email address:</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          autocomplete="email"
-          value={submittedEmail || ""}
-          placeholder="e.g. demo@rowan.fyi"
-          required
-        />
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="e.g. demo@rowan.fyi" required />
       </div>
       <!-- EVP Hidden Input with Server-Side Dynamic Nonce -->
       <input type="hidden" name="token" nonce={activeNonce} autocomplete="email-verification-token" />
