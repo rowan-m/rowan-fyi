@@ -411,15 +411,34 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       }
 
       if (requestToken.includes(".")) {
-        // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim)
-        const header = decodeProtectedHeader(requestToken);
-        browserJwk = header.jwk as JWK | undefined;
+        try {
+          // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim)
+          const header = decodeProtectedHeader(requestToken);
+          browserJwk = header.jwk as JWK | undefined;
 
-        if (!browserJwk) {
+          if (!browserJwk) {
+            return new Response(
+              JSON.stringify({
+                error: "invalid_signature",
+                error_description: "Missing ephemeral public key (jwk) in request token header.",
+              }),
+              {
+                status: 400,
+                headers: corsHeaders,
+              },
+            );
+          }
+
+          // Import browser's public key and verify the request JWT
+          const alg = (header.alg as string) || "ES256";
+          const publicKey = await importJWK(browserJwk, alg);
+          const { payload } = await jwtVerify(requestToken, publicKey);
+          email = payload.email as string;
+        } catch {
           return new Response(
             JSON.stringify({
               error: "invalid_signature",
-              error_description: "Missing ephemeral public key (jwk) in request token header.",
+              error_description: "request_token signature verification failed.",
             }),
             {
               status: 400,
@@ -427,12 +446,6 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
             },
           );
         }
-
-        // Import browser's public key and verify the request JWT
-        const alg = (header.alg as string) || "ES256";
-        const publicKey = await importJWK(browserJwk, alg);
-        const { payload } = await jwtVerify(requestToken, publicKey);
-        email = payload.email as string;
       } else {
         // Fallback for simple/un-signed requests
         email = requestToken;
@@ -440,13 +453,21 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     }
 
     // ==============================================================================
-    // STEP 3: SESSION AUTHENTICATION & UNIFORM ERROR RESPONSE (Anti-Probing)
+    // STEP 3: SESSION AUTHENTICATION & UNIFORM ERROR RESPONSE (Anti-Probing & Timing Mitigations)
     // ==============================================================================
+    // SECURITY NOTE on Timing Attack Mitigation (Order of Operations):
+    // Standard-compliant issuers MUST perform expensive cryptographic signature validations
+    // (such as verifyRequestSignature or jwtVerify) BEFORE checking the user session or email matching.
+    // By verifying the signature first, we spend the same computational effort regardless of
+    // whether the email exists, preventing attackers from measuring response timing to probe
+    // for valid email addresses.
+    //
+    // SECURITY NOTE on Email Probing (Uniform Error Responses):
+    // To prevent account/email enumeration, we return an identical HTTP 401 Unauthorized response:
+    // 1. If the session cookie is absent or expired (user is logged out).
+    // 2. If the user is logged in, but requesting an email they do not control or that does not exist.
     const session = cookies.get("__session")?.value;
 
-    // To prevent username/email probing, return a uniform HTTP 401 response:
-    // - If not authenticated
-    // - If requested email does not exist / isn't controlled by the user
     if (session !== "active" || email !== "demo@rowan.fyi") {
       return new Response(
         JSON.stringify({

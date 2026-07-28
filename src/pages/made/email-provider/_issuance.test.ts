@@ -292,6 +292,36 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.error_description).toBe("Missing request_token in body.");
   });
 
+  test("issuance endpoint returns 400 on malformed or invalid request_token signature (Path B)", async () => {
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          "sec-fetch-dest": "email-verification",
+        },
+        body: "request_token=invalid.jwt.token",
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as {
+      error: string;
+      error_description: string;
+    };
+    expect(data.error).toBe("invalid_signature");
+    expect(data.error_description).toBe("request_token signature verification failed.");
+  });
+
   test("issuance endpoint returns 415 on invalid content-type when signature headers are provided", async () => {
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
     const response = await postIssuance({
