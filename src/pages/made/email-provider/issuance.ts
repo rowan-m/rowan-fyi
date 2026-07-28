@@ -1,9 +1,288 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { importJWK, jwtVerify, SignJWT, decodeProtectedHeader } from "jose";
+import { importJWK, SignJWT, decodeProtectedHeader, jwtVerify } from "jose";
 import type { JWK } from "jose";
+import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
+
+/**
+ * Parses parameters from structured headers (like Signature-Key or Signature-Input parameters).
+ * E.g., 'sig=hwk; kty="OKP"; crv="Ed25519"; x="abc"'
+ * returns { sig: "hwk", kty: "OKP", crv: "Ed25519", x: "abc" }
+ */
+function parseParameterizedHeader(headerValue: string): Record<string, string> {
+  const params: Record<string, string> = {};
+  const parts = headerValue.split(";").map((p) => p.trim());
+  for (const part of parts) {
+    const equalIdx = part.indexOf("=");
+    if (equalIdx !== -1) {
+      const key = part.slice(0, equalIdx).trim();
+      let val = part.slice(equalIdx + 1).trim();
+      if (val.startsWith('"') && val.endsWith('"')) {
+        val = val.slice(1, -1);
+      }
+      params[key] = val;
+    } else {
+      params[part] = "true";
+    }
+  }
+  return params;
+}
+
+/**
+ * Constructs the canonical signature base according to RFC 9421 Section 2.5.
+ */
+function buildSignatureBase({
+  method,
+  authority,
+  path,
+  cookie,
+  signatureKey,
+  signatureInput,
+  components,
+}: {
+  method: string;
+  authority: string;
+  path: string;
+  cookie: string | null;
+  signatureKey: string;
+  signatureInput: string;
+  components: string[];
+}): string {
+  let base = "";
+  for (const component of components) {
+    let value = "";
+    if (component === "@method") {
+      value = method;
+    } else if (component === "@authority") {
+      value = authority;
+    } else if (component === "@path") {
+      value = path;
+    } else if (component === "cookie") {
+      value = cookie || "";
+    } else if (component === "signature-key") {
+      value = signatureKey;
+    }
+    base += `"${component}": ${value}\n`;
+  }
+  // The @signature-params is always the last line, without a trailing newline
+  const sigParamsValue = signatureInput.replace(/^sig=/, "").trim();
+  base += `"@signature-params": ${sigParamsValue}`;
+  return base;
+}
+
+/**
+ * Cryptographically verifies an RFC 9421 HTTP Message Signature using Node.js crypto module.
+ */
+function verifySignature(signatureBase: string, signatureB64: string, jwk: JWK): boolean {
+  try {
+    const publicKey = crypto.createPublicKey({
+      key: jwk as crypto.JsonWebKey,
+      format: "jwk",
+    });
+
+    const isEd25519 = jwk.crv === "Ed25519";
+    const algorithm = isEd25519 ? undefined : "sha256";
+
+    const isUrlSafe = signatureB64.includes("-") || signatureB64.includes("_");
+    const sigBuffer = Buffer.from(signatureB64, isUrlSafe ? "base64url" : "base64");
+
+    return crypto.verify(algorithm, Buffer.from(signatureBase), publicKey, sigBuffer);
+  } catch (err) {
+    console.error("Signature verification error:", err);
+    return false;
+  }
+}
+
+/**
+ * Extracts and verifies the HTTP Message Signature from the request.
+ * Returns the browser's parsed public JWK on success, or an APIRoute Response on validation failure.
+ */
+function verifyRequestSignature(
+  request: Request,
+  url: URL,
+  corsHeaders: Record<string, string>,
+): { browserJwk: JWK } | Response {
+  const signatureHeader = request.headers.get("signature");
+  const signatureInputHeader = request.headers.get("signature-input");
+  const signatureKeyHeader = request.headers.get("signature-key");
+
+  if (!signatureHeader || !signatureInputHeader || !signatureKeyHeader) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description:
+          "Missing required HTTP Message Signature headers (Signature, Signature-Input, or Signature-Key).",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+
+  // Parse Signature-Key (hwk)
+  const keyParams = parseParameterizedHeader(signatureKeyHeader);
+  if (keyParams.sig !== "hwk" || !keyParams.kty) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "Signature-Key header does not use the 'hwk' scheme or is malformed.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+
+  const browserJwk: JWK = {
+    kty: keyParams.kty,
+  };
+  if (keyParams.crv) browserJwk.crv = keyParams.crv;
+  if (keyParams.x) browserJwk.x = keyParams.x;
+  if (keyParams.y) browserJwk.y = keyParams.y;
+
+  // Parse Signature-Input
+  const inputMatch = signatureInputHeader.match(/sig=\(([^)]+)\)(.*)/);
+  if (!inputMatch) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "Signature-Input header is malformed.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+
+  const components = inputMatch[1].split(/\s+/).map((c) => {
+    if (c.startsWith('"') && c.endsWith('"')) {
+      return c.slice(1, -1);
+    }
+    return c;
+  });
+
+  const inputParams = parseParameterizedHeader(inputMatch[2]);
+  const createdTime = parseInt(inputParams.created, 10);
+
+  if (isNaN(createdTime)) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "Signature-Input is missing the 'created' parameter or it is malformed.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+
+  // Timing check (60-second window)
+  const currentTime = Math.floor(Date.now() / 1000);
+  if (Math.abs(currentTime - createdTime) > 60) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "The signature timestamp 'created' is outside the acceptable 60-second window.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+
+  // Required components check
+  const requiredComponents = ["@method", "@authority", "@path", "signature-key"];
+  for (const reqComp of requiredComponents) {
+    if (!components.includes(reqComp)) {
+      return new Response(
+        JSON.stringify({
+          error: "invalid_signature",
+          error_description: `Required component '${reqComp}' is missing from Signature-Input.`,
+        }),
+        {
+          status: 400,
+          headers: corsHeaders,
+        },
+      );
+    }
+  }
+
+  // Cookie binding check (RFC 9421)
+  const cookieHeader = request.headers.get("cookie");
+  if (cookieHeader && !components.includes("cookie")) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "The 'cookie' component must be covered by the signature when Cookie header is present.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+  if (!cookieHeader && components.includes("cookie")) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "The 'cookie' component must not be listed in Signature-Input when Cookie header is absent.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+
+  // Parse Signature header and verify
+  const sigMatch = signatureHeader.match(/sig=:([^:]+):/);
+  if (!sigMatch) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "Signature header is malformed.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+  const signatureB64 = sigMatch[1];
+
+  const signatureBase = buildSignatureBase({
+    method: request.method,
+    authority: url.host,
+    path: url.pathname,
+    cookie: cookieHeader,
+    signatureKey: signatureKeyHeader,
+    signatureInput: signatureInputHeader,
+    components,
+  });
+
+  const isSignatureValid = verifySignature(signatureBase, signatureB64, browserJwk);
+  if (!isSignatureValid) {
+    return new Response(
+      JSON.stringify({
+        error: "invalid_signature",
+        error_description: "HTTP Message Signature verification failed.",
+      }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
+  }
+
+  return { browserJwk };
+}
 
 /**
  * Issuer Issuance Endpoint (EVP Standard API Route)
@@ -11,7 +290,10 @@ import { PRIVATE_KEY_JWK } from "./_keys";
  * In the Email Verification Protocol (EVP), the browser makes a credentialed POST request
  * to this endpoint to request a signed Email Verification Token (EVT).
  *
- * We process the request through 5 clear, sequential steps.
+ * To ease transition and support real-world browser testing today, this endpoint dynamically
+ * handles both:
+ * - Path A: Modern proposed HTTP Message Signatures (RFC 9421)
+ * - Path B: Deprecated signed-JWT request_token via x-www-form-urlencoded (current Chrome/Edge Origin Trials)
  */
 export const POST: APIRoute = async ({ request, cookies, url }) => {
   const requestOrigin = request.headers.get("origin");
@@ -27,9 +309,6 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
   }
 
   try {
-    // ==============================================================================
-    // STEP 0: SEC-FETCH-DEST HEADER VALIDATION (IETF Draft Section 7.4.3 & WICG Section 3.5)
-    // ==============================================================================
     // To protect user privacy and prevent CSRF / cross-site state detection,
     // standard-compliant browsers SHOULD set "Sec-Fetch-Dest: email-verification" or "webidentity".
     const secFetchDest = request.headers.get("sec-fetch-dest");
@@ -37,13 +316,138 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       console.warn(`Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
     }
 
+    const contentType = request.headers.get("content-type") || "";
+    const hasSignatureHeaders =
+      request.headers.has("signature") &&
+      request.headers.has("signature-input") &&
+      request.headers.has("signature-key");
+
+    // If HTTP Message Signature headers are present, we strictly enforce Content-Type: application/json (Path A)
+    if (hasSignatureHeaders && !contentType.includes("application/json")) {
+      return new Response(
+        JSON.stringify({
+          error: "invalid_request",
+          error_description: "Content-Type must be application/json for HTTP Message Signatures.",
+        }),
+        {
+          status: 415,
+          headers: corsHeaders,
+        },
+      );
+    }
+
+    const useHttpMessageSignatures = contentType.includes("application/json") && hasSignatureHeaders;
+
+    let email = "";
+    let browserJwk: JWK | undefined = undefined;
+
+    if (useHttpMessageSignatures) {
+      // ==============================================================================
+      // PATH A: MODERN HTTP MESSAGE SIGNATURE FLOW (RFC 9421)
+      // ==============================================================================
+      const signatureResult = verifyRequestSignature(request, url, corsHeaders);
+      if (signatureResult instanceof Response) {
+        return signatureResult;
+      }
+      browserJwk = signatureResult.browserJwk;
+
+      try {
+        const body = await request.json();
+        email = body.email;
+      } catch {
+        return new Response(
+          JSON.stringify({
+            error: "invalid_request",
+            error_description: "Invalid or malformed JSON request body.",
+          }),
+          {
+            status: 400,
+            headers: corsHeaders,
+          },
+        );
+      }
+
+      if (!email) {
+        return new Response(
+          JSON.stringify({
+            error: "invalid_request",
+            error_description: "Missing required 'email' field in request body.",
+          }),
+          {
+            status: 400,
+            headers: corsHeaders,
+          },
+        );
+      }
+    } else {
+      // ==============================================================================
+      // PATH B: DEPRECATED JWT REQUEST TOKEN FLOW (Current Chrome Origin Trial)
+      // ==============================================================================
+      let requestToken = "";
+
+      if (contentType.includes("application/x-www-form-urlencoded")) {
+        const formData = await request.formData();
+        requestToken = formData.get("request_token") as string;
+      } else if (contentType.includes("application/json")) {
+        try {
+          const body = await request.json();
+          requestToken = body.request_token || body.email;
+        } catch {
+          // Ignore parsing error for JSON fallback compatibility
+        }
+      }
+
+      if (!requestToken) {
+        return new Response(
+          JSON.stringify({
+            error: "invalid_request",
+            error_description: "Missing request_token in body.",
+          }),
+          {
+            status: 400,
+            headers: corsHeaders,
+          },
+        );
+      }
+
+      if (requestToken.includes(".")) {
+        // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim)
+        const header = decodeProtectedHeader(requestToken);
+        browserJwk = header.jwk as JWK | undefined;
+
+        if (!browserJwk) {
+          return new Response(
+            JSON.stringify({
+              error: "invalid_signature",
+              error_description: "Missing ephemeral public key (jwk) in request token header.",
+            }),
+            {
+              status: 400,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        // Import browser's public key and verify the request JWT
+        const alg = (header.alg as string) || "ES256";
+        const publicKey = await importJWK(browserJwk, alg);
+        const { payload } = await jwtVerify(requestToken, publicKey);
+        email = payload.email as string;
+      } else {
+        // Fallback for simple/un-signed requests
+        email = requestToken;
+      }
+    }
+
     // ==============================================================================
-    // STEP 1: SESSION AUTHENTICATION
+    // STEP 3: SESSION AUTHENTICATION & UNIFORM ERROR RESPONSE (Anti-Probing)
     // ==============================================================================
-    // The browser includes first-party cookies for the issuer.
-    // We check if the cookies represent a logged-in user who controls the email address.
     const session = cookies.get("__session")?.value;
-    if (session !== "active") {
+
+    // To prevent username/email probing, return a uniform HTTP 401 response:
+    // - If not authenticated
+    // - If requested email does not exist / isn't controlled by the user
+    if (session !== "active" || email !== "demo@rowan.fyi") {
       return new Response(
         JSON.stringify({
           error: "authentication_required",
@@ -56,93 +460,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       );
     }
 
-    // ==============================================================================
-    // STEP 2: PARSE THE TOKEN REQUEST BODY
-    // ==============================================================================
-    // To support early-stage client libraries and specs, we accommodate both:
-    // A. application/x-www-form-urlencoded (standard browser form format)
-    // B. application/json (standard dynamic JSON format)
-    const contentType = request.headers.get("content-type") || "";
-    let requestToken = "";
-
-    if (contentType.includes("application/x-www-form-urlencoded")) {
-      const formData = await request.formData();
-      requestToken = formData.get("request_token") as string;
-    } else if (contentType.includes("application/json")) {
-      const body = await request.json();
-      requestToken = body.request_token || body.email;
-    }
-
-    if (!requestToken) {
-      return new Response(
-        JSON.stringify({
-          error: "invalid_request",
-          error_description: "Missing request_token in body.",
-        }),
-        {
-          status: 400,
-          headers: corsHeaders,
-        },
-      );
-    }
-
-    let email = "";
-    let browserJwk: JWK | undefined = undefined;
-
-    // ==============================================================================
-    // STEP 3: PROOF-OF-POSSESSION SIGNATURE VERIFICATION
-    // ==============================================================================
-    // If the request token is formatted as a signed JWT, we verify the signature to prove
-    // the browser holds the private key corresponding to its ephemeral public key (jwk).
-    if (requestToken.includes(".")) {
-      // 3A. Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim)
-      const header = decodeProtectedHeader(requestToken);
-      browserJwk = header.jwk as JWK | undefined;
-
-      if (!browserJwk) {
-        return new Response(
-          JSON.stringify({
-            error: "invalid_signature",
-            error_description: "Missing ephemeral public key (jwk) in request token header.",
-          }),
-          {
-            status: 400,
-            headers: corsHeaders,
-          },
-        );
-      }
-
-      // 3B. Import the browser's public JWK into a cryptographic key object
-      const alg = (header.alg as string) || "ES256";
-      const publicKey = await importJWK(browserJwk, alg);
-
-      // 3C. Verify the signature on the request token using the browser's public key
-      const { payload } = await jwtVerify(requestToken, publicKey);
-      email = payload.email as string;
-    } else {
-      // Fallback for simple tests/clients sending a raw email address
-      email = requestToken;
-    }
-
-    // ==============================================================================
-    // STEP 4: USER AUTHORIZATION (IDENTITY MAPPING)
-    // ==============================================================================
-    // Confirm that the authenticated session user actually owns the requested email.
-    // For this simple demo provider, we only authorize the user `demo@rowan.fyi`.
-    if (email !== "demo@rowan.fyi") {
-      return new Response(
-        JSON.stringify({
-          error: "invalid_request",
-          error_description: "Only demo@rowan.fyi is supported for this demo provider.",
-        }),
-        {
-          status: 400,
-          headers: corsHeaders,
-        },
-      );
-    }
-
-    // Fallback public key if the client didn't supply one (e.g. static tests)
+    // Fallback public key if not extracted (e.g. un-signed fallback client/tests)
     if (!browserJwk) {
       browserJwk = {
         kty: "EC",
@@ -153,34 +471,31 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     }
 
     // ==============================================================================
-    // STEP 5: SIGN AND ISSUE THE EMAIL VERIFICATION TOKEN (EVT)
+    // STEP 4: SIGN AND ISSUE EMAIL VERIFICATION TOKEN (EVT)
     // ==============================================================================
-    // We sign the EVT payload with the Issuer's private key.
-    // The payload MUST include the "cnf" (confirmation) claim holding the browser's public key.
     const privateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
     const origin = url.origin;
+    const currentTime = Math.floor(Date.now() / 1000);
 
     const evtPayload = {
-      iss: origin, // The authoritative issuer domain/URL
-      iat: Math.floor(Date.now() / 1000), // Issued At timestamp
-      exp: Math.floor(Date.now() / 1000) + 300, // Token validity (5 minutes)
+      iss: origin,
+      iat: currentTime,
+      exp: currentTime + 300, // 5 minutes
       cnf: {
-        jwk: browserJwk, // Cryptographically binds this token to the browser key pair
+        jwk: browserJwk,
       },
-      email: "demo@rowan.fyi", // The verified email identity
-      email_verified: true, // Verification state assertion
+      email: "demo@rowan.fyi",
+      email_verified: true,
     };
 
     const evtJwt = await new SignJWT(evtPayload)
       .setProtectedHeader({
         alg: "EdDSA",
-        kid: PRIVATE_KEY_JWK.kid, // Key ID corresponding to our JWKS keys
-        typ: "evt+jwt", // Standard Token Type for EVTs
+        kid: PRIVATE_KEY_JWK.kid,
+        typ: "evt+jwt",
       })
       .sign(privateKey);
 
-    // Standard SD-JWT compatibility requires appending a trailing tilde "~"
-    // to separate the signed token from the key binding section.
     const issuanceToken = `${evtJwt}~`;
 
     return new Response(
