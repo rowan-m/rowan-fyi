@@ -202,13 +202,7 @@ if (Astro.request.method === "POST") {
       let isAuthoritative = false;
       const issuerHost = iss.startsWith("http") ? new URL(iss).hostname.toLowerCase() : iss.toLowerCase();
 
-      if (issuerHost === "localhost" || issuerHost === "127.0.0.1") {
-        isAuthoritative = true;
-        traceSteps[2].outputReceived = {
-          authorizedBy: "Localhost Development Bypass",
-          details: "DNS resolution is bypassed for local provider testing.",
-        };
-      } else if (domain.toLowerCase() === issuerHost) {
+      if (domain.toLowerCase() === issuerHost) {
         isAuthoritative = true;
         traceSteps[2].outputReceived = {
           authorizedBy: "Direct Domain Equality (Self-Authoritative)",
