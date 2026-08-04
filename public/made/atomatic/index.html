@@ -47,8 +47,13 @@
     <a href="https://mastodon.social/@rowan_m">@rowan_m@mastodon.social</a>
     &nbsp;&nbsp;💻 <a href="https://glitch.com/edit/#!/atomatic">Code</a>
   </footer>
-  <script src="three.js"></script>
-  <script src="OrbitControls.js"></script>
-  <script src="shared.js"></script>
-  <script src="page.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="page.js"></script>
 </html>

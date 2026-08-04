@@ -46,35 +46,12 @@ function parseMastodonUrl(inputUrl: string) {
 }
 
 describe("LinkAge URL Parser", () => {
-  test("successfully parses standard Bluesky post URL", () => {
-    const url = "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h";
-    const result = parseUrl(url);
-    expect(result).toEqual({
-      handle: "rowan.fyi",
-      postId: "3lps6j646ts2h",
-    });
-  });
-
-  test("successfully parses Bluesky post URL with query parameters", () => {
-    const url = "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h?ref_src=embed";
-    const result = parseUrl(url);
-    expect(result).toEqual({
-      handle: "rowan.fyi",
-      postId: "3lps6j646ts2h",
-    });
-  });
-
-  test("successfully parses Bluesky post URL with trailing slash", () => {
-    const url = "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h/";
-    const result = parseUrl(url);
-    expect(result).toEqual({
-      handle: "rowan.fyi",
-      postId: "3lps6j646ts2h",
-    });
-  });
-
-  test("successfully parses Bluesky post URL with hash/anchor tag", () => {
-    const url = "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h#comments";
+  test.each([
+    ["standard Bluesky post URL", "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h"],
+    ["Bluesky post URL with query parameters", "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h?ref_src=embed"],
+    ["Bluesky post URL with trailing slash", "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h/"],
+    ["Bluesky post URL with hash/anchor tag", "https://bsky.app/profile/rowan.fyi/post/3lps6j646ts2h#comments"],
+  ])("successfully parses %s", (_, url) => {
     const result = parseUrl(url);
     expect(result).toEqual({
       handle: "rowan.fyi",

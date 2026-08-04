@@ -1,7 +1,4 @@
-"use strict";
-
-self.importScripts("shared.js");
-self.importScripts("three.js");
+import { ThreeRenderer, AtomModel } from "./shared.js";
 
 let atom = null;
 let renderer = null;
