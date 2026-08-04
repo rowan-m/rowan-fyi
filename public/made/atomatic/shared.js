@@ -1,8 +1,9 @@
-"use strict";
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const _2PI = Math.PI * 2;
 
-class ThreeRenderer {
+export class ThreeRenderer {
   constructor(canvas) {
     this.cvs = canvas;
 
@@ -39,12 +40,12 @@ class ThreeRenderer {
     );
     this.camera.position.z = 100;
 
-    this.scene.add(new THREE.AmbientLight(0x555555));
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.2);
     directionalLight.position.set(1, 1, 4).normalize();
     this.scene.add(directionalLight);
 
-    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
   }
 
   buildAtom(atom) {
@@ -149,7 +150,7 @@ class ThreeRenderer {
   }
 }
 
-class AtomModel {
+export class AtomModel {
   constructor(structure, renderer) {
     this.initStructure(structure);
 

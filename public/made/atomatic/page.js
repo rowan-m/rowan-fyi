@@ -1,4 +1,4 @@
-"use strict";
+import { ThreeRenderer, AtomModel } from "./shared.js";
 
 class Atomatic {
   constructor(elements) {
