@@ -239,10 +239,14 @@ describe("EVP Endpoint Unit Tests", () => {
       issuance_endpoint: string;
       jwks_uri: string;
       signing_alg_values_supported: string[];
+      private_email_supported: boolean;
+      webauthn_supported: boolean;
     };
     expect(data.issuance_endpoint).toBe("https://rowan.fyi/made/email-provider/issuance");
     expect(data.jwks_uri).toBe("https://rowan.fyi/made/email-provider/jwks");
     expect(data.signing_alg_values_supported).toContain("EdDSA");
+    expect(data.private_email_supported).toBe(false);
+    expect(data.webauthn_supported).toBe(false);
   });
 
   test("jwks endpoint returns public keys", async () => {
@@ -518,5 +522,68 @@ describe("EVP Endpoint Unit Tests", () => {
 
     const cnf = payload.cnf as { jwk: typeof browserJwkData };
     expect(cnf.jwk.x).toBe(browserJwkData.x);
+  });
+
+  test("issuance endpoint returns 400 and private_email_not_supported on private_email request (Path A)", async () => {
+    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
+    const browserPublicKeyJwk = await exportJWK(publicKey);
+    const browserPrivateKeyJwk = await exportJWK(privateKey);
+
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const headers = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+    });
+
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(headers),
+        body: JSON.stringify({ email: "demo@rowan.fyi", private_email: true }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { error: string; error_description: string };
+    expect(data.error).toBe("private_email_not_supported");
+    expect(data.error_description).toContain("does not support private email");
+  });
+
+  test("issuance endpoint returns 400 and private_email_not_supported on private_email request (Path B)", async () => {
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ private_email: true, email: "demo@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { error: string; error_description: string };
+    expect(data.error).toBe("private_email_not_supported");
+    expect(data.error_description).toContain("does not support private email");
   });
 });

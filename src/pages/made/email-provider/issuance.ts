@@ -353,6 +353,18 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 
       try {
         const body = await request.json();
+        if (body.private_email || body.directed_email) {
+          return new Response(
+            JSON.stringify({
+              error: "private_email_not_supported",
+              error_description: "This issuer does not support private email addresses.",
+            }),
+            {
+              status: 400,
+              headers: corsHeaders,
+            },
+          );
+        }
         email = body.email;
       } catch {
         return new Response(
@@ -387,10 +399,34 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 
       if (contentType.includes("application/x-www-form-urlencoded")) {
         const formData = await request.formData();
+        if (formData.get("private_email") || formData.get("directed_email")) {
+          return new Response(
+            JSON.stringify({
+              error: "private_email_not_supported",
+              error_description: "This issuer does not support private email addresses.",
+            }),
+            {
+              status: 400,
+              headers: corsHeaders,
+            },
+          );
+        }
         requestToken = formData.get("request_token") as string;
       } else if (contentType.includes("application/json")) {
         try {
           const body = await request.json();
+          if (body.private_email || body.directed_email) {
+            return new Response(
+              JSON.stringify({
+                error: "private_email_not_supported",
+                error_description: "This issuer does not support private email addresses.",
+              }),
+              {
+                status: 400,
+                headers: corsHeaders,
+              },
+            );
+          }
           requestToken = body.request_token || body.email;
         } catch {
           // Ignore parsing error for JSON fallback compatibility
