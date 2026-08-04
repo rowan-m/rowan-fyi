@@ -105,7 +105,8 @@ if (Astro.request.method === "POST") {
         throw new Error("Invalid token format. Missing Key Binding JWT (KB-JWT) separator '~'.");
       }
       const evtJwt = parts[0];
-      const kbJwt = parts[1];
+      const kbJwt = parts[parts.length - 1];
+      const disclosures = parts.slice(1, -1).filter(Boolean);
 
       // Decode the EVT payload locally to dynamically discover who issued this token.
       const decodedPayload = decodeJwt(evtJwt) as EvtPayload;
@@ -122,15 +123,17 @@ if (Astro.request.method === "POST") {
         evtJwtDecodedPayload: decodedPayload,
         kbJwtDecodedHeader: decodeProtectedHeader(kbJwt),
         kbJwtDecodedPayload: decodedKbPayload,
+        disclosures: disclosures,
       };
       traceSteps[0].status = "success";
 
       // ==============================================================================
       // STEP 2: VERIFY EXPECTED VALUES AND SESSION BINDING
       // ==============================================================================
-      const calculatedHash = createHash("sha256")
-        .update(evtJwt + "~")
-        .digest("base64url");
+      // Reconstruct the exact SD-JWT portion (includes all disclosures and trailing tilde)
+      const sdJwtPortion = parts.slice(0, -1).join("~") + "~";
+
+      const calculatedHash = createHash("sha256").update(sdJwtPortion).digest("base64url");
 
       const expectedAudience = Astro.url.origin;
 

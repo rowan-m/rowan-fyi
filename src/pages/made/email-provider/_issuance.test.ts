@@ -586,4 +586,73 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.error).toBe("private_email_not_supported");
     expect(data.error_description).toContain("does not support private email");
   });
+
+  test("verifies a multi-part SD-JWT with disclosures and correct sd_hash verification", async () => {
+    // 1. Generate keys
+    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
+    const browserPublicKeyJwk = await exportJWK(publicKey);
+
+    // 2. Sign EVT
+    const providerPrivateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
+    const evtPayload = {
+      iss: "https://rowan.fyi",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 300,
+      cnf: {
+        jwk: browserPublicKeyJwk,
+      },
+      email: "demo@rowan.fyi",
+      email_verified: true,
+    };
+    const evtJwt = await new SignJWT(evtPayload)
+      .setProtectedHeader({
+        alg: "EdDSA",
+        kid: PRIVATE_KEY_JWK.kid,
+        typ: "evt+jwt",
+      })
+      .sign(providerPrivateKey);
+
+    // 3. Create a mock disclosure
+    const mockDisclosure = "WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ";
+
+    // 4. Form the SD-JWT portion
+    const sdJwtPortion = `${evtJwt}~${mockDisclosure}~`;
+
+    // 5. Calculate correct sd_hash
+    const calculatedHash = crypto.createHash("sha256").update(sdJwtPortion).digest("base64url");
+
+    // 6. Sign Key Binding JWT (KB-JWT)
+    const kbPayload = {
+      aud: "https://rowan.fyi",
+      nonce: "demo-nonce",
+      iat: Math.floor(Date.now() / 1000),
+      sd_hash: calculatedHash,
+    };
+    const kbJwt = await new SignJWT(kbPayload)
+      .setProtectedHeader({
+        alg: "Ed25519",
+        typ: "kb+jwt",
+      })
+      .sign(privateKey);
+
+    // 7. Reconstruct rawToken sent to the verifier
+    const rawToken = `${sdJwtPortion}${kbJwt}`;
+
+    // 8. Re-execute the step 1 and step 2 parsing algorithm from index.astro
+    const parts = rawToken.split("~");
+    expect(parts).toHaveLength(3); // [evtJwt, mockDisclosure, kbJwt]
+    const parsedEvt = parts[0];
+    const parsedKb = parts[parts.length - 1];
+    const parsedDisclosures = parts.slice(1, -1).filter(Boolean);
+
+    expect(parsedEvt).toBe(evtJwt);
+    expect(parsedKb).toBe(kbJwt);
+    expect(parsedDisclosures).toEqual([mockDisclosure]);
+
+    // Reconstruct SD-JWT portion to calculate hash
+    const reconstructedSdJwtPortion = parts.slice(0, -1).join("~") + "~";
+    const parsedHash = crypto.createHash("sha256").update(reconstructedSdJwtPortion).digest("base64url");
+
+    expect(parsedHash).toBe(calculatedHash);
+  });
 });
