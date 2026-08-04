@@ -103,11 +103,11 @@ var _self =
               'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code',
           };
           C.hooks.run("before-highlightall", t);
-          for (var r, i = t.elements || e.querySelectorAll(t.selector), l = 0; (r = i[l++]); )
+          for (var r, i = t.elements || e.querySelectorAll(t.selector), l = 0; (r = i[l++]);)
             C.highlightElement(r, !0 === a, t.callback);
         },
         highlightElement: function (e, a, n) {
-          for (var t, r = "none", i = e; i && !c.test(i.className); ) i = i.parentNode;
+          for (var t, r = "none", i = e; i && !c.test(i.className);) i = i.parentNode;
           (i && ((r = (i.className.match(c) || [, "none"])[1].toLowerCase()), (t = C.languages[r])),
             (e.className = e.className.replace(c, "").replace(/\s+/g, " ") + " language-" + r),
             e.parentNode &&
@@ -226,7 +226,7 @@ var _self =
           },
           run: function (e, a) {
             var n = C.hooks.all[e];
-            if (n && n.length) for (var t, r = 0; (t = n[r++]); ) t(a);
+            if (n && n.length) for (var t, r = 0; (t = n[r++]);) t(a);
           },
         },
         Token: M,
