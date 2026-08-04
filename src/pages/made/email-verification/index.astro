@@ -149,8 +149,8 @@ if (Astro.request.method === "POST") {
         tokenHash: decodedKbPayload.sd_hash,
       };
 
-      // 2A. Ensure the email address in the token matches the submitted form input
-      if (decodedPayload.email !== submittedEmail) {
+      // 2A. Ensure the email address in the token matches the submitted form input (case-insensitive per spec)
+      if (decodedPayload.email.toLowerCase() !== submittedEmail.toLowerCase()) {
         traceSteps[1].status = "failed";
         throw new Error(
           `Email mismatch: Form input is '${submittedEmail}', but token holds '${decodedPayload.email}'.`,

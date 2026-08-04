@@ -161,7 +161,7 @@ describe("EVP Cryptographic Flow", () => {
     const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
     const parsedEvt = fullEvt.split("~")[0];
     const { payload: verifiedEvt } = await jwtVerify(parsedEvt, providerPublicKey);
-    expect(verifiedEvt.email).toBe("demo@rowan.fyi");
+    expect(verifiedEvt.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(verifiedEvt.email_verified).toBe(true);
 
     const cnf = verifiedEvt.cnf as { jwk: typeof browserPublicKeyJwk };
@@ -213,7 +213,7 @@ describe("EVP Cryptographic Flow", () => {
     const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
     const parsedEvt = fullEvt.split("~")[0];
     const { payload: verifiedEvt } = await jwtVerify(parsedEvt, providerPublicKey);
-    expect(verifiedEvt.email).toBe("demo@rowan.fyi");
+    expect(verifiedEvt.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(verifiedEvt.email_verified).toBe(true);
 
     const cnf = verifiedEvt.cnf as { jwk: typeof browserJwkData };
@@ -466,7 +466,7 @@ describe("EVP Endpoint Unit Tests", () => {
     const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
     const { payload } = await jwtVerify(evtJwt, providerPublicKey);
 
-    expect(payload.email).toBe("demo@rowan.fyi");
+    expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(payload.email_verified).toBe(true);
 
     const cnf = payload.cnf as { jwk: typeof browserPublicKeyJwk };
@@ -517,7 +517,7 @@ describe("EVP Endpoint Unit Tests", () => {
     const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
     const { payload } = await jwtVerify(evtJwt, providerPublicKey);
 
-    expect(payload.email).toBe("demo@rowan.fyi");
+    expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(payload.email_verified).toBe(true);
 
     const cnf = payload.cnf as { jwk: typeof browserJwkData };

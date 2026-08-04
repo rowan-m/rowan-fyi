@@ -504,7 +504,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // 2. If the user is logged in, but requesting an email they do not control or that does not exist.
     const session = cookies.get("__session")?.value;
 
-    if (session !== "active" || email !== "demo@rowan.fyi") {
+    if (session !== "active" || email.toLowerCase() !== "demo@rowan.fyi") {
       return new Response(
         JSON.stringify({
           error: "authentication_required",

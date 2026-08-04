@@ -21,7 +21,7 @@ export const GET: APIRoute = async ({ cookies, request }) => {
       ? [
           {
             id: "demo-evt-user",
-            name: "Demo User",
+            name: "Demosthenes User",
             email: "demo@rowan.fyi",
             given_name: "Demo",
           },
