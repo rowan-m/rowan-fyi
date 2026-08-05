@@ -8,6 +8,9 @@ import { unified } from "@astrojs/markdown-remark";
 
 // https://astro.build/config
 export default defineConfig({
+  logger: {
+    entrypoint: "./src/utils/gcp-logger.ts",
+  },
   site: "https://rowan.fyi",
   trailingSlash: "ignore",
   scopedStyleStrategy: "where",
