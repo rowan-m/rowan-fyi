@@ -38,6 +38,7 @@ function buildSignatureBase({
   authority,
   path,
   cookie,
+  contentDigest,
   signatureKey,
   signatureInput,
   components,
@@ -46,6 +47,7 @@ function buildSignatureBase({
   authority: string;
   path: string;
   cookie: string | null;
+  contentDigest: string | null;
   signatureKey: string;
   signatureInput: string;
   components: string[];
@@ -61,6 +63,8 @@ function buildSignatureBase({
       value = path;
     } else if (component === "cookie") {
       value = cookie || "";
+    } else if (component === "content-digest") {
+      value = contentDigest || "";
     } else if (component === "signature-key") {
       value = signatureKey;
     }
@@ -108,33 +112,49 @@ function verifyRequestSignature(
   const signatureInputHeader = request.headers.get("signature-input");
   const signatureKeyHeader = request.headers.get("signature-key");
 
-  if (!signatureHeader || !signatureInputHeader || !signatureKeyHeader) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description:
-          "Missing required HTTP Message Signature headers (Signature, Signature-Input, or Signature-Key).",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
+  const returnError = (msg: string, details?: string) => {
+    const errorBody = {
+      error: "invalid_signature",
+      error_description: msg,
+      debug: {
+        details,
+        headers: {
+          host: request.headers.get("host"),
+          "x-forwarded-host": request.headers.get("x-forwarded-host"),
+          "content-digest": request.headers.get("content-digest"),
+          "signature-key": signatureKeyHeader,
+          "signature-input": signatureInputHeader,
+          signature: signatureHeader,
+        },
       },
+    };
+    const logMsg = `EVP Request Signature Validation Failed: ${msg}${details ? " - " + details : ""}\n`;
+    process.stderr.write(logMsg);
+
+    const gcpLogEntry = {
+      severity: "WARNING",
+      message: logMsg,
+      time: new Date().toISOString(),
+      serviceContext: { service: "rowan-fyi" },
+    };
+    console.warn(JSON.stringify(gcpLogEntry));
+
+    return new Response(JSON.stringify(errorBody), {
+      status: 400,
+      headers: corsHeaders,
+    });
+  };
+
+  if (!signatureHeader || !signatureInputHeader || !signatureKeyHeader) {
+    return returnError(
+      "Missing required HTTP Message Signature headers (Signature, Signature-Input, or Signature-Key).",
     );
   }
 
   // Parse Signature-Key (hwk)
   const keyParams = parseParameterizedHeader(signatureKeyHeader);
   if (keyParams.sig !== "hwk" || !keyParams.kty) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "Signature-Key header does not use the 'hwk' scheme or is malformed.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
-    );
+    return returnError("Signature-Key header does not use the 'hwk' scheme or is malformed.");
   }
 
   const browserJwk: JWK = {
@@ -147,16 +167,7 @@ function verifyRequestSignature(
   // Parse Signature-Input
   const inputMatch = signatureInputHeader.match(/sig=\(([^)]+)\)(.*)/);
   if (!inputMatch) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "Signature-Input header is malformed.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
-    );
+    return returnError("Signature-Input header is malformed.");
   }
 
   const components = inputMatch[1].split(/\s+/).map((c) => {
@@ -170,30 +181,15 @@ function verifyRequestSignature(
   const createdTime = parseInt(inputParams.created, 10);
 
   if (isNaN(createdTime)) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "Signature-Input is missing the 'created' parameter or it is malformed.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
-    );
+    return returnError("Signature-Input is missing the 'created' parameter or it is malformed.");
   }
 
   // Timing check (60-second window)
   const currentTime = Math.floor(Date.now() / 1000);
   if (Math.abs(currentTime - createdTime) > 60) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "The signature timestamp 'created' is outside the acceptable 60-second window.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
+    return returnError(
+      "The signature timestamp 'created' is outside the acceptable 60-second window.",
+      `Server currentTime: ${currentTime}, header createdTime: ${createdTime}`,
     );
   }
 
@@ -201,67 +197,30 @@ function verifyRequestSignature(
   const requiredComponents = ["@method", "@authority", "@path", "signature-key"];
   for (const reqComp of requiredComponents) {
     if (!components.includes(reqComp)) {
-      return new Response(
-        JSON.stringify({
-          error: "invalid_signature",
-          error_description: `Required component '${reqComp}' is missing from Signature-Input.`,
-        }),
-        {
-          status: 400,
-          headers: corsHeaders,
-        },
-      );
+      return returnError(`Required component '${reqComp}' is missing from Signature-Input.`);
     }
-  }
-
-  // Cookie binding check (RFC 9421)
-  const cookieHeader = request.headers.get("cookie");
-  if (cookieHeader && !components.includes("cookie")) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "The 'cookie' component must be covered by the signature when Cookie header is present.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
-    );
-  }
-  if (!cookieHeader && components.includes("cookie")) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "The 'cookie' component must not be listed in Signature-Input when Cookie header is absent.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
-    );
   }
 
   // Parse Signature header and verify
   const sigMatch = signatureHeader.match(/sig=:([^:]+):/);
   if (!sigMatch) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "Signature header is malformed.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
-    );
+    return returnError("Signature header is malformed.");
   }
   const signatureB64 = sigMatch[1];
 
+  const contentDigestHeader = request.headers.get("content-digest");
+  let hostHeader = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
+  const isLocal = hostHeader.includes("localhost") || hostHeader.includes("127.0.0.1");
+  if (!isLocal) {
+    hostHeader = "rowan.fyi";
+  }
+
   const signatureBase = buildSignatureBase({
     method: request.method,
-    authority: url.host,
+    authority: hostHeader,
     path: url.pathname,
-    cookie: cookieHeader,
+    cookie: request.headers.get("cookie"),
+    contentDigest: contentDigestHeader,
     signatureKey: signatureKeyHeader,
     signatureInput: signatureInputHeader,
     components,
@@ -269,15 +228,9 @@ function verifyRequestSignature(
 
   const isSignatureValid = verifySignature(signatureBase, signatureB64, browserJwk);
   if (!isSignatureValid) {
-    return new Response(
-      JSON.stringify({
-        error: "invalid_signature",
-        error_description: "HTTP Message Signature verification failed.",
-      }),
-      {
-        status: 400,
-        headers: corsHeaders,
-      },
+    return returnError(
+      "HTTP Message Signature verification failed.",
+      `Base: ${signatureBase.replace(/\n/g, "\\n")}, JWK: ${JSON.stringify(browserJwk)}`,
     );
   }
 
@@ -308,6 +261,31 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     corsHeaders["Access-Control-Allow-Origin"] = "*";
   }
 
+  const sendResponse = (
+    bodyObj: { error?: string; error_description?: string; issuance_token?: string },
+    status: number,
+  ) => {
+    if (status !== 200) {
+      const gcpLogEntry = {
+        severity: status >= 500 ? "ERROR" : "WARNING",
+        message: `EVP Issuance ${status >= 500 ? "Error" : "Warning"} (${status}): ${bodyObj.error_description || bodyObj.error || "Bad Request"}`,
+        time: new Date().toISOString(),
+        serviceContext: {
+          service: process.env.K_SERVICE || "rowan-fyi",
+        },
+      };
+      if (status >= 500) {
+        console.error(JSON.stringify(gcpLogEntry));
+      } else {
+        console.warn(JSON.stringify(gcpLogEntry));
+      }
+    }
+    return new Response(JSON.stringify(bodyObj), {
+      status,
+      headers: corsHeaders,
+    });
+  };
+
   try {
     // To protect user privacy and prevent CSRF / cross-site state detection,
     // standard-compliant browsers SHOULD set "Sec-Fetch-Dest: email-verification" or "webidentity".
@@ -322,21 +300,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       request.headers.has("signature-input") &&
       request.headers.has("signature-key");
 
-    // If HTTP Message Signature headers are present, we strictly enforce Content-Type: application/json (Path A)
-    if (hasSignatureHeaders && !contentType.includes("application/json")) {
-      return new Response(
-        JSON.stringify({
-          error: "invalid_request",
-          error_description: "Content-Type must be application/json for HTTP Message Signatures.",
-        }),
-        {
-          status: 415,
-          headers: corsHeaders,
-        },
-      );
-    }
-
-    const useHttpMessageSignatures = contentType.includes("application/json") && hasSignatureHeaders;
+    const useHttpMessageSignatures = hasSignatureHeaders;
 
     let email = "";
     let browserJwk: JWK | undefined = undefined;
@@ -351,44 +315,69 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       }
       browserJwk = signatureResult.browserJwk;
 
-      try {
-        const body = await request.json();
-        if (body.private_email || body.directed_email) {
-          return new Response(
-            JSON.stringify({
-              error: "private_email_not_supported",
-              error_description: "This issuer does not support private email addresses.",
-            }),
+      if (contentType.includes("application/json")) {
+        try {
+          const body = await request.json();
+          if (body.private_email || body.directed_email) {
+            return sendResponse(
+              {
+                error: "private_email_not_supported",
+                error_description: "This issuer does not support private email addresses.",
+              },
+              400,
+            );
+          }
+          email = body.email;
+        } catch {
+          return sendResponse(
             {
-              status: 400,
-              headers: corsHeaders,
+              error: "invalid_request",
+              error_description: "Invalid or malformed JSON request body.",
             },
+            400,
           );
         }
-        email = body.email;
-      } catch {
-        return new Response(
-          JSON.stringify({
-            error: "invalid_request",
-            error_description: "Invalid or malformed JSON request body.",
-          }),
-          {
-            status: 400,
-            headers: corsHeaders,
-          },
-        );
+      } else if (contentType.includes("application/x-www-form-urlencoded")) {
+        try {
+          const formData = await request.formData();
+          if (formData.get("private_email") || formData.get("directed_email")) {
+            return sendResponse(
+              {
+                error: "private_email_not_supported",
+                error_description: "This issuer does not support private email addresses.",
+              },
+              400,
+            );
+          }
+          email = formData.get("email") as string;
+          if (!email) {
+            const requestToken = formData.get("request_token") as string;
+            if (requestToken && requestToken.includes(".")) {
+              const parts = requestToken.split(".");
+              if (parts.length === 3) {
+                const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+                email = payload.email;
+              }
+            }
+          }
+        } catch {
+          return sendResponse(
+            {
+              error: "invalid_request",
+              error_description: "Invalid or malformed urlencoded request body.",
+            },
+            400,
+          );
+        }
       }
 
       if (!email) {
-        return new Response(
-          JSON.stringify({
+        return sendResponse(
+          {
             error: "invalid_request",
             error_description: "Missing required 'email' field in request body.",
-          }),
-          {
-            status: 400,
-            headers: corsHeaders,
           },
+          400,
         );
       }
     } else {
@@ -453,15 +442,12 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
           browserJwk = header.jwk as JWK | undefined;
 
           if (!browserJwk) {
-            return new Response(
-              JSON.stringify({
+            return sendResponse(
+              {
                 error: "invalid_signature",
                 error_description: "Missing ephemeral public key (jwk) in request token header.",
-              }),
-              {
-                status: 400,
-                headers: corsHeaders,
               },
+              400,
             );
           }
 
@@ -471,15 +457,12 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
           const { payload } = await jwtVerify(requestToken, publicKey);
           email = payload.email as string;
         } catch {
-          return new Response(
-            JSON.stringify({
+          return sendResponse(
+            {
               error: "invalid_signature",
               error_description: "request_token signature verification failed.",
-            }),
-            {
-              status: 400,
-              headers: corsHeaders,
             },
+            400,
           );
         }
       } else {
@@ -491,29 +474,15 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // ==============================================================================
     // STEP 3: SESSION AUTHENTICATION & UNIFORM ERROR RESPONSE (Anti-Probing & Timing Mitigations)
     // ==============================================================================
-    // SECURITY NOTE on Timing Attack Mitigation (Order of Operations):
-    // Standard-compliant issuers MUST perform expensive cryptographic signature validations
-    // (such as verifyRequestSignature or jwtVerify) BEFORE checking the user session or email matching.
-    // By verifying the signature first, we spend the same computational effort regardless of
-    // whether the email exists, preventing attackers from measuring response timing to probe
-    // for valid email addresses.
-    //
-    // SECURITY NOTE on Email Probing (Uniform Error Responses):
-    // To prevent account/email enumeration, we return an identical HTTP 401 Unauthorized response:
-    // 1. If the session cookie is absent or expired (user is logged out).
-    // 2. If the user is logged in, but requesting an email they do not control or that does not exist.
     const session = cookies.get("__session")?.value;
 
     if (session !== "active" || email.toLowerCase() !== "demo@rowan.fyi") {
-      return new Response(
-        JSON.stringify({
+      return sendResponse(
+        {
           error: "authentication_required",
           error_description: "User must be authenticated and have control of the requested email address.",
-        }),
-        {
-          status: 401,
-          headers: corsHeaders,
         },
+        401,
       );
     }
 
@@ -555,27 +524,20 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 
     const issuanceToken = `${evtJwt}~`;
 
-    return new Response(
-      JSON.stringify({
-        issuance_token: issuanceToken,
-      }),
+    return sendResponse(
       {
-        status: 200,
-        headers: corsHeaders,
+        issuance_token: issuanceToken,
       },
+      200,
     );
   } catch (error) {
-    console.error("Issuance error:", error);
     const message = error instanceof Error ? error.message : "An internal error occurred during token issuance.";
-    return new Response(
-      JSON.stringify({
+    return sendResponse(
+      {
         error: "server_error",
         error_description: message,
-      }),
-      {
-        status: 500,
-        headers: corsHeaders,
       },
+      500,
     );
   }
 };

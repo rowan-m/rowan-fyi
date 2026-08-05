@@ -326,18 +326,30 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.error_description).toBe("request_token signature verification failed.");
   });
 
-  test("issuance endpoint returns 415 on invalid content-type when signature headers are provided", async () => {
+  test("issuance endpoint handles hybrid x-www-form-urlencoded content-type with valid signature headers (Transitional Chrome)", async () => {
+    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
+    const browserPublicKeyJwk = await exportJWK(publicKey);
+    const browserPrivateKeyJwk = await exportJWK(privateKey);
+
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const headers = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+    });
+
+    // Override Content-Type to x-www-form-urlencoded
+    headers["content-type"] = "application/x-www-form-urlencoded";
+
     const response = await postIssuance({
       url: mockUrl,
       request: new Request(mockUrl, {
         method: "POST",
-        headers: {
-          "content-type": "application/x-www-form-urlencoded",
-          signature: "sig=:abc:",
-          "signature-input": 'sig=("@method");created=123',
-          "signature-key": "sig=hwk;kty=OKP",
-        },
+        headers: new Headers(headers),
+        body: "email=demo%40rowan.fyi",
       }),
       params: {},
       props: {},
@@ -348,9 +360,16 @@ describe("EVP Endpoint Unit Tests", () => {
       } as unknown as APIContext["cookies"],
     } as unknown as APIContext);
 
-    expect(response.status).toBe(415);
-    const data = (await response.json()) as { error: string };
-    expect(data.error).toBe("invalid_request");
+    expect(response.status).toBe(200);
+    const data = (await response.json()) as { issuance_token: string };
+    expect(data.issuance_token).toBeDefined();
+    expect(data.issuance_token.endsWith("~")).toBe(true);
+
+    const evtJwt = data.issuance_token.split("~")[0];
+    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
+    const { payload } = await jwtVerify(evtJwt, providerPublicKey);
+
+    expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
   });
 
   test("issuance endpoint returns 401 on missing session (both paths)", async () => {
