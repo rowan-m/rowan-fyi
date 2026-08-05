@@ -24,6 +24,8 @@ interface EvtPayload {
   cnf?: {
     jwk?: JWK;
   };
+  exp?: number;
+  iat?: number;
 }
 
 interface TraceStep {
@@ -136,6 +138,9 @@ if (Astro.request.method === "POST") {
       const calculatedHash = createHash("sha256").update(sdJwtPortion).digest("base64url");
 
       const expectedAudience = Astro.url.origin;
+      const currentTime = Math.floor(Date.now() / 1000);
+      const tokenExp = decodedPayload.exp;
+      const tokenIat = decodedPayload.iat;
 
       traceSteps[1].inputSent = {
         submittedEmail,
@@ -147,6 +152,9 @@ if (Astro.request.method === "POST") {
         tokenNonce: decodedKbPayload.nonce,
         calculatedEvtHash: calculatedHash,
         tokenHash: decodedKbPayload.sd_hash,
+        tokenExp,
+        tokenIat,
+        currentTime,
       };
 
       // 2A. Ensure the email address in the token matches the submitted form input (case-insensitive per spec)
@@ -183,6 +191,40 @@ if (Astro.request.method === "POST") {
       if (decodedKbPayload.sd_hash !== calculatedHash) {
         traceSteps[1].status = "failed";
         throw new Error("Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.");
+      }
+
+      // 2F. Expiration Verification (exp): Ensure the token is not expired
+      if (tokenExp && currentTime > tokenExp) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          `Security Exception: The token has expired. Current time is ${currentTime}, but token expired at ${tokenExp}.`,
+        );
+      }
+
+      // 2G. Internal Consistency Verification (iat < exp)
+      if (tokenIat && tokenExp && tokenIat >= tokenExp) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          `Security Exception: Token timestamps are inconsistent. Issued at (iat) is ${tokenIat}, but expires at (exp) is ${tokenExp}.`,
+        );
+      }
+
+      // 2H. Issuance Time Verification (iat): Ensure token is not too old (within 5 minutes / 300 seconds)
+      if (tokenIat) {
+        const tokenAge = currentTime - tokenIat;
+        const fiveMinutes = 300;
+        if (tokenAge > fiveMinutes) {
+          traceSteps[1].status = "failed";
+          throw new Error(
+            `Security Exception: Token is too old. Token was issued at ${tokenIat} (${tokenAge} seconds ago), which exceeds the 5-minute freshness limit.`,
+          );
+        }
+        if (tokenAge < -60) {
+          traceSteps[1].status = "failed";
+          throw new Error(
+            `Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is ${tokenIat}, but current time is ${currentTime}.`,
+          );
+        }
       }
 
       traceSteps[1].outputReceived = {
