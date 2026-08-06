@@ -56,7 +56,7 @@ let traceSteps: TraceStep[] = [
   {
     name: "Step 2: Validate expected values and session binding",
     description:
-      "Verify local, non-cryptographic claims (email match, verification status, audience, nonce, and cryptographic hash binding) to fail fast before doing network or crypto operations.",
+      "Verify local, non-cryptographic claims (email match and explicit verification status) to fail fast before doing network or crypto operations.",
     status: "pending",
   },
   {
@@ -78,7 +78,7 @@ let traceSteps: TraceStep[] = [
   {
     name: "Step 6: Ephemeral key binding verification",
     description:
-      "Extract the browser's ephemeral public key from the validated EVT and cryptographically verify the KB-JWT signature to prove possession of the private key.",
+      "Verify the Key Binding JWT (KB-JWT) signature, session nonce, audience, and cryptographic hash binding using @sd-jwt/core.",
     status: "pending",
   },
 ];
@@ -116,7 +116,7 @@ if (Astro.request.method === "POST") {
 
       if (!decodedSdJwt.kbJwt) {
         traceSteps[0].status = "failed";
-        throw new Error("Missing Key Binding JWT (KB-JWT) separator '~'.");
+        throw new Error("Missing Key Binding JWT (KB-JWT).");
       }
 
       const evtJwtDecodedPayload = decodedSdJwt.jwt.payload as EvtPayload;
@@ -140,23 +140,10 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       const expectedAudience = Astro.url.origin;
 
-      // Reconstruct the exact SD-JWT portion (includes all disclosures and trailing tilde)
-      const parts = rawToken.split("~");
-      const sdJwtPortion = parts.slice(0, -1).join("~") + "~";
-      const calculatedHash = createHash("sha256").update(sdJwtPortion).digest("base64url");
-
       traceSteps[1].inputSent = {
         submittedEmail,
         tokenEmail: evtJwtDecodedPayload.email,
         emailVerifiedClaim: evtJwtDecodedPayload.email_verified,
-        expectedAudience,
-        tokenAudience: decodedSdJwt.kbJwt.payload.aud,
-        expectedNonce,
-        tokenNonce: decodedSdJwt.kbJwt.payload.nonce,
-        calculatedEvtHash: calculatedHash,
-        tokenHash: decodedSdJwt.kbJwt.payload.sd_hash,
-        tokenExp: evtJwtDecodedPayload.exp,
-        tokenIat: evtJwtDecodedPayload.iat,
       };
 
       if (evtJwtDecodedPayload.email.toLowerCase() !== submittedEmail.toLowerCase()) {
@@ -171,87 +158,9 @@ if (Astro.request.method === "POST") {
         throw new Error("Security Exception: The token 'email_verified' claim must be explicitly true.");
       }
 
-      if (decodedSdJwt.kbJwt.payload.aud !== expectedAudience) {
-        traceSteps[1].status = "failed";
-        throw new Error(
-          "Key Binding audience mismatch. Expected " +
-            expectedAudience +
-            ", but got " +
-            decodedSdJwt.kbJwt.payload.aud +
-            ".",
-        );
-      }
-
-      if (!expectedNonce || decodedSdJwt.kbJwt.payload.nonce !== expectedNonce) {
-        traceSteps[1].status = "failed";
-        throw new Error(
-          "Key Binding nonce mismatch or expired session. Expected " +
-            (expectedNonce || "N/A") +
-            ", but got " +
-            decodedSdJwt.kbJwt.payload.nonce +
-            ".",
-        );
-      }
-
-      if (decodedSdJwt.kbJwt.payload.sd_hash !== calculatedHash) {
-        traceSteps[1].status = "failed";
-        throw new Error("Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.");
-      }
-
-      const currentTime = Math.floor(Date.now() / 1000);
-      const tokenExp = evtJwtDecodedPayload.exp;
-      const tokenIat = evtJwtDecodedPayload.iat;
-
-      if (tokenExp && currentTime > tokenExp) {
-        traceSteps[1].status = "failed";
-        throw new Error(
-          "Security Exception: The token has expired. Current time is " +
-            currentTime +
-            ", but token expired at " +
-            tokenExp +
-            ".",
-        );
-      }
-
-      if (tokenIat && tokenExp && tokenIat >= tokenExp) {
-        traceSteps[1].status = "failed";
-        throw new Error(
-          "Security Exception: Token timestamps are inconsistent. Issued at (iat) is " +
-            tokenIat +
-            ", but expires at (exp) is " +
-            tokenExp +
-            ".",
-        );
-      }
-
-      if (tokenIat) {
-        const tokenAge = currentTime - tokenIat;
-        const fiveMinutes = 300;
-        if (tokenAge > fiveMinutes) {
-          traceSteps[1].status = "failed";
-          throw new Error(
-            "Security Exception: Token is too old. Token was issued at " +
-              tokenIat +
-              " (" +
-              tokenAge +
-              " seconds ago), which exceeds the 5-minute freshness limit.",
-          );
-        }
-        if (tokenAge < -60) {
-          traceSteps[1].status = "failed";
-          throw new Error(
-            "Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is " +
-              tokenIat +
-              ", but current time is " +
-              currentTime +
-              ".",
-          );
-        }
-      }
-
       traceSteps[1].outputReceived = {
         localChecksPassed: true,
-        details: "Local claims matched. Cryptographic validation will be performed next.",
+        details: "Local claims matched. Cryptographic and token binding validation will be performed by the library.",
       };
       traceSteps[1].status = "success";
 
