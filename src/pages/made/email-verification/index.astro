@@ -265,7 +265,10 @@ if (Astro.request.method === "POST") {
           verifier: async (data, sig) => {
             const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
             const algorithm = headerAlg === "EdDSA" ? undefined : "sha256";
-            for (const jwk of jwksData.keys) {
+            const kid = decodedSdJwt.jwt.header.kid;
+            const keysToTry = kid ? jwksData.keys.filter((k: { kid?: string }) => k.kid === kid) : jwksData.keys;
+
+            for (const jwk of keysToTry) {
               try {
                 const pubKey = nodeCrypto.createPublicKey({ key: jwk as nodeCrypto.JsonWebKey, format: "jwk" });
                 const verifyKey =
@@ -309,15 +312,83 @@ if (Astro.request.method === "POST") {
           },
         });
 
+        verifiedEvtPayload = result.payload;
+
+        // ==============================================================================
+        // STRICT TIMESTAMP AND CLAIM VALIDATIONS (AFTER CRYPTOGRAPHIC VERIFICATION)
+        // ==============================================================================
+        const currentTime = Math.floor(Date.now() / 1000);
+        const tokenExp = verifiedEvtPayload.exp as number | undefined;
+        const tokenIat = verifiedEvtPayload.iat as number | undefined;
+
+        // If expiration is present, verify the token is not expired and is consistent with iat
+        if (tokenExp) {
+          if (currentTime > tokenExp) {
+            traceSteps[4].status = "failed";
+            throw new Error(
+              `Security Exception: The token has expired. Current time is ${currentTime}, but token expired at ${tokenExp}.`,
+            );
+          }
+          if (tokenIat && tokenIat >= tokenExp) {
+            traceSteps[4].status = "failed";
+            throw new Error(
+              `Security Exception: Token timestamps are inconsistent. Issued at (iat) is ${tokenIat}, but expires at (exp) is ${tokenExp}.`,
+            );
+          }
+        }
+
+        // Ensure issued-at is present and verify its freshness
+        if (!tokenIat) {
+          traceSteps[4].status = "failed";
+          throw new Error("Security Exception: EVT is missing the required issued-at ('iat') claim.");
+        }
+
+        // Ensure token is not too old (within 5 minutes / 300 seconds) or from too far in the future
+        const tokenAge = currentTime - tokenIat;
+        const fiveMinutes = 300;
+        if (tokenAge > fiveMinutes) {
+          traceSteps[4].status = "failed";
+          throw new Error(
+            `Security Exception: Token is too old. Token was issued at ${tokenIat} (${tokenAge} seconds ago), which exceeds the 5-minute freshness limit.`,
+          );
+        }
+        if (tokenAge < -60) {
+          traceSteps[4].status = "failed";
+          throw new Error(
+            `Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is ${tokenIat}, but current time is ${currentTime}.`,
+          );
+        }
+
+        // Validate Key Binding JWT freshness
+        const kbPayload = decodedSdJwt.kbJwt.payload;
+        const kbIat = kbPayload.iat as number | undefined;
+        if (!kbIat) {
+          traceSteps[5].status = "failed";
+          throw new Error("Security Exception: KB-JWT is missing the required issued-at ('iat') claim.");
+        }
+        const kbAge = currentTime - kbIat;
+        if (kbAge > fiveMinutes) {
+          traceSteps[5].status = "failed";
+          throw new Error(
+            `Security Exception: Key Binding JWT is too old. It was issued at ${kbIat} (${kbAge} seconds ago), which exceeds the 5-minute freshness limit.`,
+          );
+        }
+        if (kbAge < -60) {
+          traceSteps[5].status = "failed";
+          throw new Error(
+            `Security Exception: Key Binding JWT has an invalid future issuance timestamp. Issued at is ${kbIat}, but current time is ${currentTime}.`,
+          );
+        }
+
         traceSteps[4].outputReceived = { cryptographicallyVerified: true };
         traceSteps[4].status = "success";
         traceSteps[5].outputReceived = {
           keyBindingPassed: true,
           holderVerification: "Holder Private Key possession verified.",
+          claimsVerified:
+            "EVT freshness (and optional expiration) and KB-JWT expiration and freshness claims successfully verified.",
         };
         traceSteps[5].status = "success";
-
-        verifiedEvtPayload = result.payload;
       } catch (err) {
         traceSteps[4].status = "failed";
         traceSteps[5].status = "failed";

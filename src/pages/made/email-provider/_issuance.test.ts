@@ -714,4 +714,206 @@ describe("EVP Endpoint Unit Tests", () => {
 
     expect(parsedHash).toBe(calculatedHash);
   });
+
+  test("cryptographically verifies rawToken and validates strict standard claims", async () => {
+    const { SDJwtInstance, decodeSdJwtSync } = await import("@sd-jwt/core");
+
+    // 1. Generate keys
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+
+    const hasher = (data: Uint8Array | string, alg: string) =>
+      crypto
+        .createHash(alg === "sha-256" ? "sha256" : alg)
+        .update(data)
+        .digest();
+
+    // Helper to build and verify a token with custom payloads
+    const buildAndVerify = async (
+      evtOverrides = {},
+      kbOverrides = {},
+      options = { expectedNonce: "demo-nonce", expectedAudience: "https://rowan.fyi" },
+    ) => {
+      const evtPayload = {
+        iss: "https://rowan.fyi",
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 300,
+        cnf: {
+          jwk: browserPublicKeyJwk,
+        },
+        email: "demo@rowan.fyi",
+        email_verified: true,
+        ...evtOverrides,
+      };
+
+      const evtJwt = signJwt(
+        evtPayload,
+        {
+          alg: "EdDSA",
+          kid: PRIVATE_KEY_JWK.kid,
+          typ: "evt+jwt",
+        },
+        providerPrivateKey,
+      );
+
+      const sdJwtPortion = `${evtJwt}~`;
+      const calculatedHash = crypto.createHash("sha256").update(sdJwtPortion).digest("base64url");
+
+      const kbPayload = {
+        aud: "https://rowan.fyi",
+        nonce: "demo-nonce",
+        iat: Math.floor(Date.now() / 1000),
+        sd_hash: calculatedHash,
+        ...kbOverrides,
+      };
+
+      const kbJwt = signJwt(
+        kbPayload,
+        {
+          alg: "Ed25519",
+          typ: "kb+jwt",
+        },
+        privateKey,
+      );
+
+      const rawToken = `${sdJwtPortion}${kbJwt}`;
+
+      // Verification logic from index.astro
+      const decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
+      const sdJwt = new SDJwtInstance({ hasher });
+      sdJwt.config({
+        hasher,
+        verifier: async (data, sig) => {
+          const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
+          const algorithm = headerAlg === "EdDSA" ? undefined : "sha256";
+          const kid = decodedSdJwt.jwt.header.kid;
+          const jwksKeys = [PUBLIC_KEY_JWK];
+          const keysToTry = kid ? jwksKeys.filter((k: { kid?: string }) => k.kid === kid) : jwksKeys;
+
+          for (const jwk of keysToTry) {
+            try {
+              const pubKey = crypto.createPublicKey({ key: jwk as crypto.JsonWebKey, format: "jwk" });
+              const verifyKey = algorithm === undefined ? pubKey : { key: pubKey, dsaEncoding: "ieee-p1363" as const };
+              const isVerified = crypto.verify(algorithm, Buffer.from(data), verifyKey, Buffer.from(sig, "base64url"));
+              if (isVerified) return true;
+            } catch {
+              continue;
+            }
+          }
+          return false;
+        },
+        kbVerifier: async (data, sig) => {
+          try {
+            const browserJwkKey = (decodedSdJwt.jwt.payload as { cnf?: { jwk?: crypto.JsonWebKey } }).cnf?.jwk;
+            if (!browserJwkKey) throw new Error("Missing browser ephemeral public key.");
+            const kbAlg = decodedSdJwt.kbJwt.header.alg || "ES256";
+            const algorithm = kbAlg === "EdDSA" || kbAlg === "Ed25519" ? undefined : "sha256";
+            const pubKey = crypto.createPublicKey({
+              key: browserJwkKey as crypto.JsonWebKey,
+              format: "jwk",
+            });
+            const verifyKey = algorithm === undefined ? pubKey : { key: pubKey, dsaEncoding: "ieee-p1363" as const };
+            return crypto.verify(algorithm, Buffer.from(data), verifyKey, Buffer.from(sig, "base64url"));
+          } catch {
+            return false;
+          }
+        },
+      });
+
+      const result = await sdJwt.verify(rawToken, {
+        kb: {
+          expectedNonce: options.expectedNonce,
+          expectedAudience: options.expectedAudience,
+          required: true,
+        },
+      });
+
+      const verifiedEvtPayload = result.payload as { exp?: number; iat?: number; email?: string };
+      const currentTime = Math.floor(Date.now() / 1000);
+      const tokenExp = verifiedEvtPayload.exp as number | undefined;
+      const tokenIat = verifiedEvtPayload.iat as number | undefined;
+
+      // If expiration is present, verify the token is not expired and is consistent with iat
+      if (tokenExp) {
+        if (currentTime > tokenExp) {
+          throw new Error(
+            `Security Exception: The token has expired. Current time is ${currentTime}, but token expired at ${tokenExp}.`,
+          );
+        }
+        if (tokenIat && tokenIat >= tokenExp) {
+          throw new Error(
+            `Security Exception: Token timestamps are inconsistent. Issued at (iat) is ${tokenIat}, but expires at (exp) is ${tokenExp}.`,
+          );
+        }
+      }
+
+      if (!tokenIat) {
+        throw new Error("Security Exception: EVT is missing the required issued-at ('iat') claim.");
+      }
+
+      const tokenAge = currentTime - tokenIat;
+      const fiveMinutes = 300;
+      if (tokenAge > fiveMinutes) {
+        throw new Error(
+          `Security Exception: Token is too old. Token was issued at ${tokenIat} (${tokenAge} seconds ago), which exceeds the 5-minute freshness limit.`,
+        );
+      }
+      if (tokenAge < -60) {
+        throw new Error(
+          `Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is ${tokenIat}, but current time is ${currentTime}.`,
+        );
+      }
+
+      const kbJwtPayload = decodedSdJwt.kbJwt.payload;
+      const kbIat = kbJwtPayload.iat as number | undefined;
+      if (!kbIat) {
+        throw new Error("Security Exception: KB-JWT is missing the required issued-at ('iat') claim.");
+      }
+      const kbAge = currentTime - kbIat;
+      if (kbAge > fiveMinutes) {
+        throw new Error(
+          `Security Exception: Key Binding JWT is too old. It was issued at ${kbIat} (${kbAge} seconds ago), which exceeds the 5-minute freshness limit.`,
+        );
+      }
+      if (kbAge < -60) {
+        throw new Error(
+          `Security Exception: Key Binding JWT has an invalid future issuance timestamp. Issued at is ${kbIat}, but current time is ${currentTime}.`,
+        );
+      }
+
+      return verifiedEvtPayload;
+    };
+
+    // Test 1: Valid token verification succeeds
+    const payload = await buildAndVerify();
+    expect(payload.email).toBe("demo@rowan.fyi");
+
+    // Test: Verification succeeds when exp is omitted
+    const payloadNoExp = await buildAndVerify({ exp: undefined });
+    expect(payloadNoExp.email).toBe("demo@rowan.fyi");
+    expect(payloadNoExp.exp).toBeUndefined();
+
+    // Test 2: Expired token verification fails
+    await expect(buildAndVerify({ exp: Math.floor(Date.now() / 1000) - 10 })).rejects.toThrow("expired");
+
+    // Test 3: Stale EVT token (too old) fails
+    await expect(
+      buildAndVerify({ iat: Math.floor(Date.now() / 1000) - 600, exp: Math.floor(Date.now() / 1000) + 100 }),
+    ).rejects.toThrow("Token is too old");
+
+    // Test 4: Inconsistent timestamps (iat >= exp) fails
+    await expect(
+      buildAndVerify({ iat: Math.floor(Date.now() / 1000) + 100, exp: Math.floor(Date.now() / 1000) + 50 }),
+    ).rejects.toThrow(/inconsistent|not yet valid/i);
+
+    // Test 5: Future EVT token fails
+    await expect(buildAndVerify({ iat: Math.floor(Date.now() / 1000) + 120 })).rejects.toThrow(/future|not yet valid/i);
+
+    // Test 6: Stale Key Binding JWT fails
+    await expect(buildAndVerify({}, { iat: Math.floor(Date.now() / 1000) - 600 })).rejects.toThrow(
+      "Key Binding JWT is too old",
+    );
+  });
 });
