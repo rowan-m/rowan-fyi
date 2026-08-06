@@ -7,9 +7,9 @@ Astro.response.headers.set(
 );
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
-import { importJWK, jwtVerify, decodeJwt, decodeProtectedHeader } from "jose";
-import type { JWK } from "jose";
-import { createHash, randomUUID } from "node:crypto";
+import { SDJwtInstance, decodeSdJwtSync } from "@sd-jwt/core";
+import nodeCrypto, { createHash, randomUUID } from "node:crypto";
+import type { JsonWebKey } from "node:crypto";
 import dns from "node:dns/promises";
 
 interface VerificationResult {
@@ -22,7 +22,7 @@ interface EvtPayload {
   email: string;
   email_verified?: boolean;
   cnf?: {
-    jwk?: JWK;
+    jwk?: JsonWebKey;
   };
   exp?: number;
   iat?: number;
@@ -92,8 +92,8 @@ if (Astro.request.method === "POST") {
     Astro.cookies.delete(nonceCookieName, { path: "/" });
 
     const formData = await Astro.request.formData();
-    const submittedEmail = formData.get("email") as string;
-    const rawToken = formData.get("token") as string;
+    const submittedEmail = ((formData.get("email") as string) || "").trim();
+    const rawToken = ((formData.get("token") as string) || "").trim();
 
     if (rawToken) {
       // ==============================================================================
@@ -101,135 +101,157 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       traceSteps[0].inputSent = { rawToken };
 
-      const parts = rawToken.split("~");
-      if (parts.length < 2) {
-        traceSteps[0].status = "failed";
-        throw new Error("Invalid token format. Missing Key Binding JWT (KB-JWT) separator '~'.");
-      }
-      const evtJwt = parts[0];
-      const kbJwt = parts[parts.length - 1];
-      const disclosures = parts.slice(1, -1).filter(Boolean);
+      const hasher = (data, alg) =>
+        createHash(alg === "sha-256" ? "sha256" : alg)
+          .update(data)
+          .digest();
 
-      // Decode the EVT payload locally to dynamically discover who issued this token.
-      const decodedPayload = decodeJwt(evtJwt) as EvtPayload;
-      const iss = decodedPayload.iss;
+      let decodedSdJwt;
+      try {
+        decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
+      } catch (e) {
+        traceSteps[0].status = "failed";
+        throw new Error("Invalid token format: " + (e as Error).message, { cause: e });
+      }
+
+      if (!decodedSdJwt.kbJwt) {
+        traceSteps[0].status = "failed";
+        throw new Error("Missing Key Binding JWT (KB-JWT) separator '~'.");
+      }
+
+      const evtJwtDecodedPayload = decodedSdJwt.jwt.payload as EvtPayload;
+      const iss = evtJwtDecodedPayload.iss;
       if (!iss) {
         traceSteps[0].status = "failed";
         throw new Error("EVT is missing the issuer ('iss') claim.");
       }
 
-      const decodedKbPayload = decodeJwt(kbJwt);
-
       traceSteps[0].outputReceived = {
-        evtJwtDecodedHeader: decodeProtectedHeader(evtJwt),
-        evtJwtDecodedPayload: decodedPayload,
-        kbJwtDecodedHeader: decodeProtectedHeader(kbJwt),
-        kbJwtDecodedPayload: decodedKbPayload,
-        disclosures: disclosures,
+        evtJwtDecodedHeader: decodedSdJwt.jwt.header,
+        evtJwtDecodedPayload,
+        kbJwtDecodedHeader: decodedSdJwt.kbJwt.header,
+        kbJwtDecodedPayload: decodedSdJwt.kbJwt.payload,
+        disclosures: decodedSdJwt.disclosures,
       };
       traceSteps[0].status = "success";
 
       // ==============================================================================
       // STEP 2: VERIFY EXPECTED VALUES AND SESSION BINDING
       // ==============================================================================
-      // Reconstruct the exact SD-JWT portion (includes all disclosures and trailing tilde)
-      const sdJwtPortion = parts.slice(0, -1).join("~") + "~";
-
-      const calculatedHash = createHash("sha256").update(sdJwtPortion).digest("base64url");
-
       const expectedAudience = Astro.url.origin;
-      const currentTime = Math.floor(Date.now() / 1000);
-      const tokenExp = decodedPayload.exp;
-      const tokenIat = decodedPayload.iat;
+
+      // Reconstruct the exact SD-JWT portion (includes all disclosures and trailing tilde)
+      const parts = rawToken.split("~");
+      const sdJwtPortion = parts.slice(0, -1).join("~") + "~";
+      const calculatedHash = createHash("sha256").update(sdJwtPortion).digest("base64url");
 
       traceSteps[1].inputSent = {
         submittedEmail,
-        tokenEmail: decodedPayload.email,
-        emailVerifiedClaim: decodedPayload.email_verified,
+        tokenEmail: evtJwtDecodedPayload.email,
+        emailVerifiedClaim: evtJwtDecodedPayload.email_verified,
         expectedAudience,
-        tokenAudience: decodedKbPayload.aud,
+        tokenAudience: decodedSdJwt.kbJwt.payload.aud,
         expectedNonce,
-        tokenNonce: decodedKbPayload.nonce,
+        tokenNonce: decodedSdJwt.kbJwt.payload.nonce,
         calculatedEvtHash: calculatedHash,
-        tokenHash: decodedKbPayload.sd_hash,
-        tokenExp,
-        tokenIat,
-        currentTime,
+        tokenHash: decodedSdJwt.kbJwt.payload.sd_hash,
+        tokenExp: evtJwtDecodedPayload.exp,
+        tokenIat: evtJwtDecodedPayload.iat,
       };
 
-      // 2A. Ensure the email address in the token matches the submitted form input (case-insensitive per spec)
-      if (decodedPayload.email.toLowerCase() !== submittedEmail.toLowerCase()) {
+      if (evtJwtDecodedPayload.email.toLowerCase() !== submittedEmail.toLowerCase()) {
         traceSteps[1].status = "failed";
         throw new Error(
-          `Email mismatch: Form input is '${submittedEmail}', but token holds '${decodedPayload.email}'.`,
+          "Email mismatch: Form input is " + submittedEmail + ", but token holds " + evtJwtDecodedPayload.email + ".",
         );
       }
 
-      // 2B. Ensure the token asserts that the email has been verified
-      if (decodedPayload.email_verified !== true) {
+      if (evtJwtDecodedPayload.email_verified !== true) {
         traceSteps[1].status = "failed";
         throw new Error("Security Exception: The token 'email_verified' claim must be explicitly true.");
       }
 
-      // 2C. Session Nonce Verification: Ensure the nonce matches the one we generated for this rendering
-      if (!expectedNonce || decodedKbPayload.nonce !== expectedNonce) {
+      if (decodedSdJwt.kbJwt.payload.aud !== expectedAudience) {
         traceSteps[1].status = "failed";
         throw new Error(
-          `Key Binding nonce mismatch or expired session. Expected '${expectedNonce || "N/A"}', but got '${decodedKbPayload.nonce}'.`,
+          "Key Binding audience mismatch. Expected " +
+            expectedAudience +
+            ", but got " +
+            decodedSdJwt.kbJwt.payload.aud +
+            ".",
         );
       }
 
-      // 2D. Audience Verification: Ensure this token was specifically intended for our origin
-      if (decodedKbPayload.aud !== expectedAudience) {
+      if (!expectedNonce || decodedSdJwt.kbJwt.payload.nonce !== expectedNonce) {
         traceSteps[1].status = "failed";
         throw new Error(
-          `Key Binding audience mismatch. Expected '${expectedAudience}', but got '${decodedKbPayload.aud}'.`,
+          "Key Binding nonce mismatch or expired session. Expected " +
+            (expectedNonce || "N/A") +
+            ", but got " +
+            decodedSdJwt.kbJwt.payload.nonce +
+            ".",
         );
       }
 
-      // 2E. EVT Cryptographic Hash Binding: Match the "sd_hash" inside KB-JWT with the SHA-256 hash of the EVT.
-      if (decodedKbPayload.sd_hash !== calculatedHash) {
+      if (decodedSdJwt.kbJwt.payload.sd_hash !== calculatedHash) {
         traceSteps[1].status = "failed";
         throw new Error("Key Binding hash mismatch. KB-JWT is not cryptographically bound to this EVT.");
       }
 
-      // 2F. Expiration Verification (exp): Ensure the token is not expired
+      const currentTime = Math.floor(Date.now() / 1000);
+      const tokenExp = evtJwtDecodedPayload.exp;
+      const tokenIat = evtJwtDecodedPayload.iat;
+
       if (tokenExp && currentTime > tokenExp) {
         traceSteps[1].status = "failed";
         throw new Error(
-          `Security Exception: The token has expired. Current time is ${currentTime}, but token expired at ${tokenExp}.`,
+          "Security Exception: The token has expired. Current time is " +
+            currentTime +
+            ", but token expired at " +
+            tokenExp +
+            ".",
         );
       }
 
-      // 2G. Internal Consistency Verification (iat < exp)
       if (tokenIat && tokenExp && tokenIat >= tokenExp) {
         traceSteps[1].status = "failed";
         throw new Error(
-          `Security Exception: Token timestamps are inconsistent. Issued at (iat) is ${tokenIat}, but expires at (exp) is ${tokenExp}.`,
+          "Security Exception: Token timestamps are inconsistent. Issued at (iat) is " +
+            tokenIat +
+            ", but expires at (exp) is " +
+            tokenExp +
+            ".",
         );
       }
 
-      // 2H. Issuance Time Verification (iat): Ensure token is not too old (within 5 minutes / 300 seconds)
       if (tokenIat) {
         const tokenAge = currentTime - tokenIat;
         const fiveMinutes = 300;
         if (tokenAge > fiveMinutes) {
           traceSteps[1].status = "failed";
           throw new Error(
-            `Security Exception: Token is too old. Token was issued at ${tokenIat} (${tokenAge} seconds ago), which exceeds the 5-minute freshness limit.`,
+            "Security Exception: Token is too old. Token was issued at " +
+              tokenIat +
+              " (" +
+              tokenAge +
+              " seconds ago), which exceeds the 5-minute freshness limit.",
           );
         }
         if (tokenAge < -60) {
           traceSteps[1].status = "failed";
           throw new Error(
-            `Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is ${tokenIat}, but current time is ${currentTime}.`,
+            "Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is " +
+              tokenIat +
+              ", but current time is " +
+              currentTime +
+              ".",
           );
         }
       }
 
       traceSteps[1].outputReceived = {
         localChecksPassed: true,
-        details: "All local claims, session nonce, target audience, and hash binding checks matched successfully.",
+        details: "Local claims matched. Cryptographic validation will be performed next.",
       };
       traceSteps[1].status = "success";
 
@@ -237,11 +259,7 @@ if (Astro.request.method === "POST") {
       // STEP 3: DNS DELEGATION & AUTHORITY VERIFICATION (NETWORK)
       // ==============================================================================
       const domain = submittedEmail.split("@")[1];
-      traceSteps[2].inputSent = {
-        submittedEmail,
-        tokenIssuer: iss,
-        dnsLookupTarget: `_email-verification.${domain}`,
-      };
+      traceSteps[2].inputSent = { submittedEmail, tokenIssuer: iss, dnsLookupTarget: "_email-verification." + domain };
 
       let isAuthoritative = false;
       const issuerHost = iss.startsWith("http") ? new URL(iss).hostname.toLowerCase() : iss.toLowerCase();
@@ -255,21 +273,16 @@ if (Astro.request.method === "POST") {
       } else {
         traceSteps[2].serverCalled = "System DNS Server (TXT Resolve)";
         try {
-          const records = await dns.resolveTxt(`_email-verification.${domain}`);
+          const records = await dns.resolveTxt("_email-verification." + domain);
           traceSteps[2].outputReceived = { dnsTxtRecords: records };
 
           for (const record of records) {
             const txt = record.join("");
             if (txt.startsWith("iss=")) {
               const delegatedIssuer = txt.substring(4);
-              let delegatedHost = "";
-              try {
-                delegatedHost = delegatedIssuer.startsWith("http")
-                  ? new URL(delegatedIssuer).hostname.toLowerCase()
-                  : delegatedIssuer.toLowerCase();
-              } catch {
-                delegatedHost = delegatedIssuer.toLowerCase();
-              }
+              const delegatedHost = delegatedIssuer.startsWith("http")
+                ? new URL(delegatedIssuer).hostname.toLowerCase()
+                : delegatedIssuer.toLowerCase();
               if (delegatedHost === issuerHost) {
                 isAuthoritative = true;
                 break;
@@ -278,17 +291,21 @@ if (Astro.request.method === "POST") {
           }
         } catch (dnsErr) {
           traceSteps[2].status = "failed";
-          traceSteps[2].error = dnsErr instanceof Error ? dnsErr.message : String(dnsErr);
-          throw new Error(`DNS delegation lookup failed for _email-verification.${domain}: ${traceSteps[2].error}`, {
-            cause: dnsErr,
-          });
+          throw new Error(
+            "DNS delegation lookup failed for _email-verification." + domain + ": " + (dnsErr as Error).message,
+            { cause: dnsErr },
+          );
         }
       }
 
       if (!isAuthoritative) {
         traceSteps[2].status = "failed";
         throw new Error(
-          `Security Exception: Issuer '${iss}' is not authoritative for the email domain of '${submittedEmail}'.`,
+          "Security Exception: Issuer '" +
+            iss +
+            "' is not authoritative for the email domain of '" +
+            submittedEmail +
+            "'.",
         );
       }
       traceSteps[2].status = "success";
@@ -296,14 +313,14 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // STEP 4: ISSUER DISCOVERY & JWKS FETCHING (NETWORK)
       // ==============================================================================
-      const discoveryUrl = `${iss}/.well-known/email-verification`;
+      const discoveryUrl = iss + "/.well-known/email-verification";
       traceSteps[3].serverCalled = discoveryUrl;
       traceSteps[3].inputSent = { url: discoveryUrl };
 
       const metadataResponse = await fetch(discoveryUrl);
       if (!metadataResponse.ok) {
         traceSteps[3].status = "failed";
-        throw new Error(`Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`);
+        throw new Error("Failed to discover issuer metadata at " + discoveryUrl + ": " + metadataResponse.statusText);
       }
       const metadata = await metadataResponse.json();
       traceSteps[3].outputReceived = { issuerMetadata: metadata };
@@ -311,91 +328,97 @@ if (Astro.request.method === "POST") {
       const jwksUri = metadata.jwks_uri;
       if (!jwksUri) {
         traceSteps[3].status = "failed";
-        throw new Error(`Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`);
+        throw new Error("Issuer metadata at " + discoveryUrl + " is missing 'jwks_uri'.");
       }
 
-      traceSteps[3].serverCalled = `${discoveryUrl} & ${jwksUri}`;
+      traceSteps[3].serverCalled = discoveryUrl + " & " + jwksUri;
       const jwksResponse = await fetch(jwksUri);
       if (!jwksResponse.ok) {
         traceSteps[3].status = "failed";
-        throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
+        throw new Error("Failed to fetch JWKS from " + jwksUri);
       }
       const jwksData = await jwksResponse.json();
-      traceSteps[3].outputReceived = {
-        issuerMetadata: metadata,
-        issuerJWKS: jwksData,
-      };
+      traceSteps[3].outputReceived = { issuerMetadata: metadata, issuerJWKS: jwksData };
       traceSteps[3].status = "success";
 
       // ==============================================================================
-      // STEP 5: ISSUER SIGNATURE CRYPTOGRAPHIC VERIFICATION
+      // STEP 5 & 6: CRYPTOGRAPHIC VERIFICATION
       // ==============================================================================
-      const protectedHeader = decodeProtectedHeader(evtJwt);
-      const headerAlg = protectedHeader.alg || "ES256";
-      let verifiedPayload = null;
+      traceSteps[4].inputSent = { signingAlg: decodedSdJwt.jwt.header.alg || "ES256" };
+      traceSteps[5].inputSent = { cnf: evtJwtDecodedPayload.cnf };
 
-      traceSteps[4].inputSent = {
-        evtJwt,
-        signingAlg: headerAlg,
-      };
+      let verifiedEvtPayload;
 
-      for (const jwk of jwksData.keys) {
-        try {
-          const publicKey = await importJWK(jwk, headerAlg);
-          const { payload } = await jwtVerify(evtJwt, publicKey);
-          verifiedPayload = payload;
-          break; // Key matched and signature verified successfully!
-        } catch {
-          // Signature verification failed for this key, try the next one
-          continue;
-        }
-      }
+      try {
+        const sdJwt = new SDJwtInstance({ hasher });
+        sdJwt.config({
+          hasher,
+          verifier: async (data, sig) => {
+            const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
+            const algorithm = headerAlg === "EdDSA" ? undefined : "sha256";
+            for (const jwk of jwksData.keys) {
+              try {
+                const pubKey = nodeCrypto.createPublicKey({ key: jwk as nodeCrypto.JsonWebKey, format: "jwk" });
+                const verifyKey =
+                  algorithm === undefined ? pubKey : { key: pubKey, dsaEncoding: "ieee-p1363" as const };
+                const isVerified = nodeCrypto.verify(
+                  algorithm,
+                  Buffer.from(data),
+                  verifyKey,
+                  Buffer.from(sig, "base64url"),
+                );
+                if (isVerified) return true;
+              } catch {
+                continue;
+              }
+            }
+            return false;
+          },
+          kbVerifier: async (data, sig) => {
+            try {
+              const browserJwkKey = evtJwtDecodedPayload.cnf?.jwk;
+              if (!browserJwkKey) throw new Error("Missing browser ephemeral public key.");
+              const kbAlg = decodedSdJwt.kbJwt.header.alg || "ES256";
+              const algorithm = kbAlg === "EdDSA" || kbAlg === "Ed25519" ? undefined : "sha256";
+              const pubKey = nodeCrypto.createPublicKey({
+                key: browserJwkKey as nodeCrypto.JsonWebKey,
+                format: "jwk",
+              });
+              const verifyKey = algorithm === undefined ? pubKey : { key: pubKey, dsaEncoding: "ieee-p1363" as const };
+              return nodeCrypto.verify(algorithm, Buffer.from(data), verifyKey, Buffer.from(sig, "base64url"));
+            } catch {
+              return false;
+            }
+          },
+        });
 
-      if (!verifiedPayload) {
+        const result = await sdJwt.verify(rawToken, {
+          kb: {
+            expectedNonce,
+            expectedAudience,
+            required: true,
+          },
+        });
+
+        traceSteps[4].outputReceived = { cryptographicallyVerified: true };
+        traceSteps[4].status = "success";
+        traceSteps[5].outputReceived = {
+          keyBindingPassed: true,
+          holderVerification: "Holder Private Key possession verified.",
+        };
+        traceSteps[5].status = "success";
+
+        verifiedEvtPayload = result.payload;
+      } catch (err) {
         traceSteps[4].status = "failed";
-        throw new Error("Verification error: JWKSNoMatchingKey: no applicable key found in the JSON Web Key Set");
-      }
-      const evtPayload = verifiedPayload as unknown as EvtPayload;
-      traceSteps[4].outputReceived = {
-        verifiedPayload: evtPayload,
-        cryptographicallyVerified: true,
-      };
-      traceSteps[4].status = "success";
-
-      // ==============================================================================
-      // STEP 6: EPHEMERAL KEY BINDING CRYPTOGRAPHIC VERIFICATION
-      // ==============================================================================
-      traceSteps[5].inputSent = {
-        cnf: evtPayload.cnf,
-        kbJwt,
-      };
-
-      const browserJwk = evtPayload.cnf?.jwk;
-      if (!browserJwk) {
         traceSteps[5].status = "failed";
-        throw new Error("EVT payload is missing the browser's ephemeral public key (cnf.jwk).");
+        throw new Error("Cryptographic Verification Failed: " + (err as Error).message, { cause: err });
       }
-
-      const kbHeader = decodeProtectedHeader(kbJwt);
-      const kbAlg = kbHeader.alg || "ES256";
-      const browserPublicKey = await importJWK(browserJwk, kbAlg);
-
-      // Cryptographic Proof of Possession: Verify the KB-JWT signature using the browser's public key
-      const { payload: kbPayload } = await jwtVerify(kbJwt, browserPublicKey);
-
-      traceSteps[5].outputReceived = {
-        extractedBrowserJwk: browserJwk,
-        kbPayloadHeader: kbHeader,
-        kbPayloadBody: kbPayload,
-        keyBindingPassed: true,
-        holderVerification: "Holder Private Key possession verified.",
-      };
-      traceSteps[5].status = "success";
 
       verificationResult = {
-        email: evtPayload.email,
-        evt: evtPayload as unknown as Record<string, unknown>,
-        kb: kbPayload,
+        email: verifiedEvtPayload.email as string,
+        evt: verifiedEvtPayload as unknown as Record<string, unknown>,
+        kb: decodedSdJwt.kbJwt.payload as unknown as Record<string, unknown>,
       };
     } else {
       errorMsg = "No verification token was sent by the browser. Traditional verification flow is required.";

@@ -21,8 +21,8 @@
     "@astrojs/node": "^11.0.3",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
+    "@sd-jwt/core": "^0.20.0",
     "astro": "^7.1.6",
-    "jose": "^6.2.8",
     "rehype-mathjax": "^7.1.0",
     "remark-math": "^6.0.0",
     "sharp": "0.35.3"

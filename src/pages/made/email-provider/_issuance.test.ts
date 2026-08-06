@@ -1,9 +1,37 @@
 import { describe, expect, test } from "vitest";
-import { importJWK, jwtVerify, SignJWT, generateKeyPair, exportJWK } from "jose";
-import type { JWK } from "jose";
+import { decodeJwt } from "@sd-jwt/core";
+import type { JsonWebKey as JWK } from "node:crypto";
 import crypto from "node:crypto";
 import type { APIContext } from "astro";
 import { PRIVATE_KEY_JWK, PUBLIC_KEY_JWK } from "./_keys";
+
+function b64u(str) {
+  return Buffer.from(str).toString("base64url");
+}
+function signJwt(payload, header, privateKey) {
+  const h = b64u(JSON.stringify(header));
+  const p = b64u(JSON.stringify(payload));
+  const isEd25519 = (header.alg === "EdDSA" || header.alg === "Ed25519") && privateKey.asymmetricKeyType === "ed25519";
+  const algorithm = isEd25519 ? undefined : "sha256";
+  const s = crypto
+    .sign(algorithm, Buffer.from(h + "." + p), { key: privateKey, dsaEncoding: "ieee-p1363" })
+    .toString("base64url");
+  return h + "." + p + "." + s;
+}
+function verifyJwt(token, publicKey) {
+  const parts = token.split(".");
+  const header = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8"));
+  const isEd25519 = header.alg === "EdDSA" || publicKey.asymmetricKeyType === "ed25519";
+  const algorithm = isEd25519 ? undefined : "sha256";
+  const isVerified = crypto.verify(
+    algorithm,
+    Buffer.from(parts[0] + "." + parts[1]),
+    { key: publicKey, dsaEncoding: "ieee-p1363" },
+    Buffer.from(parts[2], "base64url"),
+  );
+  if (!isVerified) throw new Error("Invalid signature");
+  return decodeJwt(token);
+}
 import { GET as getDiscovery } from "../../.well-known/email-verification";
 import { GET as getJwks } from "./jwks";
 import { POST as postIssuance } from "./issuance";
@@ -93,9 +121,9 @@ async function generateSignatureHeaders({
 describe("EVP Cryptographic Flow", () => {
   test("generates and verifies full EVP token flow via HTTP Message Signatures", async () => {
     // 1. Browser generates an ephemeral key pair for holder binding (using Ed25519)
-    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
-    const browserPublicKeyJwk = await exportJWK(publicKey);
-    const browserPrivateKeyJwk = await exportJWK(privateKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     // 2. Browser signs an HTTP request to prove possession
     const method = "POST";
@@ -135,7 +163,7 @@ describe("EVP Cryptographic Flow", () => {
     expect(isVerified).toBe(true);
 
     // 4. Provider signs an Email Verification Token (EVT)
-    const providerPrivateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const evtPayload = {
       iss: "https://rowan.fyi",
       iat: Math.floor(Date.now() / 1000),
@@ -147,20 +175,22 @@ describe("EVP Cryptographic Flow", () => {
       email_verified: true,
     };
 
-    const evtJwt = await new SignJWT(evtPayload)
-      .setProtectedHeader({
+    const evtJwt = signJwt(
+      evtPayload,
+      {
         alg: "EdDSA",
         kid: PRIVATE_KEY_JWK.kid,
         typ: "evt+jwt",
-      })
-      .sign(providerPrivateKey);
+      },
+      providerPrivateKey,
+    );
 
     const fullEvt = `${evtJwt}~`;
 
     // 5. Relying party verifies the EVT signature
-    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const parsedEvt = fullEvt.split("~")[0];
-    const { payload: verifiedEvt } = await jwtVerify(parsedEvt, providerPublicKey);
+    const { payload: verifiedEvt } = verifyJwt(parsedEvt, providerPublicKey);
     expect(verifiedEvt.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(verifiedEvt.email_verified).toBe(true);
 
@@ -170,24 +200,26 @@ describe("EVP Cryptographic Flow", () => {
 
   test("generates and verifies legacy JWT request_token flow", async () => {
     // 1. Browser generates an ephemeral key pair for holder binding (using ES256)
-    const { publicKey, privateKey } = await generateKeyPair("ES256");
-    const browserJwkData = await exportJWK(publicKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", { namedCurve: "P-256" });
+    const browserJwkData = publicKey.export({ format: "jwk" }) as JWK;
 
     // 2. Browser signs a request token
-    const requestToken = await new SignJWT({ email: "demo@rowan.fyi" })
-      .setProtectedHeader({
+    const requestToken = signJwt(
+      { email: "demo@rowan.fyi" },
+      {
         alg: "ES256",
         jwk: browserJwkData,
-      })
-      .sign(privateKey);
+      },
+      privateKey,
+    );
 
     // 3. Provider validates the request token
-    const decodedHeader = await importJWK(browserJwkData, "ES256");
-    const { payload: requestPayload } = await jwtVerify(requestToken, decodedHeader);
+    const decodedHeader = crypto.createPublicKey({ key: browserJwkData as crypto.JsonWebKey, format: "jwk" });
+    const { payload: requestPayload } = verifyJwt(requestToken, decodedHeader);
     expect(requestPayload.email).toBe("demo@rowan.fyi");
 
     // 4. Provider signs an Email Verification Token (EVT)
-    const providerPrivateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const evtPayload = {
       iss: "https://rowan.fyi",
       iat: Math.floor(Date.now() / 1000),
@@ -199,20 +231,22 @@ describe("EVP Cryptographic Flow", () => {
       email_verified: true,
     };
 
-    const evtJwt = await new SignJWT(evtPayload)
-      .setProtectedHeader({
+    const evtJwt = signJwt(
+      evtPayload,
+      {
         alg: "EdDSA",
         kid: PRIVATE_KEY_JWK.kid,
         typ: "evt+jwt",
-      })
-      .sign(providerPrivateKey);
+      },
+      providerPrivateKey,
+    );
 
     const fullEvt = `${evtJwt}~`;
 
     // 5. Relying party verifies the EVT signature
-    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const parsedEvt = fullEvt.split("~")[0];
-    const { payload: verifiedEvt } = await jwtVerify(parsedEvt, providerPublicKey);
+    const { payload: verifiedEvt } = verifyJwt(parsedEvt, providerPublicKey);
     expect(verifiedEvt.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(verifiedEvt.email_verified).toBe(true);
 
@@ -327,9 +361,9 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint handles hybrid x-www-form-urlencoded content-type with valid signature headers (Transitional Chrome)", async () => {
-    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
-    const browserPublicKeyJwk = await exportJWK(publicKey);
-    const browserPrivateKeyJwk = await exportJWK(privateKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
     const headers = await generateSignatureHeaders({
@@ -366,16 +400,16 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.issuance_token.endsWith("~")).toBe(true);
 
     const evtJwt = data.issuance_token.split("~")[0];
-    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
-    const { payload } = await jwtVerify(evtJwt, providerPublicKey);
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const { payload } = verifyJwt(evtJwt, providerPublicKey);
 
     expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
   });
 
   test("issuance endpoint returns 401 on missing session (both paths)", async () => {
-    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
-    const browserPublicKeyJwk = await exportJWK(publicKey);
-    const browserPrivateKeyJwk = await exportJWK(privateKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
     const headers = await generateSignatureHeaders({
@@ -408,9 +442,9 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint returns 401 uniform error when requesting unauthorized email (both paths)", async () => {
-    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
-    const browserPublicKeyJwk = await exportJWK(publicKey);
-    const browserPrivateKeyJwk = await exportJWK(privateKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
     const headers = await generateSignatureHeaders({
@@ -444,9 +478,9 @@ describe("EVP Endpoint Unit Tests", () => {
 
   test("issuance endpoint issues EVT on valid HTTP Message Signature (Path A)", async () => {
     // A. Generate browser's ephemeral key
-    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
-    const browserPublicKeyJwk = await exportJWK(publicKey);
-    const browserPrivateKeyJwk = await exportJWK(privateKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     // B. Build signature headers with cookie binding
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
@@ -482,8 +516,8 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // C. Verify the issued token signature
     const evtJwt = data.issuance_token.split("~")[0];
-    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
-    const { payload } = await jwtVerify(evtJwt, providerPublicKey);
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const { payload } = verifyJwt(evtJwt, providerPublicKey);
 
     expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(payload.email_verified).toBe(true);
@@ -495,16 +529,18 @@ describe("EVP Endpoint Unit Tests", () => {
 
   test("issuance endpoint issues EVT on valid legacy request token (Path B)", async () => {
     // A. Generate browser's ephemeral key
-    const { publicKey, privateKey } = await generateKeyPair("ES256");
-    const browserJwkData = await exportJWK(publicKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", { namedCurve: "P-256" });
+    const browserJwkData = publicKey.export({ format: "jwk" }) as JWK;
 
     // B. Sign a request token
-    const requestToken = await new SignJWT({ email: "demo@rowan.fyi" })
-      .setProtectedHeader({
+    const requestToken = signJwt(
+      { email: "demo@rowan.fyi" },
+      {
         alg: "ES256",
         jwk: browserJwkData,
-      })
-      .sign(privateKey);
+      },
+      privateKey,
+    );
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
     const response = await postIssuance({
@@ -533,8 +569,8 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // C. Verify the issued token
     const evtJwt = data.issuance_token.split("~")[0];
-    const providerPublicKey = await importJWK(PUBLIC_KEY_JWK, "EdDSA");
-    const { payload } = await jwtVerify(evtJwt, providerPublicKey);
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const { payload } = verifyJwt(evtJwt, providerPublicKey);
 
     expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
     expect(payload.email_verified).toBe(true);
@@ -544,9 +580,9 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint returns 400 and private_email_not_supported on private_email request (Path A)", async () => {
-    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
-    const browserPublicKeyJwk = await exportJWK(publicKey);
-    const browserPrivateKeyJwk = await exportJWK(privateKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
     const headers = await generateSignatureHeaders({
@@ -608,11 +644,11 @@ describe("EVP Endpoint Unit Tests", () => {
 
   test("verifies a multi-part SD-JWT with disclosures and correct sd_hash verification", async () => {
     // 1. Generate keys
-    const { publicKey, privateKey } = await generateKeyPair("Ed25519", { extractable: true });
-    const browserPublicKeyJwk = await exportJWK(publicKey);
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
 
     // 2. Sign EVT
-    const providerPrivateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const evtPayload = {
       iss: "https://rowan.fyi",
       iat: Math.floor(Date.now() / 1000),
@@ -623,13 +659,15 @@ describe("EVP Endpoint Unit Tests", () => {
       email: "demo@rowan.fyi",
       email_verified: true,
     };
-    const evtJwt = await new SignJWT(evtPayload)
-      .setProtectedHeader({
+    const evtJwt = signJwt(
+      evtPayload,
+      {
         alg: "EdDSA",
         kid: PRIVATE_KEY_JWK.kid,
         typ: "evt+jwt",
-      })
-      .sign(providerPrivateKey);
+      },
+      providerPrivateKey,
+    );
 
     // 3. Create a mock disclosure
     const mockDisclosure = "WyI2SWo3dE0tYTVpVlBHYm9TNXRtdlZBIiwgImVtYWlsIiwgImpvaG5kb2VAZXhhbXBsZS5jb20iXQ";
@@ -647,12 +685,14 @@ describe("EVP Endpoint Unit Tests", () => {
       iat: Math.floor(Date.now() / 1000),
       sd_hash: calculatedHash,
     };
-    const kbJwt = await new SignJWT(kbPayload)
-      .setProtectedHeader({
+    const kbJwt = signJwt(
+      kbPayload,
+      {
         alg: "Ed25519",
         typ: "kb+jwt",
-      })
-      .sign(privateKey);
+      },
+      privateKey,
+    );
 
     // 7. Reconstruct rawToken sent to the verifier
     const rawToken = `${sdJwtPortion}${kbJwt}`;

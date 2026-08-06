@@ -1,8 +1,8 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { importJWK, SignJWT, decodeProtectedHeader, jwtVerify } from "jose";
-import type { JWK } from "jose";
+import { SDJwtInstance, decodeJwt } from "@sd-jwt/core";
+import type { JsonWebKey } from "node:crypto";
 import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
 
@@ -79,7 +79,7 @@ function buildSignatureBase({
 /**
  * Cryptographically verifies an RFC 9421 HTTP Message Signature using Node.js crypto module.
  */
-function verifySignature(signatureBase: string, signatureB64: string, jwk: JWK): boolean {
+function verifySignature(signatureBase: string, signatureB64: string, jwk: JsonWebKey): boolean {
   try {
     const publicKey = crypto.createPublicKey({
       key: jwk as crypto.JsonWebKey,
@@ -107,7 +107,7 @@ function verifyRequestSignature(
   request: Request,
   url: URL,
   corsHeaders: Record<string, string>,
-): { browserJwk: JWK } | Response {
+): { browserJwk: JsonWebKey } | Response {
   const signatureHeader = request.headers.get("signature");
   const signatureInputHeader = request.headers.get("signature-input");
   const signatureKeyHeader = request.headers.get("signature-key");
@@ -157,7 +157,7 @@ function verifyRequestSignature(
     return returnError("Signature-Key header does not use the 'hwk' scheme or is malformed.");
   }
 
-  const browserJwk: JWK = {
+  const browserJwk: JsonWebKey = {
     kty: keyParams.kty,
   };
   if (keyParams.crv) browserJwk.crv = keyParams.crv;
@@ -303,7 +303,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     const useHttpMessageSignatures = hasSignatureHeaders;
 
     let email = "";
-    let browserJwk: JWK | undefined = undefined;
+    let browserJwk: JsonWebKey | undefined = undefined;
 
     if (useHttpMessageSignatures) {
       // ==============================================================================
@@ -438,8 +438,9 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       if (requestToken.includes(".")) {
         try {
           // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim)
-          const header = decodeProtectedHeader(requestToken);
-          browserJwk = header.jwk as JWK | undefined;
+          const decoded = decodeJwt(requestToken);
+          const header = decoded.header;
+          browserJwk = header.jwk as JsonWebKey | undefined;
 
           if (!browserJwk) {
             return sendResponse(
@@ -452,10 +453,20 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
           }
 
           // Import browser's public key and verify the request JWT
-          const alg = (header.alg as string) || "ES256";
-          const publicKey = await importJWK(browserJwk, alg);
-          const { payload } = await jwtVerify(requestToken, publicKey);
-          email = payload.email as string;
+          const publicKey = crypto.createPublicKey({ key: browserJwk, format: "jwk" });
+          const parts = requestToken.split(".");
+          const isEd25519 = header.alg === "EdDSA" || browserJwk.crv === "Ed25519";
+          const algorithm = isEd25519 ? undefined : "sha256";
+
+          const isVerified = crypto.verify(
+            algorithm,
+            Buffer.from(parts[0] + "." + parts[1]),
+            { key: publicKey, dsaEncoding: "ieee-p1363" },
+            Buffer.from(parts[2], "base64url"),
+          );
+
+          if (!isVerified) throw new Error("Verification failed");
+          email = decoded.payload.email as string;
         } catch {
           return sendResponse(
             {
@@ -499,7 +510,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // ==============================================================================
     // STEP 4: SIGN AND ISSUE EMAIL VERIFICATION TOKEN (EVT)
     // ==============================================================================
-    const privateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
+    const privateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const origin = url.origin;
     const currentTime = Math.floor(Date.now() / 1000);
 
@@ -514,15 +525,27 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       email_verified: true,
     };
 
-    const evtJwt = await new SignJWT(evtPayload)
-      .setProtectedHeader({
+    const sdJwt = new SDJwtInstance({
+      signer: async (data) => {
+        const sig = crypto.sign(undefined, Buffer.from(data), privateKey);
+        return Buffer.from(sig).toString("base64url");
+      },
+      signAlg: "EdDSA",
+      hasher: async (data, alg) => {
+        const nodeAlg = alg.replace("-", "");
+        return new Uint8Array(crypto.createHash(nodeAlg).update(data).digest());
+      },
+      hashAlg: "sha-256",
+      saltGenerator: async () => crypto.randomBytes(16).toString("base64url"),
+    });
+
+    const issuanceToken = await sdJwt.issue(evtPayload, undefined, {
+      header: {
         alg: "EdDSA",
         kid: PRIVATE_KEY_JWK.kid,
         typ: "evt+jwt",
-      })
-      .sign(privateKey);
-
-    const issuanceToken = `${evtJwt}~`;
+      },
+    });
 
     return sendResponse(
       {
