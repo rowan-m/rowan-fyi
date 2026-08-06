@@ -111,7 +111,7 @@ if (Astro.request.method === "POST") {
         decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
       } catch (e) {
         traceSteps[0].status = "failed";
-        throw new Error("Invalid token format: " + (e as Error).message, { cause: e });
+        throw new Error(`Invalid token format: ${(e as Error).message}`, { cause: e });
       }
 
       if (!decodedSdJwt.kbJwt) {
@@ -149,7 +149,7 @@ if (Astro.request.method === "POST") {
       if (evtJwtDecodedPayload.email.toLowerCase() !== submittedEmail.toLowerCase()) {
         traceSteps[1].status = "failed";
         throw new Error(
-          "Email mismatch: Form input is " + submittedEmail + ", but token holds " + evtJwtDecodedPayload.email + ".",
+          `Email mismatch: Form input is ${submittedEmail}, but token holds ${evtJwtDecodedPayload.email}.`,
         );
       }
 
@@ -168,7 +168,7 @@ if (Astro.request.method === "POST") {
       // STEP 3: DNS DELEGATION & AUTHORITY VERIFICATION (NETWORK)
       // ==============================================================================
       const domain = submittedEmail.split("@")[1];
-      traceSteps[2].inputSent = { submittedEmail, tokenIssuer: iss, dnsLookupTarget: "_email-verification." + domain };
+      traceSteps[2].inputSent = { submittedEmail, tokenIssuer: iss, dnsLookupTarget: `_email-verification.${domain}` };
 
       let isAuthoritative = false;
       const issuerHost = iss.startsWith("http") ? new URL(iss).hostname.toLowerCase() : iss.toLowerCase();
@@ -182,7 +182,7 @@ if (Astro.request.method === "POST") {
       } else {
         traceSteps[2].serverCalled = "System DNS Server (TXT Resolve)";
         try {
-          const records = await dns.resolveTxt("_email-verification." + domain);
+          const records = await dns.resolveTxt(`_email-verification.${domain}`);
           traceSteps[2].outputReceived = { dnsTxtRecords: records };
 
           for (const record of records) {
@@ -201,7 +201,7 @@ if (Astro.request.method === "POST") {
         } catch (dnsErr) {
           traceSteps[2].status = "failed";
           throw new Error(
-            "DNS delegation lookup failed for _email-verification." + domain + ": " + (dnsErr as Error).message,
+            `DNS delegation lookup failed for _email-verification.${domain}: ${(dnsErr as Error).message}`,
             { cause: dnsErr },
           );
         }
@@ -210,11 +210,7 @@ if (Astro.request.method === "POST") {
       if (!isAuthoritative) {
         traceSteps[2].status = "failed";
         throw new Error(
-          "Security Exception: Issuer '" +
-            iss +
-            "' is not authoritative for the email domain of '" +
-            submittedEmail +
-            "'.",
+          `Security Exception: Issuer '${iss}' is not authoritative for the email domain of '${submittedEmail}'.`,
         );
       }
       traceSteps[2].status = "success";
@@ -222,14 +218,14 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // STEP 4: ISSUER DISCOVERY & JWKS FETCHING (NETWORK)
       // ==============================================================================
-      const discoveryUrl = iss + "/.well-known/email-verification";
+      const discoveryUrl = `${iss}/.well-known/email-verification`;
       traceSteps[3].serverCalled = discoveryUrl;
       traceSteps[3].inputSent = { url: discoveryUrl };
 
       const metadataResponse = await fetch(discoveryUrl);
       if (!metadataResponse.ok) {
         traceSteps[3].status = "failed";
-        throw new Error("Failed to discover issuer metadata at " + discoveryUrl + ": " + metadataResponse.statusText);
+        throw new Error(`Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`);
       }
       const metadata = await metadataResponse.json();
       traceSteps[3].outputReceived = { issuerMetadata: metadata };
@@ -237,14 +233,14 @@ if (Astro.request.method === "POST") {
       const jwksUri = metadata.jwks_uri;
       if (!jwksUri) {
         traceSteps[3].status = "failed";
-        throw new Error("Issuer metadata at " + discoveryUrl + " is missing 'jwks_uri'.");
+        throw new Error(`Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`);
       }
 
-      traceSteps[3].serverCalled = discoveryUrl + " & " + jwksUri;
+      traceSteps[3].serverCalled = `${discoveryUrl} & ${jwksUri}`;
       const jwksResponse = await fetch(jwksUri);
       if (!jwksResponse.ok) {
         traceSteps[3].status = "failed";
-        throw new Error("Failed to fetch JWKS from " + jwksUri);
+        throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
       }
       const jwksData = await jwksResponse.json();
       traceSteps[3].outputReceived = { issuerMetadata: metadata, issuerJWKS: jwksData };
@@ -392,7 +388,7 @@ if (Astro.request.method === "POST") {
       } catch (err) {
         traceSteps[4].status = "failed";
         traceSteps[5].status = "failed";
-        throw new Error("Cryptographic Verification Failed: " + (err as Error).message, { cause: err });
+        throw new Error(`Cryptographic Verification Failed: ${(err as Error).message}`, { cause: err });
       }
 
       verificationResult = {
