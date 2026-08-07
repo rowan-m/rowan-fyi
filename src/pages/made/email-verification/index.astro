@@ -75,19 +75,19 @@ let traceSteps: TraceStep[] = [
   {
     name: "Step 1: Parse the token",
     description:
-      "Decompose the submitted token into its distinct EVT and Key Binding JWT (KB-JWT) components, and perform unverified local decoding of their headers and payloads.",
+      "Parse the submitted token into its EVT and Key Binding JWT (KB-JWT) components, and decode their headers and payloads.",
     status: "pending",
   },
   {
     name: "Step 2: Validate expected values and session binding",
     description:
-      "Verify local, non-cryptographic claims (email match and explicit verification status) to fail fast before doing network or crypto operations.",
+      "Verify the email address and verification status claims match the form submission before running cryptographic checks.",
     status: "pending",
   },
   {
     name: "Step 3: Validate DNS record",
     description:
-      "Perform dynamic server-side DNS queries to confirm that the email's domain delegated verification authority to the token issuer.",
+      "Query the domain's DNS TXT record to check if it delegates verification authority to the token issuer.",
     status: "pending",
   },
   {
@@ -97,13 +97,12 @@ let traceSteps: TraceStep[] = [
   },
   {
     name: "Step 5: Issuer signature verification",
-    description: "Cryptographically verify the EVT signature using the fetched issuer public keys from their JWKS.",
+    description: "Verify the EVT signature using the fetched issuer public keys.",
     status: "pending",
   },
   {
     name: "Step 6: Ephemeral key binding verification",
-    description:
-      "Verify the Key Binding JWT (KB-JWT) signature, session nonce, audience, and cryptographic hash binding using @sd-jwt/core.",
+    description: "Verify the KB-JWT signature, session nonce, audience, and token hash using @sd-jwt/core.",
     status: "pending",
   },
 ];
@@ -818,7 +817,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       activeTrace && (
         <div class="trace-container">
           <h2>Verification steps</h2>
-          <p>Review the exact server-to-server operations, inputs, and outputs executed during verification:</p>
+          <p>Expand the sections to see debugging detail for each step:</p>
 
           <ol class="trace-list">
             {activeTrace.map((step) => {
@@ -835,7 +834,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
 
                   {(step.serverCalled || step.inputSent || step.outputReceived) && (
                     <details class="trace-details">
-                      <summary>Show Input / Output Data Traces</summary>
+                      <summary>Show debugging detail</summary>
                       <div class="trace-details-content">
                         {step.serverCalled && (
                           <p>

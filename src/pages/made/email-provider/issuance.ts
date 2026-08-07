@@ -225,7 +225,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 
     if (useHttpMessageSignatures) {
       // ==============================================================================
-      // PATH A: MODERN HTTP MESSAGE SIGNATURE FLOW (RFC 9421)
+      // PATH A: HTTP Message Signatures (RFC 9421) Flow
       // ==============================================================================
       const signatureResult = await verifyRequestSignature(request, url, corsHeaders);
       if (signatureResult instanceof Response) {
@@ -300,7 +300,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       }
     } else {
       // ==============================================================================
-      // PATH B: DEPRECATED JWT REQUEST TOKEN FLOW (Current Chrome Origin Trial)
+      // PATH B: Legacy JWT Request Token Flow
       // ==============================================================================
       let requestToken = "";
 
@@ -389,7 +389,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     }
 
     // ==============================================================================
-    // STEP 3: SESSION AUTHENTICATION & UNIFORM ERROR RESPONSE (Anti-Probing & Timing Mitigations)
+    // STEP 3: Session Authentication
     // ==============================================================================
     const session = cookies.get("__session")?.value;
 
@@ -414,7 +414,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     }
 
     // ==============================================================================
-    // STEP 4: SIGN AND ISSUE EMAIL VERIFICATION TOKEN (EVT)
+    // STEP 4: Issue Email Verification Token (EVT)
     // ==============================================================================
     const privateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
     const origin = url.origin;
