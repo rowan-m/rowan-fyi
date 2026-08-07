@@ -27,7 +27,8 @@
     "jose": "^6.2.8",
     "rehype-mathjax": "^7.1.0",
     "remark-math": "^6.0.0",
-    "sharp": "0.35.3"
+    "sharp": "0.35.3",
+    "structured-headers": "^2.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

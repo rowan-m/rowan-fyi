@@ -5,33 +5,10 @@ import { SDJwtInstance, decodeJwt } from "@sd-jwt/core";
 import { importJWK, jwtVerify, CompactSign } from "jose";
 import type { JWK } from "jose";
 import { verify as verifyHttpMessageSig } from "http-message-sig";
+import { parseDictionary } from "structured-headers";
 import type { JsonWebKey } from "node:crypto";
 import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
-
-/**
- * Parses parameters from structured headers (like Signature-Key or Signature-Input parameters).
- * E.g., 'sig=hwk; kty="OKP"; crv="Ed25519"; x="abc"'
- * returns { sig: "hwk", kty: "OKP", crv: "Ed25519", x: "abc" }
- */
-function parseParameterizedHeader(headerValue: string): Record<string, string> {
-  const params: Record<string, string> = {};
-  const parts = headerValue.split(";").map((p) => p.trim());
-  for (const part of parts) {
-    const equalIdx = part.indexOf("=");
-    if (equalIdx !== -1) {
-      const key = part.slice(0, equalIdx).trim();
-      let val = part.slice(equalIdx + 1).trim();
-      if (val.startsWith('"') && val.endsWith('"')) {
-        val = val.slice(1, -1);
-      }
-      params[key] = val;
-    } else {
-      params[part] = "true";
-    }
-  }
-  return params;
-}
 
 /**
  * Extracts and verifies the HTTP Message Signature from the request using http-message-sig.
@@ -85,18 +62,34 @@ async function verifyRequestSignature(
     );
   }
 
-  // Parse Signature-Key (hwk)
-  const keyParams = parseParameterizedHeader(signatureKeyHeader);
-  if (keyParams.sig !== "hwk" || !keyParams.kty) {
-    return returnError("Signature-Key header does not use the 'hwk' scheme or is malformed.");
-  }
+  // Parse Signature-Key as a Structured Field Dictionary (RFC 8941)
+  let browserJwk: JsonWebKey;
+  try {
+    const dictionary = parseDictionary(signatureKeyHeader);
+    const sigEntry = dictionary.get("sig");
+    if (!sigEntry) {
+      return returnError("Signature-Key header is missing the 'sig' parameter.");
+    }
 
-  const browserJwk: JsonWebKey = {
-    kty: keyParams.kty,
-  };
-  if (keyParams.crv) browserJwk.crv = keyParams.crv;
-  if (keyParams.x) browserJwk.x = keyParams.x;
-  if (keyParams.y) browserJwk.y = keyParams.y;
+    const [schemeToken, params] = sigEntry;
+    const scheme =
+      typeof schemeToken === "object" && schemeToken !== null && "value" in schemeToken
+        ? (schemeToken as { value: string }).value
+        : String(schemeToken);
+
+    if (scheme !== "hwk" || !params.has("kty")) {
+      return returnError("Signature-Key header does not use the 'hwk' scheme or is malformed.");
+    }
+
+    browserJwk = {
+      kty: params.get("kty") as string,
+    };
+    if (params.has("crv")) browserJwk.crv = params.get("crv") as string;
+    if (params.has("x")) browserJwk.x = params.get("x") as string;
+    if (params.has("y")) browserJwk.y = params.get("y") as string;
+  } catch (err: unknown) {
+    return returnError("Signature-Key header parsing failed.", err instanceof Error ? err.message : String(err));
+  }
 
   // Required components check
   const requiredComponents = ["@method", "@authority", "@path", "signature-key"];
