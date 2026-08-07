@@ -411,7 +411,7 @@ if (Astro.request.method === "POST") {
         kb: decodedSdJwt.kbJwt.payload as unknown as Record<string, unknown>,
       };
     } else {
-      errorMsg = "No verification token was sent by the browser. Traditional verification flow is required.";
+      errorMsg = "No verification token was sent by the browser. Site should fall back to alternatives, e.g. magic link or OTP in email.";
     }
   } catch (e) {
     const errorMsgText = e instanceof Error ? e.message : "Failed to verify the token.";
