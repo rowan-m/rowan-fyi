@@ -1,12 +1,11 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { SDJwtInstance, decodeJwt } from "@sd-jwt/core";
-import { importJWK, jwtVerify, CompactSign } from "jose";
+import { SDJwtInstance } from "@sd-jwt/core";
+import { importJWK, jwtVerify, CompactSign, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
 import { verify as verifyHttpMessageSig } from "http-message-sig";
 import { parseDictionary } from "structured-headers";
-import type { JsonWebKey } from "node:crypto";
 import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
 
@@ -42,7 +41,7 @@ async function verifyRequestSignature(
   request: Request,
   url: URL,
   corsHeaders: Record<string, string>,
-): Promise<{ browserJwk: JsonWebKey } | Response> {
+): Promise<{ browserJwk: JWK } | Response> {
   const signatureHeader = request.headers.get("signature");
   const signatureInputHeader = request.headers.get("signature-input");
   const signatureKeyHeader = request.headers.get("signature-key");
@@ -79,7 +78,7 @@ async function verifyRequestSignature(
   }
 
   // Parse Signature-Key as a Structured Field Dictionary (RFC 8941)
-  let browserJwk: JsonWebKey;
+  let browserJwk: JWK;
   try {
     const dictionary = parseDictionary(signatureKeyHeader);
     const sigEntry = dictionary.get("sig");
@@ -222,7 +221,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     const useHttpMessageSignatures = hasSignatureHeaders;
 
     let email = "";
-    let browserJwk: JsonWebKey | undefined = undefined;
+    let browserJwk: JWK | undefined = undefined;
 
     if (useHttpMessageSignatures) {
       // ==============================================================================
@@ -356,10 +355,9 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 
       if (requestToken.includes(".")) {
         try {
-          // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim)
-          const decoded = decodeJwt(requestToken);
-          const header = decoded.header;
-          browserJwk = header.jwk as JsonWebKey | undefined;
+          // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim) using jose
+          const header = decodeProtectedHeader(requestToken);
+          browserJwk = header.jwk as JWK | undefined;
 
           if (!browserJwk) {
             return sendResponse(

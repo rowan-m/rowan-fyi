@@ -11,7 +11,6 @@ import { SDJwtInstance, decodeSdJwtSync } from "@sd-jwt/core";
 import { importJWK, compactVerify } from "jose";
 import type { JWK } from "jose";
 import { createHash, randomUUID } from "node:crypto";
-import type { JsonWebKey } from "node:crypto";
 import dns from "node:dns/promises";
 
 interface VerificationResult {
@@ -24,7 +23,7 @@ interface EvtPayload {
   email: string;
   email_verified?: boolean;
   cnf?: {
-    jwk?: JsonWebKey;
+    jwk?: JWK;
   };
   exp?: number;
   iat?: number;

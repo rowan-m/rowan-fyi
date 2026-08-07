@@ -3,7 +3,7 @@ import type { JsonWebKey as JWK } from "node:crypto";
 import crypto from "node:crypto";
 import type { APIContext } from "astro";
 import * as jose from "jose";
-import { signatureHeaders } from "http-message-sig";
+import { signatureHeaders, verify as verifyHttpMessageSig } from "http-message-sig";
 import { PRIVATE_KEY_JWK, PUBLIC_KEY_JWK } from "./_keys";
 
 async function signJwt(payload: Record<string, unknown>, header: jose.JWTHeaderParameters, keyInput: unknown) {
@@ -115,41 +115,34 @@ describe("EVP Cryptographic Flow", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    // 2. Browser signs an HTTP request to prove possession
+    // 2. Generate standard signature headers using generateSignatureHeaders helper
     const method = "POST";
     const authority = "rowan.fyi";
     const path = "/made/email-provider/issuance";
-    const created = Math.floor(Date.now() / 1000);
-
-    const signatureKeyHeader = `sig=hwk; kty="${browserPublicKeyJwk.kty}"; crv="${browserPublicKeyJwk.crv}"; x="${browserPublicKeyJwk.x}"`;
-
-    let signatureBase = "";
-    signatureBase += `"@method": ${method}\n`;
-    signatureBase += `"@authority": ${authority}\n`;
-    signatureBase += `"@path": ${path}\n`;
-    signatureBase += `"signature-key": ${signatureKeyHeader}\n`;
-    signatureBase += `"@signature-params": ("@method" "@authority" "@path" "signature-key");created=${created}`;
-
-    const privateKeyObj = crypto.createPrivateKey({
-      key: browserPrivateKeyJwk as crypto.JsonWebKey,
-      format: "jwk",
+    const headers = await generateSignatureHeaders({
+      method,
+      authority,
+      path,
+      privateKeyJwk: browserPrivateKeyJwk,
+      publicKeyJwk: browserPublicKeyJwk,
     });
 
-    const sigBuffer = crypto.sign(undefined, Buffer.from(signatureBase), privateKeyObj);
-    const signatureB64 = sigBuffer.toString("base64");
+    // 3. Provider validates the request signature using http-message-sig verify function
+    const requestLike = {
+      method,
+      url: `https://${authority}${path}`,
+      headers,
+    };
 
-    // 3. Provider validates the request signature
-    const providerPublicKeyObj = crypto.createPublicKey({
-      key: browserPublicKeyJwk as crypto.JsonWebKey,
-      format: "jwk",
+    let isVerified = false;
+    await verifyHttpMessageSig(requestLike, async (data, signature) => {
+      const pubKey = crypto.createPublicKey({
+        key: browserPublicKeyJwk as crypto.JsonWebKey,
+        format: "jwk",
+      });
+      isVerified = crypto.verify(undefined, Buffer.from(data), pubKey, signature);
     });
 
-    const isVerified = crypto.verify(
-      undefined,
-      Buffer.from(signatureBase),
-      providerPublicKeyObj,
-      Buffer.from(signatureB64, "base64"),
-    );
     expect(isVerified).toBe(true);
 
     // 4. Provider signs an Email Verification Token (EVT)
