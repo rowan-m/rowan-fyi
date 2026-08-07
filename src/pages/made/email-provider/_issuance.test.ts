@@ -766,34 +766,23 @@ describe("EVP Endpoint Unit Tests", () => {
       // Verification logic from index.astro
       const decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
       const sdJwt = new SDJwtInstance({ hasher });
+      const JWKS = jose.createLocalJWKSet({ keys: [PUBLIC_KEY_JWK] });
       sdJwt.config({
         hasher,
         verifier: async (data, sig) => {
-          const token = `${data}.${sig}`;
-          const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
-          const kid = decodedSdJwt.jwt.header.kid;
-          const jwksKeys = [PUBLIC_KEY_JWK];
-          const keysToTry = kid ? jwksKeys.filter((k: { kid?: string }) => k.kid === kid) : jwksKeys;
-
-          for (const jwk of keysToTry) {
-            try {
-              const pubKey = await jose.importJWK(jwk as jose.JWK, jwk.alg || headerAlg);
-              await jose.compactVerify(token, pubKey);
-              return true;
-            } catch {
-              continue;
-            }
+          try {
+            await jose.compactVerify(`${data}.${sig}`, JWKS);
+            return true;
+          } catch {
+            return false;
           }
-          return false;
         },
         kbVerifier: async (data, sig) => {
           try {
             const browserJwkKey = (decodedSdJwt.jwt.payload as { cnf?: { jwk?: crypto.JsonWebKey } }).cnf?.jwk;
             if (!browserJwkKey) throw new Error("Missing browser ephemeral public key.");
-            const token = `${data}.${sig}`;
-            const kbAlg = decodedSdJwt.kbJwt.header.alg || "ES256";
-            const pubKey = await jose.importJWK(browserJwkKey as jose.JWK, kbAlg);
-            await jose.compactVerify(token, pubKey);
+            const pubKey = await jose.importJWK(browserJwkKey as jose.JWK, decodedSdJwt.kbJwt.header.alg || "ES256");
+            await jose.compactVerify(`${data}.${sig}`, pubKey);
             return true;
           } catch {
             return false;

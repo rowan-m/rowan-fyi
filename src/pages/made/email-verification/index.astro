@@ -8,7 +8,7 @@ Astro.response.headers.set(
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { SDJwtInstance, decodeSdJwtSync } from "@sd-jwt/core";
-import { importJWK, compactVerify } from "jose";
+import { importJWK, compactVerify, createLocalJWKSet } from "jose";
 import type { JWK } from "jose";
 import { createHash, randomUUID } from "node:crypto";
 import dns from "node:dns/promises";
@@ -306,33 +306,23 @@ if (Astro.request.method === "POST") {
 
       try {
         const sdJwt = new SDJwtInstance({ hasher });
+        const JWKS = createLocalJWKSet(jwksData);
         sdJwt.config({
           hasher,
           verifier: async (data, sig) => {
-            const token = `${data}.${sig}`;
-            const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
-            const kid = decodedSdJwt.jwt.header.kid;
-            const keysToTry = kid ? jwksData.keys.filter((k: { kid?: string }) => k.kid === kid) : jwksData.keys;
-
-            for (const jwk of keysToTry) {
-              try {
-                const pubKey = await importJWK(jwk as JWK, jwk.alg || headerAlg);
-                await compactVerify(token, pubKey);
-                return true;
-              } catch {
-                continue;
-              }
+            try {
+              await compactVerify(`${data}.${sig}`, JWKS);
+              return true;
+            } catch {
+              return false;
             }
-            return false;
           },
           kbVerifier: async (data, sig) => {
             try {
               const browserJwkKey = evtJwtDecodedPayload.cnf?.jwk;
               if (!browserJwkKey) throw new Error("Missing browser ephemeral public key.");
-              const token = `${data}.${sig}`;
-              const kbAlg = decodedSdJwt.kbJwt.header.alg || "ES256";
-              const pubKey = await importJWK(browserJwkKey as JWK, kbAlg);
-              await compactVerify(token, pubKey);
+              const pubKey = await importJWK(browserJwkKey as JWK, decodedSdJwt.kbJwt.header.alg || "ES256");
+              await compactVerify(`${data}.${sig}`, pubKey);
               return true;
             } catch {
               return false;
