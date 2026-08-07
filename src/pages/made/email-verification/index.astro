@@ -8,7 +8,7 @@ Astro.response.headers.set(
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { SDJwtInstance, decodeSdJwtSync } from "@sd-jwt/core";
-import { importJWK, compactVerify, createLocalJWKSet } from "jose";
+import { importJWK, compactVerify } from "jose";
 import type { JWK } from "jose";
 import { createHash, randomUUID } from "node:crypto";
 import dns from "node:dns/promises";
@@ -306,16 +306,25 @@ if (Astro.request.method === "POST") {
 
       try {
         const sdJwt = new SDJwtInstance({ hasher });
-        const JWKS = createLocalJWKSet(jwksData);
         sdJwt.config({
           hasher,
           verifier: async (data, sig) => {
-            try {
-              await compactVerify(`${data}.${sig}`, JWKS);
-              return true;
-            } catch {
-              return false;
+            const token = `${data}.${sig}`;
+            const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
+            const kid = decodedSdJwt.jwt.header.kid;
+            // Filter keys by kid if present. If kid is missing (e.g., GMail JWKS), trial-verify using all keys.
+            const keysToTry = kid ? jwksData.keys.filter((k: { kid?: string }) => k.kid === kid) : jwksData.keys;
+
+            for (const jwk of keysToTry) {
+              try {
+                const pubKey = await importJWK(jwk as JWK, jwk.alg || headerAlg);
+                await compactVerify(token, pubKey);
+                return true;
+              } catch {
+                continue;
+              }
             }
+            return false;
           },
           kbVerifier: async (data, sig) => {
             try {

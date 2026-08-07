@@ -766,16 +766,26 @@ describe("EVP Endpoint Unit Tests", () => {
       // Verification logic from index.astro
       const decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
       const sdJwt = new SDJwtInstance({ hasher });
-      const JWKS = jose.createLocalJWKSet({ keys: [PUBLIC_KEY_JWK] });
       sdJwt.config({
         hasher,
         verifier: async (data, sig) => {
-          try {
-            await jose.compactVerify(`${data}.${sig}`, JWKS);
-            return true;
-          } catch {
-            return false;
+          const token = `${data}.${sig}`;
+          const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
+          const kid = decodedSdJwt.jwt.header.kid;
+          const jwksKeys = [PUBLIC_KEY_JWK];
+          // Filter keys by kid if present. If kid is missing (e.g., GMail), trial-verify using all keys.
+          const keysToTry = kid ? jwksKeys.filter((k: { kid?: string }) => k.kid === kid) : jwksKeys;
+
+          for (const jwk of keysToTry) {
+            try {
+              const pubKey = await jose.importJWK(jwk as jose.JWK, jwk.alg || headerAlg);
+              await jose.compactVerify(token, pubKey);
+              return true;
+            } catch {
+              continue;
+            }
           }
+          return false;
         },
         kbVerifier: async (data, sig) => {
           try {
