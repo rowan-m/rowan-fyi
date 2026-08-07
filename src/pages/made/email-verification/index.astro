@@ -40,30 +40,6 @@ interface TraceStep {
 }
 
 /**
- * Writes a structured log entry mapped to GCP Stackdriver severity levels.
- */
-function logGcp(severity: "DEBUG" | "INFO" | "WARNING" | "ERROR", message: string) {
-  const gcpLogEntry: Record<string, unknown> = {
-    severity,
-    message,
-    time: new Date().toISOString(),
-    serviceContext: {
-      service: process.env.K_SERVICE || "rowan-fyi",
-    },
-  };
-  const json = JSON.stringify(gcpLogEntry);
-  if (severity === "ERROR") {
-    console.error(json);
-  } else if (severity === "WARNING") {
-    console.warn(json);
-  } else if (severity === "INFO") {
-    console.log(json);
-  } else {
-    console.debug(json);
-  }
-}
-
-/**
  * Validates standard JWT claims including expiration, issued-at presence, and freshness window.
  */
 function validateClaims(payload: Record<string, unknown>, maxAgeSeconds = 300, clockSkewSeconds = 60) {
@@ -392,7 +368,7 @@ if (Astro.request.method === "POST") {
     }
   } catch (e) {
     const errorMsgText = e instanceof Error ? e.message : "Failed to verify the token.";
-    logGcp("ERROR", `Verification error: ${errorMsgText}`);
+    Astro.logger.error(`Verification error: ${errorMsgText}`);
     errorMsg = errorMsgText;
 
     // Auto-mark the currently active step as failed with its exact error context

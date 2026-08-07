@@ -10,30 +10,6 @@ import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
 
 /**
- * Writes a structured log entry mapped to GCP Stackdriver severity levels.
- */
-function logGcp(severity: "DEBUG" | "INFO" | "WARNING" | "ERROR", message: string) {
-  const gcpLogEntry: Record<string, unknown> = {
-    severity,
-    message,
-    time: new Date().toISOString(),
-    serviceContext: {
-      service: process.env.K_SERVICE || "rowan-fyi",
-    },
-  };
-  const json = JSON.stringify(gcpLogEntry);
-  if (severity === "ERROR") {
-    console.error(json);
-  } else if (severity === "WARNING") {
-    console.warn(json);
-  } else if (severity === "INFO") {
-    console.log(json);
-  } else {
-    console.debug(json);
-  }
-}
-
-/**
  * Extracts and verifies the HTTP Message Signature from the request using http-message-sig.
  * Returns the browser's parsed public JWK on success, or an APIRoute Response on validation failure.
  */
@@ -41,6 +17,7 @@ async function verifyRequestSignature(
   request: Request,
   url: URL,
   corsHeaders: Record<string, string>,
+  logger: { warn: (message: string) => void; error: (message: string) => void },
 ): Promise<{ browserJwk: JWK } | Response> {
   const signatureHeader = request.headers.get("signature");
   const signatureInputHeader = request.headers.get("signature-input");
@@ -63,7 +40,7 @@ async function verifyRequestSignature(
       },
     };
     const logMsg = `EVP Request Signature Validation Failed: ${msg}${details ? " - " + details : ""}`;
-    logGcp("WARNING", logMsg);
+    logger.warn(logMsg);
 
     return new Response(JSON.stringify(errorBody), {
       status: 400,
@@ -176,7 +153,9 @@ async function verifyRequestSignature(
  * - Path A: Modern proposed HTTP Message Signatures (RFC 9421)
  * - Path B: Deprecated signed-JWT request_token via x-www-form-urlencoded (current Chrome/Edge Origin Trials)
  */
-export const POST: APIRoute = async ({ request, cookies, url }) => {
+export const POST: APIRoute = async (context) => {
+  const { request, cookies, url } = context;
+  const logger = context.logger || console;
   const requestOrigin = request.headers.get("origin");
   const corsHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -194,9 +173,12 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     status: number,
   ) => {
     if (status !== 200) {
-      const severity = status >= 500 ? "ERROR" : "WARNING";
       const message = `EVP Issuance ${status >= 500 ? "Error" : "Warning"} (${status}): ${bodyObj.error_description || bodyObj.error || "Bad Request"}`;
-      logGcp(severity, message);
+      if (status >= 500) {
+        logger.error(message);
+      } else {
+        logger.warn(message);
+      }
     }
     return new Response(JSON.stringify(bodyObj), {
       status,
@@ -209,7 +191,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // standard-compliant browsers SHOULD set "Sec-Fetch-Dest: email-verification" or "webidentity".
     const secFetchDest = request.headers.get("sec-fetch-dest");
     if (secFetchDest && secFetchDest !== "email-verification" && secFetchDest !== "webidentity") {
-      logGcp("WARNING", `Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
+      logger.warn(`Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
     }
 
     const contentType = request.headers.get("content-type") || "";
@@ -227,7 +209,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       // ==============================================================================
       // PATH A: HTTP Message Signatures (RFC 9421) Flow
       // ==============================================================================
-      const signatureResult = await verifyRequestSignature(request, url, corsHeaders);
+      const signatureResult = await verifyRequestSignature(request, url, corsHeaders, logger);
       if (signatureResult instanceof Response) {
         return signatureResult;
       }
