@@ -63,6 +63,32 @@ function logGcp(severity: "DEBUG" | "INFO" | "WARNING" | "ERROR", message: strin
   }
 }
 
+/**
+ * Validates standard JWT claims including expiration, issued-at presence, and freshness window.
+ */
+function validateClaims(payload: Record<string, unknown>, maxAgeSeconds = 300, clockSkewSeconds = 60) {
+  const currentTime = Math.floor(Date.now() / 1000);
+  const exp = typeof payload.exp === "number" ? payload.exp : undefined;
+  const iat = typeof payload.iat === "number" ? payload.iat : undefined;
+
+  if (exp && currentTime > exp + clockSkewSeconds) {
+    throw new Error(`The token has expired (exp: ${exp}, current: ${currentTime}).`);
+  }
+  if (!iat) {
+    throw new Error("Required issued-at ('iat') claim is missing.");
+  }
+  if (exp && iat >= exp) {
+    throw new Error(`Token timestamps are inconsistent (iat: ${iat} >= exp: ${exp}).`);
+  }
+  const age = currentTime - iat;
+  if (age > maxAgeSeconds + clockSkewSeconds) {
+    throw new Error(`Token is too old (issued ${age} seconds ago, max limit: ${maxAgeSeconds}s).`);
+  }
+  if (age < -clockSkewSeconds) {
+    throw new Error(`Token has a future issuance timestamp (iat: ${iat}, current: ${currentTime}).`);
+  }
+}
+
 let verificationResult: VerificationResult | null = null;
 let errorMsg = "";
 
@@ -327,67 +353,18 @@ if (Astro.request.method === "POST") {
         // ==============================================================================
         // STRICT TIMESTAMP AND CLAIM VALIDATIONS (AFTER CRYPTOGRAPHIC VERIFICATION)
         // ==============================================================================
-        const currentTime = Math.floor(Date.now() / 1000);
-        const tokenExp = verifiedEvtPayload.exp as number | undefined;
-        const tokenIat = verifiedEvtPayload.iat as number | undefined;
-
-        // If expiration is present, verify the token is not expired and is consistent with iat
-        if (tokenExp) {
-          if (currentTime > tokenExp) {
-            traceSteps[4].status = "failed";
-            throw new Error(
-              `Security Exception: The token has expired. Current time is ${currentTime}, but token expired at ${tokenExp}.`,
-            );
-          }
-          if (tokenIat && tokenIat >= tokenExp) {
-            traceSteps[4].status = "failed";
-            throw new Error(
-              `Security Exception: Token timestamps are inconsistent. Issued at (iat) is ${tokenIat}, but expires at (exp) is ${tokenExp}.`,
-            );
-          }
-        }
-
-        // Ensure issued-at is present and verify its freshness
-        if (!tokenIat) {
+        try {
+          validateClaims(verifiedEvtPayload, 300);
+        } catch (err: unknown) {
           traceSteps[4].status = "failed";
-          throw new Error("Security Exception: EVT is missing the required issued-at ('iat') claim.");
+          throw err;
         }
 
-        // Ensure token is not too old (within 5 minutes / 300 seconds) or from too far in the future
-        const tokenAge = currentTime - tokenIat;
-        const fiveMinutes = 300;
-        if (tokenAge > fiveMinutes) {
-          traceSteps[4].status = "failed";
-          throw new Error(
-            `Security Exception: Token is too old. Token was issued at ${tokenIat} (${tokenAge} seconds ago), which exceeds the 5-minute freshness limit.`,
-          );
-        }
-        if (tokenAge < -60) {
-          traceSteps[4].status = "failed";
-          throw new Error(
-            `Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is ${tokenIat}, but current time is ${currentTime}.`,
-          );
-        }
-
-        // Validate Key Binding JWT freshness
-        const kbPayload = decodedSdJwt.kbJwt.payload;
-        const kbIat = kbPayload.iat as number | undefined;
-        if (!kbIat) {
+        try {
+          validateClaims(decodedSdJwt.kbJwt.payload as Record<string, unknown>, 300);
+        } catch (err: unknown) {
           traceSteps[5].status = "failed";
-          throw new Error("Security Exception: KB-JWT is missing the required issued-at ('iat') claim.");
-        }
-        const kbAge = currentTime - kbIat;
-        if (kbAge > fiveMinutes) {
-          traceSteps[5].status = "failed";
-          throw new Error(
-            `Security Exception: Key Binding JWT is too old. It was issued at ${kbIat} (${kbAge} seconds ago), which exceeds the 5-minute freshness limit.`,
-          );
-        }
-        if (kbAge < -60) {
-          traceSteps[5].status = "failed";
-          throw new Error(
-            `Security Exception: Key Binding JWT has an invalid future issuance timestamp. Issued at is ${kbIat}, but current time is ${currentTime}.`,
-          );
+          throw err;
         }
 
         traceSteps[4].outputReceived = { cryptographicallyVerified: true };
@@ -411,7 +388,8 @@ if (Astro.request.method === "POST") {
         kb: decodedSdJwt.kbJwt.payload as unknown as Record<string, unknown>,
       };
     } else {
-      errorMsg = "No verification token was sent by the browser. Site should fall back to alternatives, e.g. magic link or OTP in email.";
+      errorMsg =
+        "No verification token was sent by the browser. Site should fall back to alternatives, e.g. magic link or OTP in email.";
     }
   } catch (e) {
     const errorMsgText = e instanceof Error ? e.message : "Failed to verify the token.";
