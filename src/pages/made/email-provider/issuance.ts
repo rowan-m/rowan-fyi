@@ -2,6 +2,9 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 import { SDJwtInstance, decodeJwt } from "@sd-jwt/core";
+import { importJWK, jwtVerify, CompactSign } from "jose";
+import type { JWK } from "jose";
+import { verify as verifyHttpMessageSig } from "http-message-sig";
 import type { JsonWebKey } from "node:crypto";
 import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
@@ -31,83 +34,14 @@ function parseParameterizedHeader(headerValue: string): Record<string, string> {
 }
 
 /**
- * Constructs the canonical signature base according to RFC 9421 Section 2.5.
- */
-function buildSignatureBase({
-  method,
-  authority,
-  path,
-  cookie,
-  contentDigest,
-  signatureKey,
-  signatureInput,
-  components,
-}: {
-  method: string;
-  authority: string;
-  path: string;
-  cookie: string | null;
-  contentDigest: string | null;
-  signatureKey: string;
-  signatureInput: string;
-  components: string[];
-}): string {
-  let base = "";
-  for (const component of components) {
-    let value = "";
-    if (component === "@method") {
-      value = method;
-    } else if (component === "@authority") {
-      value = authority;
-    } else if (component === "@path") {
-      value = path;
-    } else if (component === "cookie") {
-      value = cookie || "";
-    } else if (component === "content-digest") {
-      value = contentDigest || "";
-    } else if (component === "signature-key") {
-      value = signatureKey;
-    }
-    base += `"${component}": ${value}\n`;
-  }
-  // The @signature-params is always the last line, without a trailing newline
-  const sigParamsValue = signatureInput.replace(/^sig=/, "").trim();
-  base += `"@signature-params": ${sigParamsValue}`;
-  return base;
-}
-
-/**
- * Cryptographically verifies an RFC 9421 HTTP Message Signature using Node.js crypto module.
- */
-function verifySignature(signatureBase: string, signatureB64: string, jwk: JsonWebKey): boolean {
-  try {
-    const publicKey = crypto.createPublicKey({
-      key: jwk as crypto.JsonWebKey,
-      format: "jwk",
-    });
-
-    const isEd25519 = jwk.crv === "Ed25519";
-    const algorithm = isEd25519 ? undefined : "sha256";
-
-    const isUrlSafe = signatureB64.includes("-") || signatureB64.includes("_");
-    const sigBuffer = Buffer.from(signatureB64, isUrlSafe ? "base64url" : "base64");
-
-    return crypto.verify(algorithm, Buffer.from(signatureBase), publicKey, sigBuffer);
-  } catch (err) {
-    console.error("Signature verification error:", err);
-    return false;
-  }
-}
-
-/**
- * Extracts and verifies the HTTP Message Signature from the request.
+ * Extracts and verifies the HTTP Message Signature from the request using http-message-sig.
  * Returns the browser's parsed public JWK on success, or an APIRoute Response on validation failure.
  */
-function verifyRequestSignature(
+async function verifyRequestSignature(
   request: Request,
   url: URL,
   corsHeaders: Record<string, string>,
-): { browserJwk: JsonWebKey } | Response {
+): Promise<{ browserJwk: JsonWebKey } | Response> {
   const signatureHeader = request.headers.get("signature");
   const signatureInputHeader = request.headers.get("signature-input");
   const signatureKeyHeader = request.headers.get("signature-key");
@@ -164,74 +98,60 @@ function verifyRequestSignature(
   if (keyParams.x) browserJwk.x = keyParams.x;
   if (keyParams.y) browserJwk.y = keyParams.y;
 
-  // Parse Signature-Input
-  const inputMatch = signatureInputHeader.match(/sig=\(([^)]+)\)(.*)/);
-  if (!inputMatch) {
-    return returnError("Signature-Input header is malformed.");
-  }
-
-  const components = inputMatch[1].split(/\s+/).map((c) => {
-    if (c.startsWith('"') && c.endsWith('"')) {
-      return c.slice(1, -1);
-    }
-    return c;
-  });
-
-  const inputParams = parseParameterizedHeader(inputMatch[2]);
-  const createdTime = parseInt(inputParams.created, 10);
-
-  if (isNaN(createdTime)) {
-    return returnError("Signature-Input is missing the 'created' parameter or it is malformed.");
-  }
-
-  // Timing check (60-second window)
-  const currentTime = Math.floor(Date.now() / 1000);
-  if (Math.abs(currentTime - createdTime) > 60) {
-    return returnError(
-      "The signature timestamp 'created' is outside the acceptable 60-second window.",
-      `Server currentTime: ${currentTime}, header createdTime: ${createdTime}`,
-    );
-  }
-
   // Required components check
   const requiredComponents = ["@method", "@authority", "@path", "signature-key"];
   for (const reqComp of requiredComponents) {
-    if (!components.includes(reqComp)) {
+    if (!signatureInputHeader.includes(`"${reqComp}"`)) {
       return returnError(`Required component '${reqComp}' is missing from Signature-Input.`);
     }
   }
 
-  // Parse Signature header and verify
-  const sigMatch = signatureHeader.match(/sig=:([^:]+):/);
-  if (!sigMatch) {
-    return returnError("Signature header is malformed.");
-  }
-  const signatureB64 = sigMatch[1];
-
-  const contentDigestHeader = request.headers.get("content-digest");
+  // Prepare components and run RFC 9421 validation via http-message-sig
   let hostHeader = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
   const isLocal = hostHeader.includes("localhost") || hostHeader.includes("127.0.0.1");
   if (!isLocal) {
     hostHeader = "rowan.fyi";
   }
 
-  const signatureBase = buildSignatureBase({
+  const requestLike = {
     method: request.method,
-    authority: hostHeader,
-    path: url.pathname,
-    cookie: request.headers.get("cookie"),
-    contentDigest: contentDigestHeader,
-    signatureKey: signatureKeyHeader,
-    signatureInput: signatureInputHeader,
-    components,
-  });
+    url: `${url.protocol}//${hostHeader}${url.pathname}`,
+    headers: {
+      signature: signatureHeader,
+      "signature-input": signatureInputHeader,
+      "signature-key": signatureKeyHeader,
+      cookie: request.headers.get("cookie") || "",
+      "content-digest": request.headers.get("content-digest") || "",
+    },
+  };
 
-  const isSignatureValid = verifySignature(signatureBase, signatureB64, browserJwk);
-  if (!isSignatureValid) {
-    return returnError(
-      "HTTP Message Signature verification failed.",
-      `Base: ${signatureBase.replace(/\n/g, "\\n")}, JWK: ${JSON.stringify(browserJwk)}`,
-    );
+  try {
+    await verifyHttpMessageSig(requestLike, async (data, signature, params) => {
+      // Timing check (60-second window)
+      const createdTime = params.created ? Math.floor(params.created.getTime() / 1000) : NaN;
+      if (isNaN(createdTime)) {
+        throw new Error("Signature-Input is missing the 'created' parameter or it is malformed.");
+      }
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (Math.abs(currentTime - createdTime) > 60) {
+        throw new Error(
+          `The signature timestamp 'created' is outside the acceptable 60-second window. Server: ${currentTime}, header: ${createdTime}`,
+        );
+      }
+
+      // Cryptographic signature check using node crypto
+      const publicKey = crypto.createPublicKey({
+        key: browserJwk as crypto.JsonWebKey,
+        format: "jwk",
+      });
+
+      const isVerified = crypto.verify(undefined, Buffer.from(data), publicKey, signature);
+      if (!isVerified) {
+        throw new Error("HTTP Message Signature verification failed.");
+      }
+    });
+  } catch (err: unknown) {
+    return returnError("HTTP Message Signature verification failed.", err instanceof Error ? err.message : String(err));
   }
 
   return { browserJwk };
@@ -309,7 +229,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
       // ==============================================================================
       // PATH A: MODERN HTTP MESSAGE SIGNATURE FLOW (RFC 9421)
       // ==============================================================================
-      const signatureResult = verifyRequestSignature(request, url, corsHeaders);
+      const signatureResult = await verifyRequestSignature(request, url, corsHeaders);
       if (signatureResult instanceof Response) {
         return signatureResult;
       }
@@ -452,21 +372,10 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
             );
           }
 
-          // Import browser's public key and verify the request JWT
-          const publicKey = crypto.createPublicKey({ key: browserJwk, format: "jwk" });
-          const parts = requestToken.split(".");
-          const isEd25519 = header.alg === "EdDSA" || browserJwk.crv === "Ed25519";
-          const algorithm = isEd25519 ? undefined : "sha256";
-
-          const isVerified = crypto.verify(
-            algorithm,
-            Buffer.from(parts[0] + "." + parts[1]),
-            { key: publicKey, dsaEncoding: "ieee-p1363" },
-            Buffer.from(parts[2], "base64url"),
-          );
-
-          if (!isVerified) throw new Error("Verification failed");
-          email = decoded.payload.email as string;
+          // Import browser's public key and verify the request JWT using jose
+          const publicKey = await importJWK(browserJwk as JWK, header.alg);
+          const { payload } = await jwtVerify(requestToken, publicKey);
+          email = payload.email as string;
         } catch {
           return sendResponse(
             {
@@ -510,7 +419,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // ==============================================================================
     // STEP 4: SIGN AND ISSUE EMAIL VERIFICATION TOKEN (EVT)
     // ==============================================================================
-    const privateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const privateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
     const origin = url.origin;
     const currentTime = Math.floor(Date.now() / 1000);
 
@@ -527,8 +436,11 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
 
     const sdJwt = new SDJwtInstance({
       signer: async (data) => {
-        const sig = crypto.sign(undefined, Buffer.from(data), privateKey);
-        return Buffer.from(sig).toString("base64url");
+        const [headerB64, payloadB64] = data.split(".");
+        const header = JSON.parse(Buffer.from(headerB64, "base64url").toString());
+        const payload = Buffer.from(payloadB64, "base64url");
+        const signed = await new CompactSign(payload).setProtectedHeader(header).sign(privateKey);
+        return signed.split(".").pop()!;
       },
       signAlg: "EdDSA",
       hasher: async (data, alg) => {

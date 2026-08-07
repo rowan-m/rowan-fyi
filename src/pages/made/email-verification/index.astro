@@ -8,7 +8,9 @@ Astro.response.headers.set(
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import { SDJwtInstance, decodeSdJwtSync } from "@sd-jwt/core";
-import nodeCrypto, { createHash, randomUUID } from "node:crypto";
+import { importJWK, compactVerify } from "jose";
+import type { JWK } from "jose";
+import { createHash, randomUUID } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
 import dns from "node:dns/promises";
 
@@ -259,23 +261,16 @@ if (Astro.request.method === "POST") {
         sdJwt.config({
           hasher,
           verifier: async (data, sig) => {
+            const token = `${data}.${sig}`;
             const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
-            const algorithm = headerAlg === "EdDSA" ? undefined : "sha256";
             const kid = decodedSdJwt.jwt.header.kid;
             const keysToTry = kid ? jwksData.keys.filter((k: { kid?: string }) => k.kid === kid) : jwksData.keys;
 
             for (const jwk of keysToTry) {
               try {
-                const pubKey = nodeCrypto.createPublicKey({ key: jwk as nodeCrypto.JsonWebKey, format: "jwk" });
-                const verifyKey =
-                  algorithm === undefined ? pubKey : { key: pubKey, dsaEncoding: "ieee-p1363" as const };
-                const isVerified = nodeCrypto.verify(
-                  algorithm,
-                  Buffer.from(data),
-                  verifyKey,
-                  Buffer.from(sig, "base64url"),
-                );
-                if (isVerified) return true;
+                const pubKey = await importJWK(jwk as JWK, jwk.alg || headerAlg);
+                await compactVerify(token, pubKey);
+                return true;
               } catch {
                 continue;
               }
@@ -286,14 +281,11 @@ if (Astro.request.method === "POST") {
             try {
               const browserJwkKey = evtJwtDecodedPayload.cnf?.jwk;
               if (!browserJwkKey) throw new Error("Missing browser ephemeral public key.");
+              const token = `${data}.${sig}`;
               const kbAlg = decodedSdJwt.kbJwt.header.alg || "ES256";
-              const algorithm = kbAlg === "EdDSA" || kbAlg === "Ed25519" ? undefined : "sha256";
-              const pubKey = nodeCrypto.createPublicKey({
-                key: browserJwkKey as nodeCrypto.JsonWebKey,
-                format: "jwk",
-              });
-              const verifyKey = algorithm === undefined ? pubKey : { key: pubKey, dsaEncoding: "ieee-p1363" as const };
-              return nodeCrypto.verify(algorithm, Buffer.from(data), verifyKey, Buffer.from(sig, "base64url"));
+              const pubKey = await importJWK(browserJwkKey as JWK, kbAlg);
+              await compactVerify(token, pubKey);
+              return true;
             } catch {
               return false;
             }
