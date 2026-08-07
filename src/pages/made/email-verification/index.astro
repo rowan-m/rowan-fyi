@@ -40,6 +40,30 @@ interface TraceStep {
   error?: string;
 }
 
+/**
+ * Writes a structured log entry mapped to GCP Stackdriver severity levels.
+ */
+function logGcp(severity: "DEBUG" | "INFO" | "WARNING" | "ERROR", message: string) {
+  const gcpLogEntry: Record<string, unknown> = {
+    severity,
+    message,
+    time: new Date().toISOString(),
+    serviceContext: {
+      service: process.env.K_SERVICE || "rowan-fyi",
+    },
+  };
+  const json = JSON.stringify(gcpLogEntry);
+  if (severity === "ERROR") {
+    console.error(json);
+  } else if (severity === "WARNING") {
+    console.warn(json);
+  } else if (severity === "INFO") {
+    console.log(json);
+  } else {
+    console.debug(json);
+  }
+}
+
 let verificationResult: VerificationResult | null = null;
 let errorMsg = "";
 
@@ -392,8 +416,9 @@ if (Astro.request.method === "POST") {
       errorMsg = "No verification token was sent by the browser. Traditional verification flow is required.";
     }
   } catch (e) {
-    console.error("Verification error:", e);
-    errorMsg = e instanceof Error ? e.message : "Failed to verify the token.";
+    const errorMsgText = e instanceof Error ? e.message : "Failed to verify the token.";
+    logGcp("ERROR", `Verification error: ${errorMsgText}`);
+    errorMsg = errorMsgText;
 
     // Auto-mark the currently active step as failed with its exact error context
     const currentStep = traceSteps.find((s) => s.status === "pending" || s.status === "failed");

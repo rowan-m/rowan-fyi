@@ -11,6 +11,30 @@ import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
 
 /**
+ * Writes a structured log entry mapped to GCP Stackdriver severity levels.
+ */
+function logGcp(severity: "DEBUG" | "INFO" | "WARNING" | "ERROR", message: string) {
+  const gcpLogEntry: Record<string, unknown> = {
+    severity,
+    message,
+    time: new Date().toISOString(),
+    serviceContext: {
+      service: process.env.K_SERVICE || "rowan-fyi",
+    },
+  };
+  const json = JSON.stringify(gcpLogEntry);
+  if (severity === "ERROR") {
+    console.error(json);
+  } else if (severity === "WARNING") {
+    console.warn(json);
+  } else if (severity === "INFO") {
+    console.log(json);
+  } else {
+    console.debug(json);
+  }
+}
+
+/**
  * Extracts and verifies the HTTP Message Signature from the request using http-message-sig.
  * Returns the browser's parsed public JWK on success, or an APIRoute Response on validation failure.
  */
@@ -39,16 +63,8 @@ async function verifyRequestSignature(
         },
       },
     };
-    const logMsg = `EVP Request Signature Validation Failed: ${msg}${details ? " - " + details : ""}\n`;
-    process.stderr.write(logMsg);
-
-    const gcpLogEntry = {
-      severity: "WARNING",
-      message: logMsg,
-      time: new Date().toISOString(),
-      serviceContext: { service: "rowan-fyi" },
-    };
-    console.warn(JSON.stringify(gcpLogEntry));
+    const logMsg = `EVP Request Signature Validation Failed: ${msg}${details ? " - " + details : ""}`;
+    logGcp("WARNING", logMsg);
 
     return new Response(JSON.stringify(errorBody), {
       status: 400,
@@ -179,19 +195,9 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     status: number,
   ) => {
     if (status !== 200) {
-      const gcpLogEntry = {
-        severity: status >= 500 ? "ERROR" : "WARNING",
-        message: `EVP Issuance ${status >= 500 ? "Error" : "Warning"} (${status}): ${bodyObj.error_description || bodyObj.error || "Bad Request"}`,
-        time: new Date().toISOString(),
-        serviceContext: {
-          service: process.env.K_SERVICE || "rowan-fyi",
-        },
-      };
-      if (status >= 500) {
-        console.error(JSON.stringify(gcpLogEntry));
-      } else {
-        console.warn(JSON.stringify(gcpLogEntry));
-      }
+      const severity = status >= 500 ? "ERROR" : "WARNING";
+      const message = `EVP Issuance ${status >= 500 ? "Error" : "Warning"} (${status}): ${bodyObj.error_description || bodyObj.error || "Bad Request"}`;
+      logGcp(severity, message);
     }
     return new Response(JSON.stringify(bodyObj), {
       status,
@@ -204,7 +210,7 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
     // standard-compliant browsers SHOULD set "Sec-Fetch-Dest: email-verification" or "webidentity".
     const secFetchDest = request.headers.get("sec-fetch-dest");
     if (secFetchDest && secFetchDest !== "email-verification" && secFetchDest !== "webidentity") {
-      console.warn(`Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
+      logGcp("WARNING", `Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
     }
 
     const contentType = request.headers.get("content-type") || "";
