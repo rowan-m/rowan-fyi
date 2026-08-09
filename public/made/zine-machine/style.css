@@ -139,8 +139,46 @@ figcaption {
     text-decoration: none;
   }
 
+  h1,
+  h2 {
+    font-size: 140% !important;
+  }
+
+  h3,
+  .subhead {
+    font-size: 110% !important;
+    margin: 0.15rem 0 0.1rem 0 !important;
+    padding: 0.1rem 0 !important;
+  }
+
+  p {
+    padding: 0.1rem 0.2rem !important;
+    font-size: 90% !important;
+  }
+
+  ul {
+    padding-left: 1.2rem !important;
+  }
+
+  .zine-li {
+    font-size: 90% !important;
+  }
+
+  pre[class*="language-"],
+  code[class*="language-"] {
+    font-size: 0.65rem !important;
+    padding: 2px !important;
+    margin: 2px 0 !important;
+    line-height: 1 !important;
+  }
+
+  .zine-instructions td {
+    padding: 0.1rem !important;
+    font-size: 90% !important;
+  }
+
   .mini-img {
-    max-width: 4.4rem;
+    max-width: 3.5rem !important;
   }
 
   /* The styles below here are specifically for creating the page layout.
