@@ -33,11 +33,11 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
     >
   </div>
 
-  <social-comments-widget
+  <social-comments
     canonical-url={canonicalUrl}
     location-url={locationUrl || ""}
     bsky-url={blueskyUrl || ""}
-    mastodon-url={mastodonUrl || ""}></social-comments-widget>
+    mastodon-url={mastodonUrl || ""}></social-comments>
 </section>
 
 <script>
