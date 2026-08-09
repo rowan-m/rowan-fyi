@@ -24,7 +24,7 @@ const CACHE_KEY_PREFIX = "social-comments-v3-";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 @customElement("social-comments-widget")
-export class SocialCommentsWidget extends LitElement {
+class SocialCommentsWidget extends LitElement {
   @property({ type: String, attribute: "canonical-url" }) canonicalUrl = "";
   @property({ type: String, attribute: "location-url" }) locationUrl = "";
   @property({ type: String, attribute: "bsky-url" }) bskyUrl = "";
