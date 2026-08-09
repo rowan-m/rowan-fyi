@@ -1,242 +1,274 @@
 <!-- Feel free to edit this one, or take a look at template.html if you want a blank slate to start with! -->
 <!doctype html>
 <html lang="en">
-  <title>Zine machine!</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/png" href="./assets/zine-machine-32.png" />
-  <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
+  <head>
+    <title>Zine machine!</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="./assets/zine-machine-32.png" />
+    <link rel="stylesheet" href="./style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+      integrity="sha384-rCCjoCPCsizaAAYVoz1Q0CmCTvnctK0JkfCSjx7IIxexTBg+uCKtFYycedUjMyA2"
+      crossorigin="anonymous"
+    />
 
-  <meta
-    name="Description"
-    content="Read 🌐 online or 📃 print out, ✂️ cut, and 🙏 fold to create a physical copy. 💜 Remix and write your own zine!"
-  />
-  <meta name="theme-color" content="#741b47" />
+    <meta
+      name="Description"
+      content="Read 🌐 online or 📃 print out, ✂️ cut, and 🙏 fold to create a physical copy. 💜 Remix and write your own zine!"
+    />
+    <meta name="theme-color" content="#741b47" />
 
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:site" content="@rowan_m" />
-  <meta name="twitter:title" content="Zine Machine" />
-  <meta
-    name="twitter:description"
-    content="Read 🌐 online or 📃 print out, ✂️ cut, and 🙏 fold to create a physical copy. 💜 Remix and write your own zine!"
-  />
-  <meta name="twitter:image" content="https://rowan.fyi/made/zine-machine/assets/zine-machine-preview.jpg" />
-  <meta name="twitter:image:width" content="1595" />
-  <meta name="twitter:image:height" content="1232" />
-  <meta name="twitter:image:alt" content="Print layout for the Zine Machine" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@rowan_m" />
+    <meta name="twitter:title" content="Zine Machine" />
+    <meta
+      name="twitter:description"
+      content="Read 🌐 online or 📃 print out, ✂️ cut, and 🙏 fold to create a physical copy. 💜 Remix and write your own zine!"
+    />
+    <meta name="twitter:image" content="https://rowan.fyi/made/zine-machine/assets/zine-machine-preview.jpg" />
+    <meta name="twitter:image:width" content="1595" />
+    <meta name="twitter:image:height" content="1232" />
+    <meta name="twitter:image:alt" content="Print layout for the Zine Machine" />
 
-  <meta property="og:url" content="https://rowan.fyi/made/zine-machine" />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Zine Machine" />
-  <meta
-    property="og:description"
-    content="Read 🌐 online or 📃 print out, ✂️ cut, and 🙏 fold to create a physical copy. 💜 Remix and write your own zine!"
-  />
-  <meta property="og:image" content="https://rowan.fyi/made/zine-machine/assets/zine-machine-preview.jpg" />
-  <meta property="og:image:width" content="1595" />
-  <meta property="og:image:height" content="1232" />
-
-  <main class="zine">
-    <header class="zine-page page-1">
-      <h1>Welcome to the<br />Zine Machine</h1>
-      <img class="full-img" src="./assets/zine-machine.png" alt="Zine Machine" />
-      <p class="subhead">Read me 🌐 online or<br />📃 print ✂️ cut 🙏 fold me 💜</p>
-    </header>
-    <section class="zine-page page-2">
-      <h2>What's a zine?</h2>
-      <p>
-        Zines are little, self-produced publications with a history going back to the 1920s. People used zines to share
-        the content they were passionate about with others and over the years that's been everything from sci-fi,
-        feminism, and rock music. As access to photocopiers and later printers became more widespread, creating a zine
-        was an easy option for almost anyone.
-      </p>
-      <figure>
-        <img class="captioned-img" src="./assets/1970s_fanzines.jpg" />
-        <figcaption>
-          UK music zines from the 1970s, Jake from Manchester, UK<br />[<a
-            href="https://creativecommons.org/licenses/by/2.0"
-            >CC BY 2.0</a
-          >],
-          <a href="https://commons.wikimedia.org/wiki/File:1970s_fanzines_(21224199545).jpg">via Wikimedia Commons</a>
-        </figcaption>
-      </figure>
-    </section>
-    <section class="zine-page page-3">
-      <h3>Phones 🤜VS🤛 Zines</h3>
-      <p>
-        Of course, with the Internet everywhere sharing what you care about with the world is even easier… but there's
-        still something nice about a physical thing that you can keep. We benchmarked the world's best phones against
-        the world's best zines for you right here.
-      </p>
-      <table>
-        <tr>
-          <td></td>
-          <th>Phones</th>
-          <th>Zines</th>
-        </tr>
-        <tr>
-          <th>Battery life</th>
-          <td>Maybe 6 hours</td>
-          <td>600 years</td>
-        </tr>
-        <tr>
-          <th>Offline content</th>
-          <td>Mmm, well sometimes</td>
-          <td>Always</td>
-        </tr>
-        <tr>
-          <th>When dropped</th>
-          <td>Smashed to bits</td>
-          <td>Might get a little dirty</td>
-        </tr>
-        <tr>
-          <th>Can read in bath</th>
-          <td>Probably, but risky</td>
-          <td>Might go a bit crinkly</td>
-        </tr>
-        <tr>
-          <th>Cost</th>
-          <td>$1000</td>
-          <td>10¢</td>
-        </tr>
-      </table>
-      <h3>Zine wins! <b>💀 PRACTICALITY 💀</b></h3>
-      <p>
-        We still 💜 webs though, so:<br />
-        <b>Q:</b> How do we combine these worlds?<br />
-        <b>A:</b> With the power of CSS!
-      </p>
-    </section>
-    <section class="zine-page page-4">
-      <h3>Making zines on the web 🕸️</h3>
-      <p>
-        That magic is what means this web page is also a zine if you print it! Go ahead, try pressing your
-        <button class="print-button">🖨️ Print</button> button now. You will need to set the page to landscape and make
-        sure there's no margins or scaling. We want to print on the edge, baby! You should see a preview laid out like
-        this:
-      </p>
-      <figure>
-        <img class="captioned-img" src="./assets/zine-fold.png" />
-        <figcaption>8 zine pages ready to be 📃 printed ✂️ cut and 🙏 folded</figcaption>
-      </figure>
-      <p>
-        We're using the template and instructions from:
-        <a href="http://bit.ly/zine-making-on-wikibooks">bit.ly/zine-making-on-wikibooks</a>
-      </p>
-    </section>
-    <section class="zine-page page-5">
-      <table class="zine-instructions">
-        <tr>
-          <td><b>Step 1:</b> Crease all the lines then fold in half.</td>
-          <td><img class="mini-img" src="./assets/zine-fold-02.png" alt="Diagram for step 1" /></td>
-        </tr>
-        <tr>
-          <td><b>Step 2:</b> Cut across the fold halfway through the page.</td>
-          <td><img class="mini-img" src="./assets/zine-fold-03.png" alt="Diagram for step 2" /></td>
-        </tr>
-        <tr>
-          <td><b>Step 3:</b> Unfold and there should be a little hole.</td>
-          <td><img class="mini-img" src="./assets/zine-fold-04.png" alt="Diagram for step 3" /></td>
-        </tr>
-        <tr>
-          <td><b>Step 4:</b> Fold lengthways.</td>
-          <td><img class="mini-img" src="./assets/zine-fold-05.png" alt="Diagram for step 4" /></td>
-        </tr>
-        <tr>
-          <td><b>Step 5:</b> Gently fold the centre until you form a + shape.</td>
-          <td><img class="mini-img" src="./assets/zine-fold-06.png" alt="Diagram for step 5" /></td>
-        </tr>
-        <tr>
-          <td><b>Step 6:</b> Now - magic! Fold all the pages around. Page 1 is the front cover, page 8 is the back.</td>
-          <td><img class="mini-img" src="./assets/zine-fold-07.png" alt="Diagram for step 6" /></td>
-        </tr>
-      </table>
-      <h3>You are now a published author!</h3>
-    </section>
-    <section class="zine-page page-6">
-      <p>
-        The key things we need here are a print-specific layout and CSS grid. Conveniently, (<a
-          href="https://rachelandrew.co.uk/contact/rachelandrew"
-          >Rachel Andrew</a
-        >) has amazing resources for both:
-      </p>
-      <ul>
-        <li class="zine-li">
-          <a class="zine-link" href="http://bit.ly/rachel-on-print">bit.ly/rachel-on-print</a>
-        </li>
-        <li class="zine-li">
-          <a class="zine-link" href="https://bit.ly/rachel-on-grids">bit.ly/rachel-on-grids</a>
-        </li>
-      </ul>
-      <h3>CSS Grid</h3>
-      <p>
-        The critical components here are the named areas for the grid. We can draw it like a little ascii diagram in our
-        stylesheet.
-      </p>
-      <pre><code class="language-css">.zine {
+    <meta property="og:url" content="https://rowan.fyi/made/zine-machine" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Zine Machine" />
+    <meta
+      property="og:description"
+      content="Read 🌐 online or 📃 print out, ✂️ cut, and 🙏 fold to create a physical copy. 💜 Remix and write your own zine!"
+    />
+    <meta property="og:image" content="https://rowan.fyi/made/zine-machine/assets/zine-machine-preview.jpg" />
+    <meta property="og:image:width" content="1595" />
+    <meta property="og:image:height" content="1232" />
+  </head>
+  <body>
+    <main class="zine">
+      <header class="zine-page page-1">
+        <h1>Welcome to the<br />Zine Machine</h1>
+        <img
+          class="full-img"
+          src="./assets/zine-machine.png"
+          alt="Zine Machine logo showing a stacked, blue grid-patterned physical booklet"
+          fetchpriority="high"
+        />
+        <p class="subhead">Read me 🌐 online or<br />📃 print ✂️ cut 🙏 fold me 💜</p>
+      </header>
+      <section class="zine-page page-2">
+        <h2>What's a zine?</h2>
+        <p>
+          Zines are little, self-produced publications with a history going back to the 1920s. People used zines to
+          share the content they were passionate about with others and over the years that's been everything from
+          sci-fi, feminism, and rock music. As access to photocopiers and later printers became more widespread,
+          creating a zine was an easy option for almost anyone.
+        </p>
+        <figure>
+          <img
+            class="captioned-img"
+            src="./assets/1970s_fanzines.jpg"
+            alt="A collection of underground music fanzines from the 1970s, featuring hand-drawn typography and black-and-white print collages"
+            loading="lazy"
+          />
+          <figcaption>
+            UK music zines from the 1970s, Jake from Manchester, UK<br />[<a
+              href="https://creativecommons.org/licenses/by/2.0"
+              >CC BY 2.0</a
+            >],
+            <a href="https://commons.wikimedia.org/wiki/File:1970s_fanzines_(21224199545).jpg">via Wikimedia Commons</a>
+          </figcaption>
+        </figure>
+      </section>
+      <section class="zine-page page-3">
+        <h3>Phones 🤜VS🤛 Zines</h3>
+        <p>
+          Of course, with the Internet everywhere sharing what you care about with the world is even easier… but there's
+          still something nice about a physical thing that you can keep. We benchmarked the world's best phones against
+          the world's best zines for you right here.
+        </p>
+        <table>
+          <tr>
+            <td></td>
+            <th>Phones</th>
+            <th>Zines</th>
+          </tr>
+          <tr>
+            <th>Battery life</th>
+            <td>Maybe 6 hours</td>
+            <td>600 years</td>
+          </tr>
+          <tr>
+            <th>Offline content</th>
+            <td>Mmm, well sometimes</td>
+            <td>Always</td>
+          </tr>
+          <tr>
+            <th>When dropped</th>
+            <td>Smashed to bits</td>
+            <td>Might get a little dirty</td>
+          </tr>
+          <tr>
+            <th>Can read in bath</th>
+            <td>Probably, but risky</td>
+            <td>Might go a bit crinkly</td>
+          </tr>
+          <tr>
+            <th>Cost</th>
+            <td>$1000</td>
+            <td>10¢</td>
+          </tr>
+        </table>
+        <h3>Zine wins! <b>💀 PRACTICALITY 💀</b></h3>
+        <p>
+          We still 💜 webs though, so:<br />
+          <b>Q:</b> How do we combine these worlds?<br />
+          <b>A:</b> With the power of CSS!
+        </p>
+      </section>
+      <section class="zine-page page-4">
+        <h3>Making zines on the web 🕸️</h3>
+        <p>
+          That magic is what means this web page is also a zine if you print it! Go ahead, try pressing your
+          <button class="print-button">🖨️ Print</button> button now. You will need to set the page to landscape and make
+          sure there's no margins or scaling. We want to print on the edge, baby! You should see a preview laid out like
+          this:
+        </p>
+        <figure>
+          <img
+            class="captioned-img"
+            src="./assets/zine-fold.png"
+            alt="A schematic diagram of the zine layout showing 8 rotated pages mapped to distinct print grid segments"
+            loading="lazy"
+          />
+          <figcaption>8 zine pages ready to be 📃 printed ✂️ cut and 🙏 folded</figcaption>
+        </figure>
+        <p>
+          We're using the template and instructions from:
+          <a href="http://bit.ly/zine-making-on-wikibooks">bit.ly/zine-making-on-wikibooks</a>
+        </p>
+      </section>
+      <section class="zine-page page-5">
+        <table class="zine-instructions">
+          <tr>
+            <td><b>Step 1:</b> Crease all the lines then fold in half.</td>
+            <td><img class="mini-img" src="./assets/zine-fold-02.png" alt="Diagram for step 1" loading="lazy" /></td>
+          </tr>
+          <tr>
+            <td><b>Step 2:</b> Cut across the fold halfway through the page.</td>
+            <td><img class="mini-img" src="./assets/zine-fold-03.png" alt="Diagram for step 2" loading="lazy" /></td>
+          </tr>
+          <tr>
+            <td><b>Step 3:</b> Unfold and there should be a little hole.</td>
+            <td><img class="mini-img" src="./assets/zine-fold-04.png" alt="Diagram for step 3" loading="lazy" /></td>
+          </tr>
+          <tr>
+            <td><b>Step 4:</b> Fold lengthways.</td>
+            <td><img class="mini-img" src="./assets/zine-fold-05.png" alt="Diagram for step 4" loading="lazy" /></td>
+          </tr>
+          <tr>
+            <td><b>Step 5:</b> Gently fold the centre until you form a + shape.</td>
+            <td><img class="mini-img" src="./assets/zine-fold-06.png" alt="Diagram for step 5" loading="lazy" /></td>
+          </tr>
+          <tr>
+            <td>
+              <b>Step 6:</b> Now - magic! Fold all the pages around. Page 1 is the front cover, page 8 is the back.
+            </td>
+            <td><img class="mini-img" src="./assets/zine-fold-07.png" alt="Diagram for step 6" loading="lazy" /></td>
+          </tr>
+        </table>
+        <h3>You are now a published author!</h3>
+      </section>
+      <section class="zine-page page-6">
+        <p>
+          The key things we need here are a print-specific layout and CSS grid. Conveniently, (<a
+            href="https://rachelandrew.co.uk/contact/rachelandrew"
+            >Rachel Andrew</a
+          >) has amazing resources for both:
+        </p>
+        <ul>
+          <li class="zine-li">
+            <a class="zine-link" href="http://bit.ly/rachel-on-print">bit.ly/rachel-on-print</a>
+          </li>
+          <li class="zine-li">
+            <a class="zine-link" href="https://bit.ly/rachel-on-grids">bit.ly/rachel-on-grids</a>
+          </li>
+        </ul>
+        <h3>CSS Grid</h3>
+        <p>
+          The critical components here are the named areas for the grid. We can draw it like a little ascii diagram in
+          our stylesheet.
+        </p>
+        <pre><code class="language-css">.zine {
   display: grid;
   grid-template-areas:
   "page-5 page-4 page-3 page-2"
   "page-6 page-7 page-8 page-1";
 }</code></pre>
-      <p>Then we can position and rotate each of the pages as we need!</p>
-      <pre><code class="language-css">.page-5, .page-4, .page-3, .page-2 {
+        <p>Then we can position and rotate each of the pages as we need!</p>
+        <pre><code class="language-css">.page-5, .page-4, .page-3, .page-2 {
   transform: rotate(180deg);
 }
 .page-1 { grid-area: page-1; }
 .page-2 { grid-area: page-2; }
 /* You get the idea… */</code></pre>
-    </section>
-    <section class="zine-page page-7">
-      <h3>Print styles</h3>
-      <p>We don't need grid layout when in browser, so we're wrapping all of that in a media query.</p>
-      <pre><code class="language-css">@media print {
+      </section>
+      <section class="zine-page page-7">
+        <h3>Print styles</h3>
+        <p>We don't need grid layout when in browser, so we're wrapping all of that in a media query.</p>
+        <pre><code class="language-css">@media print {
   /* Styles in here will only be
   applied when printing! */
 }</code></pre>
-      <p>We also want to hint to the browser we are using a landscape layout.</p>
-      <pre><code class="language-css">@media print {
+        <p>We also want to hint to the browser we are using a landscape layout.</p>
+        <pre><code class="language-css">@media print {
   @page {
     size: landscape;
   }
 }</code></pre>
-      <p>We also don't want links underlined, since, you know, you can't click paper… yet.</p>
-      <pre><code class="language-css">a {
+        <p>We also don't want links underlined, since, you know, you can't click paper… yet.</p>
+        <pre><code class="language-css">a {
   color: inherit;
   text-decoration: none;
 }</code></pre>
-      <p>
-        Swap all kinds of things around for print versus screen. Fill your page with animated gifs, but show a comic
-        strip in print! Use dark mode on screen, but an ink-friendly light theme in print.
-      </p>
-    </section>
-    <footer class="zine-page page-8">
-      <h2>Steal this zine!</h2>
-      <p>Please take this template and copy it for your own work!</p>
-      <p>
-        Since it's all
-        <a href="https://github.com/rowan-m/rowan-fyi/tree/main/public/made/zine-machine">hosted on Github</a>, you can
-        either fork the whole repo or just copy the files you need.
-      </p>
-      <a class="zine-link cc-licence" rel="license" href="http://creativecommons.org/licenses/by/4.0/"
-        ><img alt="Creative Commons Licence" src="https://i.creativecommons.org/l/by/4.0/88x31.png"
-      /></a>
-      <p>
-        The content and images are licensed under a
-        <a class="zine-link" rel="license" href="http://creativecommons.org/licenses/by/4.0/"
-          >Creative Commons Attribution 4.0 International License</a
-        >.
-      </p>
-      <p>
-        Code highlighting via
-        <a class="zine-link" href="https://prismjs.com">Prism.js</a>.
-      </p>
-      <h3>Let me know what you write via the socials on <a class="zine-link" href="https://rowan.fyi">rowan.fyi</a></h3>
-    </footer>
-  </main>
+        <p>
+          Swap all kinds of things around for print versus screen. Fill your page with animated gifs, but show a comic
+          strip in print! Use dark mode on screen, but an ink-friendly light theme in print.
+        </p>
+      </section>
+      <footer class="zine-page page-8">
+        <h2>Steal this zine!</h2>
+        <p>Please take this template and copy it for your own work!</p>
+        <p>
+          Since it's all
+          <a href="https://github.com/rowan-m/rowan-fyi/tree/main/public/made/zine-machine">hosted on Github</a>, you
+          can either fork the whole repo or just copy the files you need.
+        </p>
+        <a class="zine-link cc-licence" rel="license" href="http://creativecommons.org/licenses/by/4.0/"
+          ><img alt="Creative Commons Licence" src="https://i.creativecommons.org/l/by/4.0/88x31.png"
+        /></a>
+        <p>
+          The content and images are licensed under a
+          <a class="zine-link" rel="license" href="http://creativecommons.org/licenses/by/4.0/"
+            >Creative Commons Attribution 4.0 International License</a
+          >.
+        </p>
+        <p>
+          Code highlighting via
+          <a class="zine-link" href="https://prismjs.com">Prism.js</a>.
+        </p>
+        <h3>
+          Let me know what you write via the socials on <a class="zine-link" href="https://rowan.fyi">rowan.fyi</a>
+        </h3>
+      </footer>
+    </main>
 
-  <script src="./script.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+    <script src="./script.js" defer></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"
+      integrity="sha384-06z5D//U/xpvxZHuUz92xBvq3DqBBFi7Up53HRrbV7Jlv7Yvh/MZ7oenfUe9iCEt"
+      crossorigin="anonymous"
+      defer
+    ></script>
+  </body>
 </html>
