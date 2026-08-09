@@ -4,6 +4,8 @@
   "exclude": ["dist"],
   "compilerOptions": {
     "baseUrl": ".",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
     "paths": {
       "@/*": ["./src/*"]
     }
