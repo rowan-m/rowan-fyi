@@ -35,7 +35,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@vitest/coverage-v8": "^4.1.10",
-    "dependency-cruiser": "^18.1.1",
+    "dependency-cruiser": "^18.2.0",
     "eslint": "^10.8.1",
     "eslint-plugin-astro": "^3.1.0",
     "eslint-plugin-no-unsanitized": "^4.1.5",
@@ -45,7 +45,7 @@
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-packagejson": "^3.0.2",
-    "typescript-eslint": "^8.66.0",
+    "typescript-eslint": "^8.67.0",
     "vitest": "^4.1.10"
   },
   "allowScripts": {
