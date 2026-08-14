@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EVP JS Submission Test</title>
+    <!-- Origin Trial Token for Email Verification Protocol -->
+    <meta
+      http-equiv="origin-trial"
+      content="AhXp8ak/QLxZjlTcDhudtMFPwVwV3MrqSIO/OODXG2IknnKycOuqn+z/h195Ob/0B4vF42nTcV8lQbESLVggNQQAAABceyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiRW1haWxWZXJpZmljYXRpb25Qcm90b2NvbCIsImV4cGlyeSI6MTc5NDg3MzYwMH0="
+    />
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          sans-serif;
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+        color: #333;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+      .description {
+        color: #555;
+        margin-bottom: 1.5rem;
+      }
+      .test-box {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+      }
+      label {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+      }
+      input[type="email"] {
+        padding: 0.5rem;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background: #0056b3;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #004085;
+      }
+      button.secondary {
+        background: #6c757d;
+      }
+      button.secondary:hover {
+        background: #5a6268;
+      }
+      button.danger {
+        background: #dc3545;
+      }
+      button.danger:hover {
+        background: #bd2130;
+      }
+      .state-info {
+        font-family: monospace;
+        font-size: 0.85rem;
+        background: #e9ecef;
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+        word-break: break-all;
+      }
+      .log-container {
+        margin-top: 2rem;
+      }
+      .log-entry {
+        border-left: 4px solid #0056b3;
+        background: #f1f3f5;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0 4px 4px 0;
+      }
+      .log-entry.no-token {
+        border-left-color: #dc3545;
+      }
+      .log-entry pre {
+        margin: 0.5rem 0 0 0;
+        white-space: pre-wrap;
+        word-break: break-all;
+        font-size: 0.8rem;
+        background: #fff;
+        padding: 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+      }
+      .instructions-card {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+      }
+      .instructions-card h2 {
+        margin-top: 0;
+        font-size: 1.1rem;
+      }
+      .instructions-card ol {
+        margin-bottom: 0;
+        padding-left: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>EVP JS Submission Test</h1>
+    <p class="description">
+      This page is designed to test how browser Email Verification Protocol (EVP) tokens are cached and handled during
+      custom client-side JavaScript form submissions (AJAX/Fetch style where the page does not refresh).
+    </p>
+
+    <div class="instructions-card">
+      <h2>How to test the Token Reuse issue:</h2>
+      <ol>
+        <li>Verify you have set up a session for <code>demo@rowan.fyi</code> on your demo provider.</li>
+        <li>Enter <code>demo@rowan.fyi</code> in the email field and click <strong>Submit (JS Processed)</strong>.</li>
+        <li>Notice that a token is successfully captured and printed in the logs below.</li>
+        <li>Change the email field to an address that is NOT verified (e.g., <code>nonexistent@rowan.fyi</code>).</li>
+        <li>Click <strong>Submit (JS Processed)</strong> again.</li>
+        <li>
+          <strong>Observe:</strong> If the browser or page fails to clear the hidden token input value, the submission
+          will capture the <em>exact same token</em> from the previous submission, even though the email has changed and
+          isn't verified!
+        </li>
+      </ol>
+    </div>
+
+    <div class="test-box">
+      <form id="test-form">
+        <div class="form-group">
+          <label for="email">Email input (autocomplete="email"):</label>
+          <input type="email" id="email" name="email" autocomplete="email" placeholder="e.g. demo@rowan.fyi" required />
+        </div>
+
+        <!-- Hidden Token Input -->
+        <input type="hidden" id="token-input" name="token" autocomplete="email-verification-token" />
+
+        <div class="state-info">
+          <strong>Hidden Input Current Value:</strong> <span id="current-token-val">empty</span><br />
+          <strong>Hidden Input Nonce Attribute:</strong> <span id="current-nonce-val">none</span>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Submit (JS Processed)</button>
+          <button type="button" class="secondary" id="btn-new-nonce">Generate New Nonce</button>
+          <button type="button" class="danger" id="btn-clear-token">Clear Hidden Token Input</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="log-container">
+      <h2>Submission Logs</h2>
+      <div id="logs-list">
+        <p style="color: #666; font-style: italic">No submissions logged yet.</p>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("test-form");
+      const emailInput = document.getElementById("email");
+      const tokenInput = document.getElementById("token-input");
+      const currentTokenVal = document.getElementById("current-token-val");
+      const currentNonceVal = document.getElementById("current-nonce-val");
+      const btnNewNonce = document.getElementById("btn-new-nonce");
+      const btnClearToken = document.getElementById("btn-clear-token");
+      const logsList = document.getElementById("logs-list");
+
+      // Function to generate and set a new nonce
+      function generateNewNonce() {
+        const newNonce = crypto.randomUUID();
+        tokenInput.setAttribute("nonce", newNonce);
+        currentNonceVal.textContent = newNonce;
+      }
+
+      // Initialize nonce on load
+      generateNewNonce();
+
+      // Periodically display the actual value of the hidden token input (since browser might inject it)
+      setInterval(() => {
+        const val = tokenInput.value;
+        currentTokenVal.textContent = val ? `${val.substring(0, 30)}... (Length: ${val.length})` : "empty";
+      }, 200);
+
+      // Generate new nonce button listener
+      btnNewNonce.addEventListener("click", () => {
+        generateNewNonce();
+      });
+
+      // Clear token button listener
+      btnClearToken.addEventListener("click", () => {
+        tokenInput.value = "";
+        currentTokenVal.textContent = "empty";
+      });
+
+      // Form submission processing
+      form.addEventListener("submit", (e) => {
+        e.preventDefault(); // Intercept default browser page refresh submit
+
+        const email = emailInput.value;
+        const token = tokenInput.value;
+        const nonce = tokenInput.getAttribute("nonce");
+        const timestamp = new Date().toLocaleTimeString();
+
+        // Create a log entry
+        const entryDiv = document.createElement("div");
+        entryDiv.classList.add("log-entry");
+        if (!token) {
+          entryDiv.classList.add("no-token");
+        }
+
+        entryDiv.innerHTML = `
+        <strong>[${timestamp}] Submitted Form Data</strong><br>
+        <strong>Email:</strong> <code>${email}</code><br>
+        <strong>Nonce on Element:</strong> <code>${nonce}</code><br>
+        <strong>Token Captured:</strong> ${token ? `<span style="color: green; font-weight: bold;">Yes</span>` : `<span style="color: red; font-weight: bold;">No (Empty)</span>`}
+        ${token ? `<pre><code>${token}</code></pre>` : ""}
+      `;
+
+        // Clear the placeholder text if it's the first log
+        if (logsList.children.length === 1 && logsList.children[0].tagName === "P") {
+          logsList.innerHTML = "";
+        }
+
+        logsList.insertBefore(entryDiv, logsList.firstChild);
+      });
+    </script>
+  </body>
+</html>
