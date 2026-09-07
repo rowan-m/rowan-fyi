@@ -9,7 +9,7 @@ import { unified } from "@astrojs/markdown-remark";
 // https://astro.build/config
 export default defineConfig({
   site: "https://rowan.fyi",
-  trailingSlash: "always",
+  trailingSlash: "ignore",
   scopedStyleStrategy: "where",
   output: "static",
   adapter: node({
