@@ -12,7 +12,7 @@ export default defineConfig({
     entrypoint: "./src/utils/gcp-logger.ts",
   },
   site: "https://rowan.fyi",
-  trailingSlash: "ignore",
+  trailingSlash: "always",
   scopedStyleStrategy: "where",
   output: "static",
   adapter: node({
