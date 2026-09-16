@@ -253,12 +253,14 @@ describe("EVP Endpoint Unit Tests", () => {
 
     expect(response.status).toBe(200);
     const data = (await response.json()) as {
+      issuer: string;
       issuance_endpoint: string;
       jwks_uri: string;
       signing_alg_values_supported: string[];
       private_email_supported: boolean;
       webauthn_supported: boolean;
     };
+    expect(data.issuer).toBe("https://rowan.fyi");
     expect(data.issuance_endpoint).toBe("https://rowan.fyi/made/email-provider/issuance");
     expect(data.jwks_uri).toBe("https://rowan.fyi/made/email-provider/jwks");
     expect(data.signing_alg_values_supported).toContain("EdDSA");
