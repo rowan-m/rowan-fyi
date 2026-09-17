@@ -134,15 +134,15 @@ async function verifyRequestSignature(
 
   try {
     await verifyHttpMessageSig(requestLike, async (data, signature, params) => {
-      // Timing check (60-second window)
+      // Timing check (300-second / 5-minute window per RFC 8725 / ev-protocol § 4.2)
       const createdTime = params.created ? Math.floor(params.created.getTime() / 1000) : NaN;
       if (isNaN(createdTime)) {
         throw new Error("Signature-Input is missing the 'created' parameter or it is malformed.");
       }
       const currentTime = Math.floor(Date.now() / 1000);
-      if (Math.abs(currentTime - createdTime) > 60) {
+      if (Math.abs(currentTime - createdTime) > 300) {
         throw new Error(
-          `The signature timestamp 'created' is outside the acceptable 60-second window. Server: ${currentTime}, header: ${createdTime}`,
+          `The signature timestamp 'created' is outside the acceptable 300-second window. Server: ${currentTime}, header: ${createdTime}`,
         );
       }
 

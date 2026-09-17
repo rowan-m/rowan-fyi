@@ -43,6 +43,7 @@ async function generateSignatureHeaders({
   publicKeyJwk,
   body = JSON.stringify({ email: "demo@rowan.fyi" }),
   algParam,
+  createdTimestamp,
 }: {
   method: string;
   authority: string;
@@ -52,8 +53,9 @@ async function generateSignatureHeaders({
   publicKeyJwk: JWK;
   body?: string;
   algParam?: string | null;
+  createdTimestamp?: number;
 }) {
-  const created = Math.floor(Date.now() / 1000);
+  const created = createdTimestamp ?? Math.floor(Date.now() / 1000);
   const contentDigest = `sha-256=:${crypto.createHash("sha256").update(body, "utf8").digest("base64")}:`;
 
   // Signature-Key (hwk format)
@@ -600,6 +602,75 @@ describe("EVP Endpoint Unit Tests", () => {
     const data = (await response.json()) as { error: string; error_description: string };
     expect(data.error).toBe("invalid_signature");
     expect(data.error_description).toContain("missing the required 'alg' parameter");
+  });
+
+  test("issuance endpoint accepts signature within 300-second window and rejects outside (Path A)", async () => {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const now = Math.floor(Date.now() / 1000);
+
+    // 1. 120 seconds skew -> valid under 300-second window
+    const validHeaders = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+      createdTimestamp: now - 120,
+    });
+
+    const validResponse = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(validHeaders),
+        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(validResponse.status).toBe(200);
+
+    // 2. 400 seconds skew -> rejected outside 300-second window
+    const staleHeaders = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+      createdTimestamp: now - 400,
+    });
+
+    const staleResponse = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(staleHeaders),
+        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(staleResponse.status).toBe(400);
+    const staleData = (await staleResponse.json()) as { error: string; debug?: { details?: string } };
+    expect(staleData.error).toBe("invalid_signature");
+    expect(staleData.debug?.details).toContain("300-second window");
   });
 
   test("issuance endpoint issues EVT on valid legacy request token (Path B)", async () => {
