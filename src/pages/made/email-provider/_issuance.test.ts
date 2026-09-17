@@ -41,6 +41,7 @@ async function generateSignatureHeaders({
   cookieValue,
   privateKeyJwk,
   publicKeyJwk,
+  body = JSON.stringify({ email: "demo@rowan.fyi" }),
 }: {
   method: string;
   authority: string;
@@ -48,8 +49,10 @@ async function generateSignatureHeaders({
   cookieValue?: string;
   privateKeyJwk: JWK;
   publicKeyJwk: JWK;
+  body?: string;
 }) {
   const created = Math.floor(Date.now() / 1000);
+  const contentDigest = `sha-256=:${crypto.createHash("sha256").update(body, "utf8").digest("base64")}:`;
 
   // Signature-Key (hwk format)
   let signatureKeyHeader = `sig=hwk; kty="${publicKeyJwk.kty}"; crv="${publicKeyJwk.crv}"; x="${publicKeyJwk.x}"`;
@@ -61,6 +64,7 @@ async function generateSignatureHeaders({
     method,
     url: `https://${authority}${path}`,
     headers: {
+      "content-digest": contentDigest,
       "signature-key": signatureKeyHeader,
     } as Record<string, string>,
   };
@@ -68,7 +72,7 @@ async function generateSignatureHeaders({
     requestLike.headers["cookie"] = cookieValue;
   }
 
-  const components = ["@method", "@authority", "@path", "signature-key"];
+  const components = ["@method", "@authority", "@path", "content-digest", "signature-key"];
   if (cookieValue) {
     components.push("cookie");
   }
@@ -95,6 +99,7 @@ async function generateSignatureHeaders({
 
   const headers: Record<string, string> = {
     "content-type": "application/json",
+    "content-digest": contentDigest,
     "sec-fetch-dest": "email-verification",
     signature: sigHeaders.Signature,
     "signature-input": sigHeaders["Signature-Input"],
@@ -351,6 +356,7 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const body = "email=demo%40rowan.fyi";
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
@@ -358,6 +364,7 @@ describe("EVP Endpoint Unit Tests", () => {
       cookieValue: "__session=active",
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
+      body,
     });
 
     // Override Content-Type to x-www-form-urlencoded
@@ -368,7 +375,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: "email=demo%40rowan.fyi",
+        body,
       }),
       params: {},
       props: {},
@@ -389,6 +396,45 @@ describe("EVP Endpoint Unit Tests", () => {
     const { payload } = await verifyJwt(evtJwt, providerPublicKey);
 
     expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
+  });
+
+  test("issuance endpoint returns 400 when Content-Digest mismatches request body (Path A)", async () => {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
+
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const headers = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+      body: JSON.stringify({ email: "demo@rowan.fyi" }),
+    });
+
+    // Send a different body than what was digested/signed
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(headers),
+        body: JSON.stringify({ email: "tampered@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { error: string; error_description: string };
+    expect(data.error).toBe("invalid_signature");
+    expect(data.error_description).toContain("Content-Digest verification failed");
   });
 
   test("issuance endpoint returns 401 on missing session (both paths)", async () => {
@@ -432,12 +478,14 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const body = JSON.stringify({ email: "attacker@malicious.com" });
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
       path: "/made/email-provider/issuance",
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
+      body,
     });
 
     const response = await postIssuance({
@@ -445,7 +493,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: JSON.stringify({ email: "attacker@malicious.com" }),
+        body,
       }),
       params: {},
       props: {},
@@ -570,6 +618,7 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const body = JSON.stringify({ email: "demo@rowan.fyi", private_email: true });
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
@@ -577,6 +626,7 @@ describe("EVP Endpoint Unit Tests", () => {
       cookieValue: "__session=active",
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
+      body,
     });
 
     const response = await postIssuance({
@@ -584,7 +634,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: JSON.stringify({ email: "demo@rowan.fyi", private_email: true }),
+        body,
       }),
       params: {},
       props: {},

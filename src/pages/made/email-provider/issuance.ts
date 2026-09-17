@@ -18,10 +18,12 @@ async function verifyRequestSignature(
   url: URL,
   corsHeaders: Record<string, string>,
   logger: { warn: (message: string) => void; error: (message: string) => void },
+  rawBody: string,
 ): Promise<{ browserJwk: JWK } | Response> {
   const signatureHeader = request.headers.get("signature");
   const signatureInputHeader = request.headers.get("signature-input");
   const signatureKeyHeader = request.headers.get("signature-key");
+  const contentDigestHeader = request.headers.get("content-digest");
 
   const returnError = (msg: string, details?: string) => {
     const errorBody = {
@@ -32,7 +34,7 @@ async function verifyRequestSignature(
         headers: {
           host: request.headers.get("host"),
           "x-forwarded-host": request.headers.get("x-forwarded-host"),
-          "content-digest": request.headers.get("content-digest"),
+          "content-digest": contentDigestHeader,
           "signature-key": signatureKeyHeader,
           "signature-input": signatureInputHeader,
           signature: signatureHeader,
@@ -84,11 +86,20 @@ async function verifyRequestSignature(
   }
 
   // Required components check
-  const requiredComponents = ["@method", "@authority", "@path", "signature-key"];
+  const requiredComponents = ["@method", "@authority", "@path", "content-digest", "signature-key"];
   for (const reqComp of requiredComponents) {
     if (!signatureInputHeader.includes(`"${reqComp}"`)) {
       return returnError(`Required component '${reqComp}' is missing from Signature-Input.`);
     }
+  }
+
+  if (!contentDigestHeader) {
+    return returnError("Missing required Content-Digest header.");
+  }
+
+  const calculatedDigest = `sha-256=:${crypto.createHash("sha256").update(rawBody, "utf8").digest("base64")}:`;
+  if (!contentDigestHeader.includes(calculatedDigest)) {
+    return returnError(`Content-Digest verification failed. Expected digest to contain ${calculatedDigest}.`);
   }
 
   // Prepare components and run RFC 9421 validation via http-message-sig
@@ -106,7 +117,7 @@ async function verifyRequestSignature(
       "signature-input": signatureInputHeader,
       "signature-key": signatureKeyHeader,
       cookie: request.headers.get("cookie") || "",
-      "content-digest": request.headers.get("content-digest") || "",
+      "content-digest": contentDigestHeader,
     },
   };
 
@@ -209,7 +220,8 @@ export const POST: APIRoute = async (context) => {
       // ==============================================================================
       // PATH A: HTTP Message Signatures (RFC 9421) Flow
       // ==============================================================================
-      const signatureResult = await verifyRequestSignature(request, url, corsHeaders, logger);
+      const rawBody = await request.text();
+      const signatureResult = await verifyRequestSignature(request, url, corsHeaders, logger, rawBody);
       if (signatureResult instanceof Response) {
         return signatureResult;
       }
@@ -217,7 +229,7 @@ export const POST: APIRoute = async (context) => {
 
       if (contentType.includes("application/json")) {
         try {
-          const body = await request.json();
+          const body = JSON.parse(rawBody);
           if (body.private_email || body.directed_email) {
             return sendResponse(
               {
@@ -239,7 +251,7 @@ export const POST: APIRoute = async (context) => {
         }
       } else if (contentType.includes("application/x-www-form-urlencoded")) {
         try {
-          const formData = await request.formData();
+          const formData = new URLSearchParams(rawBody);
           if (formData.get("private_email") || formData.get("directed_email")) {
             return sendResponse(
               {
@@ -249,9 +261,9 @@ export const POST: APIRoute = async (context) => {
               400,
             );
           }
-          email = formData.get("email") as string;
+          email = formData.get("email") || "";
           if (!email) {
-            const requestToken = formData.get("request_token") as string;
+            const requestToken = formData.get("request_token");
             if (requestToken && requestToken.includes(".")) {
               const parts = requestToken.split(".");
               if (parts.length === 3) {
