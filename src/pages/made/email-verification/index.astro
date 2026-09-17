@@ -172,10 +172,10 @@ if (Astro.request.method === "POST") {
         emailVerifiedClaim: evtJwtDecodedPayload.email_verified,
       };
 
-      if (evtJwtDecodedPayload.email.toLowerCase() !== submittedEmail.toLowerCase()) {
+      if (evtJwtDecodedPayload.email !== submittedEmail) {
         traceSteps[1].status = "failed";
         throw new Error(
-          `Email mismatch: Form input is ${submittedEmail}, but token holds ${evtJwtDecodedPayload.email}.`,
+          `Email mismatch: Form input is '${submittedEmail}', but token holds '${evtJwtDecodedPayload.email}' (must match byte-for-byte).`,
         );
       }
 
