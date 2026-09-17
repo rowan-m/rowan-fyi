@@ -78,24 +78,23 @@ async function verifyRequestSignature(
       return returnError("Signature-Key header does not use the 'hwk' scheme or is malformed.");
     }
 
-    if (!params.has("alg")) {
-      return returnError("Signature-Key header is missing the required 'alg' parameter.");
-    }
-
-    const algParam = params.get("alg") as string;
-    const supportedAlgs = ["Ed25519", "EdDSA", "ES256"];
-    if (!supportedAlgs.includes(algParam)) {
-      return returnError(
-        `Unsupported algorithm '${algParam}' in Signature-Key header.`,
-        undefined,
-        "unsupported_algorithm",
-      );
+    let algParam: string | undefined;
+    if (params.has("alg")) {
+      algParam = params.get("alg") as string;
+      const supportedAlgs = ["Ed25519", "EdDSA", "ES256"];
+      if (!supportedAlgs.includes(algParam)) {
+        return returnError(
+          `Unsupported algorithm '${algParam}' in Signature-Key header.`,
+          undefined,
+          "unsupported_algorithm",
+        );
+      }
     }
 
     browserJwk = {
       kty: params.get("kty") as string,
-      alg: algParam,
     };
+    if (algParam) browserJwk.alg = algParam;
     if (params.has("crv")) browserJwk.crv = params.get("crv") as string;
     if (params.has("x")) browserJwk.x = params.get("x") as string;
     if (params.has("y")) browserJwk.y = params.get("y") as string;
@@ -209,13 +208,21 @@ export const POST: APIRoute = async (context) => {
 
   try {
     // To protect user privacy and prevent CSRF / cross-site state detection,
-    // standard-compliant browsers MUST set "Sec-Fetch-Dest: email-verification" (or "webidentity" in Origin Trial).
+    // standard-compliant browsers set "Sec-Fetch-Dest: email-verification" (or "webidentity").
+    // Note: Chrome 153's internal C++ SimpleURLLoader omits Sec-Fetch-Dest (or sends "empty"),
+    // so we strictly reject invalid Sec-Fetch-Dest values (e.g., "document", "iframe", "image")
+    // when present, while allowing missing/"empty" for browser compatibility.
     const secFetchDest = request.headers.get("sec-fetch-dest");
-    if (!secFetchDest || (secFetchDest !== "email-verification" && secFetchDest !== "webidentity")) {
+    if (
+      secFetchDest &&
+      secFetchDest !== "email-verification" &&
+      secFetchDest !== "webidentity" &&
+      secFetchDest !== "empty"
+    ) {
       return sendResponse(
         {
           error: "invalid_request",
-          error_description: "Missing or invalid Sec-Fetch-Dest header",
+          error_description: "Invalid Sec-Fetch-Dest header",
         },
         400,
       );
@@ -393,7 +400,7 @@ export const POST: APIRoute = async (context) => {
     // ==============================================================================
     // STEP 4: Issue Email Verification Token (EVT)
     // ==============================================================================
-    const signingAlg = useHttpMessageSignatures ? "Ed25519" : "EdDSA";
+    const signingAlg = browserJwk.alg === "Ed25519" ? "Ed25519" : "EdDSA";
     const privateKey = await importJWK(PRIVATE_KEY_JWK, signingAlg);
     const origin = url.origin;
     const currentTime = Math.floor(Date.now() / 1000);

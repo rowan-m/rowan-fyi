@@ -172,10 +172,10 @@ if (Astro.request.method === "POST") {
         emailVerifiedClaim: evtJwtDecodedPayload.email_verified,
       };
 
-      if (evtJwtDecodedPayload.email !== submittedEmail) {
+      if (evtJwtDecodedPayload.email?.toLowerCase() !== submittedEmail.toLowerCase()) {
         traceSteps[1].status = "failed";
         throw new Error(
-          `Email mismatch: Form input is '${submittedEmail}', but token holds '${evtJwtDecodedPayload.email}' (must match byte-for-byte).`,
+          `Email mismatch: Form input is '${submittedEmail}', but token holds '${evtJwtDecodedPayload.email}'.`,
         );
       }
 
@@ -294,7 +294,8 @@ if (Astro.request.method === "POST") {
       }
 
       const cnfJwkAlg = (evtJwtDecodedPayload.cnf?.jwk as { alg?: string } | undefined)?.alg;
-      if (cnfJwkAlg && kbAlg !== cnfJwkAlg) {
+      const normalizeAlg = (alg: string) => (alg === "Ed25519" ? "EdDSA" : alg);
+      if (cnfJwkAlg && normalizeAlg(kbAlg) !== normalizeAlg(cnfJwkAlg)) {
         traceSteps[5].status = "failed";
         throw new Error(
           `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwkAlg}').`,

@@ -294,7 +294,8 @@ describe("EVP Endpoint Unit Tests", () => {
     };
     expect(data.keys).toBeDefined();
     expect(data.keys[0].kid).toBe("demo-key-2026");
-    expect(data.keys[0].alg).toBe("Ed25519");
+    expect(data.keys[0].kty).toBe("OKP");
+    expect(data.keys[0].crv).toBe("Ed25519");
   });
 
   test("issuance endpoint returns 400 when request token is missing (Path B)", async () => {
@@ -564,7 +565,7 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(cnf.jwk.alg).toBe("Ed25519");
   });
 
-  test("issuance endpoint returns 400 when Signature-Key is missing alg parameter (Path A)", async () => {
+  test("issuance endpoint issues EdDSA EVT when Signature-Key omits alg parameter for Chrome 153 compatibility (Path A)", async () => {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
@@ -596,11 +597,12 @@ describe("EVP Endpoint Unit Tests", () => {
       } as unknown as APIContext["cookies"],
     } as unknown as APIContext);
 
-    expect(response.status).toBe(400);
-    expect(response.headers.get("Signature-Error")).toBe("error=invalid_signature");
-    const data = (await response.json()) as { error: string; error_description: string };
-    expect(data.error).toBe("invalid_signature");
-    expect(data.error_description).toContain("missing the required 'alg' parameter");
+    expect(response.status).toBe(200);
+    const data = (await response.json()) as { issuance_token: string };
+    expect(data.issuance_token).toBeDefined();
+    const [headerB64] = data.issuance_token.split(".");
+    const header = JSON.parse(Buffer.from(headerB64, "base64url").toString("utf8"));
+    expect(header.alg).toBe("EdDSA");
   });
 
   test("issuance endpoint returns Signature-Error: error=unsupported_algorithm when alg is unsupported (Path A)", async () => {
@@ -868,7 +870,7 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.error_description).toContain("does not support private email");
   });
 
-  test("issuance endpoint returns 400 invalid_request when Sec-Fetch-Dest is missing or invalid", async () => {
+  test("issuance endpoint returns 400 invalid_request when Sec-Fetch-Dest is invalid", async () => {
     const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
     const response = await postIssuance({
       url: mockUrl,
@@ -892,7 +894,7 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(response.status).toBe(400);
     const data = (await response.json()) as { error: string; error_description: string };
     expect(data.error).toBe("invalid_request");
-    expect(data.error_description).toContain("Missing or invalid Sec-Fetch-Dest header");
+    expect(data.error_description).toContain("Invalid Sec-Fetch-Dest header");
   });
 
   test("verifies a multi-part SD-JWT with disclosures and correct sd_hash verification", async () => {

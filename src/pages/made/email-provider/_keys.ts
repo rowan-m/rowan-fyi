@@ -3,7 +3,6 @@
 export const PUBLIC_KEY_JWK = {
   kty: "OKP",
   crv: "Ed25519",
-  alg: "Ed25519",
   x: "bovaHIXvLOKA9ZKRpZfovzLmG-HbUFD1ec-GOjldpRs",
   kid: "demo-key-2026",
 };
