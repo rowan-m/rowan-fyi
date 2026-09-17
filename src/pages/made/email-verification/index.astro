@@ -199,38 +199,30 @@ if (Astro.request.method === "POST") {
       let isAuthoritative = false;
       const issuerHost = iss.startsWith("http") ? new URL(iss).hostname.toLowerCase() : iss.toLowerCase();
 
-      if (domain.toLowerCase() === issuerHost) {
-        isAuthoritative = true;
-        traceSteps[2].outputReceived = {
-          authorizedBy: "Direct Domain Equality (Self-Authoritative)",
-          details: "Email domain directly matches the token issuer host.",
-        };
-      } else {
-        traceSteps[2].serverCalled = "System DNS Server (TXT Resolve)";
-        try {
-          const records = await dns.resolveTxt(`_email-verification.${domain}`);
-          traceSteps[2].outputReceived = { dnsTxtRecords: records };
+      traceSteps[2].serverCalled = "System DNS Server (TXT Resolve)";
+      try {
+        const records = await dns.resolveTxt(`_email-verification.${domain}`);
+        traceSteps[2].outputReceived = { dnsTxtRecords: records };
 
-          for (const record of records) {
-            const txt = record.join("");
-            if (txt.startsWith("iss=")) {
-              const delegatedIssuer = txt.substring(4);
-              const delegatedHost = delegatedIssuer.startsWith("http")
-                ? new URL(delegatedIssuer).hostname.toLowerCase()
-                : delegatedIssuer.toLowerCase();
-              if (delegatedHost === issuerHost) {
-                isAuthoritative = true;
-                break;
-              }
+        for (const record of records) {
+          const txt = record.join("");
+          if (txt.startsWith("iss=")) {
+            const delegatedIssuer = txt.substring(4);
+            const delegatedHost = delegatedIssuer.startsWith("http")
+              ? new URL(delegatedIssuer).hostname.toLowerCase()
+              : delegatedIssuer.toLowerCase();
+            if (delegatedHost === issuerHost) {
+              isAuthoritative = true;
+              break;
             }
           }
-        } catch (dnsErr) {
-          traceSteps[2].status = "failed";
-          throw new Error(
-            `DNS delegation lookup failed for _email-verification.${domain}: ${(dnsErr as Error).message}`,
-            { cause: dnsErr },
-          );
         }
+      } catch (dnsErr) {
+        traceSteps[2].status = "failed";
+        throw new Error(
+          `DNS delegation lookup failed for _email-verification.${domain}: ${(dnsErr as Error).message}`,
+          { cause: dnsErr },
+        );
       }
 
       if (!isAuthoritative) {
