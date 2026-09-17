@@ -279,8 +279,30 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // STEP 5 & 6: CRYPTOGRAPHIC VERIFICATION
       // ==============================================================================
-      traceSteps[4].inputSent = { signingAlg: decodedSdJwt.jwt.header.alg || "ES256" };
-      traceSteps[5].inputSent = { cnf: evtJwtDecodedPayload.cnf };
+      const evtAlg = decodedSdJwt.jwt.header.alg;
+      const kbAlg = decodedSdJwt.kbJwt?.header.alg;
+      const allowedAsymmetricAlgs = ["Ed25519", "EdDSA", "ES256"];
+
+      if (!evtAlg || !allowedAsymmetricAlgs.includes(evtAlg)) {
+        traceSteps[4].status = "failed";
+        throw new Error(`Security Exception: Unsupported or insecure EVT signing algorithm '${evtAlg || "none"}'.`);
+      }
+
+      if (!kbAlg || !allowedAsymmetricAlgs.includes(kbAlg)) {
+        traceSteps[5].status = "failed";
+        throw new Error(`Security Exception: Unsupported or insecure KB-JWT signing algorithm '${kbAlg || "none"}'.`);
+      }
+
+      const cnfJwkAlg = (evtJwtDecodedPayload.cnf?.jwk as { alg?: string } | undefined)?.alg;
+      if (cnfJwkAlg && kbAlg !== cnfJwkAlg) {
+        traceSteps[5].status = "failed";
+        throw new Error(
+          `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwkAlg}').`,
+        );
+      }
+
+      traceSteps[4].inputSent = { signingAlg: evtAlg };
+      traceSteps[5].inputSent = { cnf: evtJwtDecodedPayload.cnf, kbSigningAlg: kbAlg };
 
       let verifiedEvtPayload;
 
@@ -290,7 +312,7 @@ if (Astro.request.method === "POST") {
           hasher,
           verifier: async (data, sig) => {
             const token = `${data}.${sig}`;
-            const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
+            const headerAlg = evtAlg;
             const kid = decodedSdJwt.jwt.header.kid;
             // Filter keys by kid if present. If kid is missing (e.g., GMail JWKS), trial-verify using all keys.
             const keysToTry = kid ? jwksData.keys.filter((k: { kid?: string }) => k.kid === kid) : jwksData.keys;

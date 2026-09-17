@@ -1035,12 +1035,33 @@ describe("EVP Endpoint Unit Tests", () => {
 
       // Verification logic from index.astro
       const decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
+      const evtAlg = decodedSdJwt.jwt.header.alg;
+      const kbAlg = decodedSdJwt.kbJwt?.header.alg;
+      const allowedAsymmetricAlgs = ["Ed25519", "EdDSA", "ES256"];
+
+      if (!evtAlg || !allowedAsymmetricAlgs.includes(evtAlg)) {
+        throw new Error(`Security Exception: Unsupported or insecure EVT signing algorithm '${evtAlg || "none"}'.`);
+      }
+
+      if (!kbAlg || !allowedAsymmetricAlgs.includes(kbAlg)) {
+        throw new Error(`Security Exception: Unsupported or insecure KB-JWT signing algorithm '${kbAlg || "none"}'.`);
+      }
+
+      const cnfJwkAlg = (
+        (decodedSdJwt.jwt.payload as { cnf?: { jwk?: { alg?: string } } }).cnf?.jwk as { alg?: string } | undefined
+      )?.alg;
+      if (cnfJwkAlg && kbAlg !== cnfJwkAlg) {
+        throw new Error(
+          `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwkAlg}').`,
+        );
+      }
+
       const sdJwt = new SDJwtInstance({ hasher });
       sdJwt.config({
         hasher,
         verifier: async (data, sig) => {
           const token = `${data}.${sig}`;
-          const headerAlg = decodedSdJwt.jwt.header.alg || "ES256";
+          const headerAlg = evtAlg;
           const kid = decodedSdJwt.jwt.header.kid;
           const jwksKeys = [PUBLIC_KEY_JWK];
           // Filter keys by kid if present. If kid is missing (e.g., GMail), trial-verify using all keys.
@@ -1162,6 +1183,11 @@ describe("EVP Endpoint Unit Tests", () => {
     // Test 6: Stale Key Binding JWT fails
     await expect(buildAndVerify({}, { iat: Math.floor(Date.now() / 1000) - 600 })).rejects.toThrow(
       "Key Binding JWT is too old",
+    );
+
+    // Test 7: Mismatched cnf.jwk.alg vs KB-JWT header alg fails
+    await expect(buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "ES256" } } })).rejects.toThrow(
+      "does not match EVT cnf.jwk.alg",
     );
   });
 });
