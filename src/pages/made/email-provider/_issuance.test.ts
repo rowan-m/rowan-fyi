@@ -675,6 +675,48 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(staleData.debug?.details).toContain("300-second window");
   });
 
+  test("issuance endpoint verifies case-insensitively and echoes requested email byte-for-byte (DEMO@rowan.fyi)", async () => {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
+
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const body = JSON.stringify({ email: "DEMO@rowan.fyi" });
+    const headers = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+      body,
+    });
+
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(headers),
+        body,
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(200);
+    const data = (await response.json()) as { issuance_token: string };
+    const evtJwt = data.issuance_token.split("~")[0];
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const { payload } = await verifyJwt(evtJwt, providerPublicKey);
+
+    expect(payload.email).toBe("DEMO@rowan.fyi");
+  });
+
   test("issuance endpoint issues EVT on valid legacy request token (Path B)", async () => {
     // A. Generate browser's ephemeral key
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ec", { namedCurve: "P-256" });

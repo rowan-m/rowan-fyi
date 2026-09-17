@@ -433,7 +433,7 @@ export const POST: APIRoute = async (context) => {
       cnf: {
         jwk: browserJwk,
       },
-      email: "demo@rowan.fyi",
+      email: email,
       email_verified: true,
     };
 
