@@ -258,14 +258,14 @@ describe("EVP Endpoint Unit Tests", () => {
       jwks_uri: string;
       signing_alg_values_supported: string[];
       private_email_supported: boolean;
-      webauthn_supported: boolean;
+      webauthn_supported?: boolean;
     };
     expect(data.issuer).toBe("https://rowan.fyi");
     expect(data.issuance_endpoint).toBe("https://rowan.fyi/made/email-provider/issuance");
     expect(data.jwks_uri).toBe("https://rowan.fyi/made/email-provider/jwks");
     expect(data.signing_alg_values_supported).toEqual(["Ed25519", "EdDSA"]);
     expect(data.private_email_supported).toBe(false);
-    expect(data.webauthn_supported).toBe(false);
+    expect(data.webauthn_supported).toBeUndefined();
   });
 
   test("jwks endpoint returns public keys", async () => {
