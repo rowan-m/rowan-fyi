@@ -256,6 +256,16 @@ if (Astro.request.method === "POST") {
       const metadata = await metadataResponse.json();
       traceSteps[3].outputReceived = { issuerMetadata: metadata };
 
+      // Verify the metadata 'issuer' property matches the expected issuer identifier
+      // byte-for-byte if present (EVP Section 3.3 / RFC 8414 Section 3.3).
+      // Missing 'issuer' is tolerated for Origin Trial compatibility with early issuers.
+      if (metadata.issuer && metadata.issuer !== iss) {
+        traceSteps[3].status = "failed";
+        throw new Error(
+          `Issuer metadata validation failed at ${discoveryUrl}: expected issuer '${iss}', got '${metadata.issuer}'.`,
+        );
+      }
+
       const jwksUri = metadata.jwks_uri;
       if (!jwksUri) {
         traceSteps[3].status = "failed";
