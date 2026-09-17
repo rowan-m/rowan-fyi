@@ -356,7 +356,7 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.error_description).toBe("request_token signature verification failed.");
   });
 
-  test("issuance endpoint handles hybrid x-www-form-urlencoded content-type with valid signature headers (Transitional Chrome)", async () => {
+  test("issuance endpoint returns 415 Unsupported Media Type when Content-Type is not application/json (Path A)", async () => {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
@@ -392,16 +392,10 @@ describe("EVP Endpoint Unit Tests", () => {
       } as unknown as APIContext["cookies"],
     } as unknown as APIContext);
 
-    expect(response.status).toBe(200);
-    const data = (await response.json()) as { issuance_token: string };
-    expect(data.issuance_token).toBeDefined();
-    expect(data.issuance_token.endsWith("~")).toBe(true);
-
-    const evtJwt = data.issuance_token.split("~")[0];
-    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
-    const { payload } = await verifyJwt(evtJwt, providerPublicKey);
-
-    expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
+    expect(response.status).toBe(415);
+    const data = (await response.json()) as { error: string; error_description: string };
+    expect(data.error).toBe("invalid_request");
+    expect(data.error_description).toContain("Content-Type must be application/json");
   });
 
   test("issuance endpoint returns 400 when Content-Digest mismatches request body (Path A)", async () => {

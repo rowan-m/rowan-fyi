@@ -238,6 +238,16 @@ export const POST: APIRoute = async (context) => {
       // ==============================================================================
       // PATH A: HTTP Message Signatures (RFC 9421) Flow
       // ==============================================================================
+      if (!contentType.includes("application/json")) {
+        return sendResponse(
+          {
+            error: "invalid_request",
+            error_description: "Content-Type must be application/json.",
+          },
+          415,
+        );
+      }
+
       const rawBody = await request.text();
       const signatureResult = await verifyRequestSignature(request, url, corsHeaders, logger, rawBody);
       if (signatureResult instanceof Response) {
@@ -245,60 +255,26 @@ export const POST: APIRoute = async (context) => {
       }
       browserJwk = signatureResult.browserJwk;
 
-      if (contentType.includes("application/json")) {
-        try {
-          const body = JSON.parse(rawBody);
-          if (body.private_email || body.directed_email) {
-            return sendResponse(
-              {
-                error: "private_email_not_supported",
-                error_description: "This issuer does not support private email addresses.",
-              },
-              400,
-            );
-          }
-          email = body.email;
-        } catch {
+      try {
+        const body = JSON.parse(rawBody);
+        if (body.private_email || body.directed_email) {
           return sendResponse(
             {
-              error: "invalid_request",
-              error_description: "Invalid or malformed JSON request body.",
+              error: "private_email_not_supported",
+              error_description: "This issuer does not support private email addresses.",
             },
             400,
           );
         }
-      } else if (contentType.includes("application/x-www-form-urlencoded")) {
-        try {
-          const formData = new URLSearchParams(rawBody);
-          if (formData.get("private_email") || formData.get("directed_email")) {
-            return sendResponse(
-              {
-                error: "private_email_not_supported",
-                error_description: "This issuer does not support private email addresses.",
-              },
-              400,
-            );
-          }
-          email = formData.get("email") || "";
-          if (!email) {
-            const requestToken = formData.get("request_token");
-            if (requestToken && requestToken.includes(".")) {
-              const parts = requestToken.split(".");
-              if (parts.length === 3) {
-                const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
-                email = payload.email;
-              }
-            }
-          }
-        } catch {
-          return sendResponse(
-            {
-              error: "invalid_request",
-              error_description: "Invalid or malformed urlencoded request body.",
-            },
-            400,
-          );
-        }
+        email = body.email;
+      } catch {
+        return sendResponse(
+          {
+            error: "invalid_request",
+            error_description: "Invalid or malformed JSON request body.",
+          },
+          400,
+        );
       }
 
       if (!email) {
