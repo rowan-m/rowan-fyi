@@ -170,7 +170,15 @@ if (Astro.request.method === "POST") {
         submittedEmail,
         tokenEmail: evtJwtDecodedPayload.email,
         emailVerifiedClaim: evtJwtDecodedPayload.email_verified,
+        expectedNonce: expectedNonce || null,
       };
+
+      if (!expectedNonce) {
+        traceSteps[1].status = "failed";
+        throw new Error(
+          "Security Exception: Missing or expired session nonce cookie ('evp_rp_nonce'). Please reload the page and try again.",
+        );
+      }
 
       if (evtJwtDecodedPayload.email?.toLowerCase() !== submittedEmail.toLowerCase()) {
         traceSteps[1].status = "failed";
@@ -238,11 +246,32 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // STEP 4: ISSUER DISCOVERY & JWKS FETCHING (NETWORK)
       // ==============================================================================
+      const isSafeIssuerUrl = (urlStr: string) => {
+        try {
+          const parsed = new URL(urlStr);
+          const isLocalDev = parsed.hostname === "localhost" || parsed.hostname.startsWith("127.");
+          if (parsed.protocol !== "https:" && !(isLocalDev && parsed.protocol === "http:")) {
+            return false;
+          }
+          if (!isLocalDev && (parsed.hostname.endsWith(".internal") || parsed.hostname.endsWith(".local"))) {
+            return false;
+          }
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
       const discoveryUrl = `${iss}/.well-known/email-verification`;
       traceSteps[3].serverCalled = discoveryUrl;
       traceSteps[3].inputSent = { url: discoveryUrl };
 
-      const metadataResponse = await fetch(discoveryUrl);
+      if (!isSafeIssuerUrl(discoveryUrl)) {
+        traceSteps[3].status = "failed";
+        throw new Error(`Security Exception: Unsafe or invalid discovery URL '${discoveryUrl}'.`);
+      }
+
+      const metadataResponse = await fetch(discoveryUrl, { signal: AbortSignal.timeout(5000) });
       if (!metadataResponse.ok) {
         traceSteps[3].status = "failed";
         throw new Error(`Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`);
@@ -261,13 +290,13 @@ if (Astro.request.method === "POST") {
       }
 
       const jwksUri = metadata.jwks_uri;
-      if (!jwksUri) {
+      if (!jwksUri || !isSafeIssuerUrl(jwksUri)) {
         traceSteps[3].status = "failed";
-        throw new Error(`Issuer metadata at ${discoveryUrl} is missing 'jwks_uri'.`);
+        throw new Error(`Issuer metadata at ${discoveryUrl} has a missing or unsafe 'jwks_uri'.`);
       }
 
       traceSteps[3].serverCalled = `${discoveryUrl} & ${jwksUri}`;
-      const jwksResponse = await fetch(jwksUri);
+      const jwksResponse = await fetch(jwksUri, { signal: AbortSignal.timeout(5000) });
       if (!jwksResponse.ok) {
         traceSteps[3].status = "failed";
         throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
@@ -322,6 +351,9 @@ if (Astro.request.method === "POST") {
               try {
                 const pubKey = await importJWK(jwk as JWK, jwk.alg || headerAlg);
                 await compactVerify(token, pubKey);
+                validateClaims(evtJwtDecodedPayload as unknown as Record<string, unknown>, 300);
+                traceSteps[4].outputReceived = { cryptographicallyVerified: true };
+                traceSteps[4].status = "success";
                 return true;
               } catch {
                 continue;
@@ -352,25 +384,9 @@ if (Astro.request.method === "POST") {
 
         verifiedEvtPayload = result.payload;
 
-        // ==============================================================================
-        // STRICT TIMESTAMP AND CLAIM VALIDATIONS (AFTER CRYPTOGRAPHIC VERIFICATION)
-        // ==============================================================================
-        try {
-          validateClaims(verifiedEvtPayload, 300);
-        } catch (err: unknown) {
-          traceSteps[4].status = "failed";
-          throw err;
-        }
+        // Validate KB-JWT freshness and expiration claims
+        validateClaims(decodedSdJwt.kbJwt.payload as Record<string, unknown>, 300);
 
-        try {
-          validateClaims(decodedSdJwt.kbJwt.payload as Record<string, unknown>, 300);
-        } catch (err: unknown) {
-          traceSteps[5].status = "failed";
-          throw err;
-        }
-
-        traceSteps[4].outputReceived = { cryptographicallyVerified: true };
-        traceSteps[4].status = "success";
         traceSteps[5].outputReceived = {
           keyBindingPassed: true,
           holderVerification: "Holder Private Key possession verified.",
@@ -379,8 +395,11 @@ if (Astro.request.method === "POST") {
         };
         traceSteps[5].status = "success";
       } catch (err) {
-        traceSteps[4].status = "failed";
-        traceSteps[5].status = "failed";
+        if (traceSteps[4].status !== "success") {
+          traceSteps[4].status = "failed";
+        } else {
+          traceSteps[5].status = "failed";
+        }
         throw new Error(`Cryptographic Verification Failed: ${(err as Error).message}`, { cause: err });
       }
 
