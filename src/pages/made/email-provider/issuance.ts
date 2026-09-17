@@ -1,8 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
-import { SDJwtInstance } from "@sd-jwt/core";
-import { importJWK, jwtVerify, CompactSign, decodeProtectedHeader } from "jose";
+import { importJWK, jwtVerify, SignJWT, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
 import { verify as verifyHttpMessageSig } from "http-message-sig";
 import { parseDictionary } from "structured-headers";
@@ -10,7 +9,7 @@ import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
 
 /**
- * Extracts and verifies the HTTP Message Signature from the request using http-message-sig.
+ * Extracts and verifies the HTTP Message Signature from the request using http-message-sig (Path A).
  * Returns the browser's parsed public JWK on success, or an APIRoute Response on validation failure.
  */
 async function verifyRequestSignature(
@@ -171,6 +170,99 @@ async function verifyRequestSignature(
 }
 
 /**
+ * Verifies a legacy Origin Trial request_token signed JWT (Path B).
+ * Returns the verified email and browser's ephemeral public JWK, or an APIRoute Response on error.
+ */
+async function verifyLegacyRequestToken(
+  request: Request,
+  contentType: string,
+  sendResponse: (bodyObj: { error?: string; error_description?: string }, status: number) => Response,
+): Promise<{ email: string; browserJwk: JWK } | Response> {
+  let requestToken = "";
+
+  if (contentType.includes("application/x-www-form-urlencoded")) {
+    const formData = await request.formData();
+    if (formData.get("private_email") || formData.get("directed_email")) {
+      return sendResponse(
+        {
+          error: "private_email_not_supported",
+          error_description: "This issuer does not support private email addresses.",
+        },
+        400,
+      );
+    }
+    requestToken = (formData.get("request_token") as string) || "";
+  } else if (contentType.includes("application/json")) {
+    try {
+      const body = await request.json();
+      if (body.private_email || body.directed_email) {
+        return sendResponse(
+          {
+            error: "private_email_not_supported",
+            error_description: "This issuer does not support private email addresses.",
+          },
+          400,
+        );
+      }
+      requestToken = body.request_token || "";
+    } catch {
+      // Fall through to missing request_token check
+    }
+  }
+
+  if (!requestToken) {
+    return sendResponse(
+      {
+        error: "invalid_request",
+        error_description: "Missing request_token in body.",
+      },
+      400,
+    );
+  }
+
+  try {
+    // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim) using jose
+    const header = decodeProtectedHeader(requestToken);
+    const browserJwk = header.jwk as JWK | undefined;
+
+    if (!browserJwk) {
+      return sendResponse(
+        {
+          error: "invalid_signature",
+          error_description: "Missing ephemeral public key (jwk) in request token header.",
+        },
+        400,
+      );
+    }
+
+    // Import browser's public key and verify the request JWT using jose
+    const publicKey = await importJWK(browserJwk, header.alg);
+    const { payload } = await jwtVerify(requestToken, publicKey);
+    const email = payload.email as string;
+
+    if (!email) {
+      return sendResponse(
+        {
+          error: "invalid_request",
+          error_description: "Missing email claim in request_token payload.",
+        },
+        400,
+      );
+    }
+
+    return { email, browserJwk };
+  } catch {
+    return sendResponse(
+      {
+        error: "invalid_signature",
+        error_description: "request_token signature verification failed.",
+      },
+      400,
+    );
+  }
+}
+
+/**
  * Issuer Issuance Endpoint (EVP Standard API Route)
  *
  * In the Email Verification Protocol (EVP), the browser makes a credentialed POST request
@@ -178,8 +270,8 @@ async function verifyRequestSignature(
  *
  * To ease transition and support real-world browser testing today, this endpoint dynamically
  * handles both:
- * - Path A: Modern proposed HTTP Message Signatures (RFC 9421)
- * - Path B: Deprecated signed-JWT request_token via x-www-form-urlencoded (current Chrome/Edge Origin Trials)
+ * - Path A: Modern HTTP Message Signatures (RFC 9421)
+ * - Path B: Deprecated signed-JWT request_token via x-www-form-urlencoded (early Chrome/Edge Origin Trials)
  */
 export const POST: APIRoute = async (context) => {
   const { request, cookies, url } = context;
@@ -207,6 +299,9 @@ export const POST: APIRoute = async (context) => {
   };
 
   try {
+    // ==============================================================================
+    // STEP 1: Validate Fetch Metadata (Sec-Fetch-Dest)
+    // ==============================================================================
     // To protect user privacy and prevent CSRF / cross-site state detection,
     // standard-compliant browsers set "Sec-Fetch-Dest: email-verification" (or "webidentity").
     // Note: Chrome 153's internal C++ SimpleURLLoader omits Sec-Fetch-Dest (or sends "empty"),
@@ -228,21 +323,20 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
+    // ==============================================================================
+    // STEP 2: Verify Browser Request & Extract Ephemeral Public Key (Path A or B)
+    // ==============================================================================
     const contentType = request.headers.get("content-type") || "";
-    const hasSignatureHeaders =
+    const useHttpMessageSignatures =
       request.headers.has("signature") &&
       request.headers.has("signature-input") &&
       request.headers.has("signature-key");
 
-    const useHttpMessageSignatures = hasSignatureHeaders;
-
     let email = "";
-    let browserJwk: JWK | undefined = undefined;
+    let browserJwk: JWK;
 
     if (useHttpMessageSignatures) {
-      // ==============================================================================
       // PATH A: HTTP Message Signatures (RFC 9421) Flow
-      // ==============================================================================
       if (!contentType.includes("application/json")) {
         return sendResponse(
           {
@@ -292,88 +386,17 @@ export const POST: APIRoute = async (context) => {
         );
       }
     } else {
-      // ==============================================================================
       // PATH B: Legacy JWT Request Token Flow
-      // ==============================================================================
-      let requestToken = "";
-
-      if (contentType.includes("application/x-www-form-urlencoded")) {
-        const formData = await request.formData();
-        if (formData.get("private_email") || formData.get("directed_email")) {
-          return sendResponse(
-            {
-              error: "private_email_not_supported",
-              error_description: "This issuer does not support private email addresses.",
-            },
-            400,
-          );
-        }
-        requestToken = formData.get("request_token") as string;
-      } else if (contentType.includes("application/json")) {
-        try {
-          const body = await request.json();
-          if (body.private_email || body.directed_email) {
-            return sendResponse(
-              {
-                error: "private_email_not_supported",
-                error_description: "This issuer does not support private email addresses.",
-              },
-              400,
-            );
-          }
-          requestToken = body.request_token || body.email;
-        } catch {
-          // Ignore parsing error for JSON fallback compatibility
-        }
+      const legacyResult = await verifyLegacyRequestToken(request, contentType, sendResponse);
+      if (legacyResult instanceof Response) {
+        return legacyResult;
       }
-
-      if (!requestToken) {
-        return sendResponse(
-          {
-            error: "invalid_request",
-            error_description: "Missing request_token in body.",
-          },
-          400,
-        );
-      }
-
-      if (requestToken.includes(".")) {
-        try {
-          // Decode the JWT header to extract the browser's ephemeral public key ('jwk' claim) using jose
-          const header = decodeProtectedHeader(requestToken);
-          browserJwk = header.jwk as JWK | undefined;
-
-          if (!browserJwk) {
-            return sendResponse(
-              {
-                error: "invalid_signature",
-                error_description: "Missing ephemeral public key (jwk) in request token header.",
-              },
-              400,
-            );
-          }
-
-          // Import browser's public key and verify the request JWT using jose
-          const publicKey = await importJWK(browserJwk as JWK, header.alg);
-          const { payload } = await jwtVerify(requestToken, publicKey);
-          email = payload.email as string;
-        } catch {
-          return sendResponse(
-            {
-              error: "invalid_signature",
-              error_description: "request_token signature verification failed.",
-            },
-            400,
-          );
-        }
-      } else {
-        // Fallback for simple/un-signed requests
-        email = requestToken;
-      }
+      email = legacyResult.email;
+      browserJwk = legacyResult.browserJwk;
     }
 
     // ==============================================================================
-    // STEP 3: Session Authentication
+    // STEP 3: Session Authentication & Ownership Check
     // ==============================================================================
     const session = cookies.get("__session")?.value;
 
@@ -385,16 +408,6 @@ export const POST: APIRoute = async (context) => {
         },
         401,
       );
-    }
-
-    // Fallback public key if not extracted (e.g. un-signed fallback client/tests)
-    if (!browserJwk) {
-      browserJwk = {
-        kty: "EC",
-        crv: "P-256",
-        x: "dV4TUV9zA_0Ssy5Y91xheN57NKDryji2c3Qy6he6sw4",
-        y: "A-oMMDlM_ML_jiZMIQqU4ZmZSEpW3sH62-x2LlRLuyU",
-      };
     }
 
     // ==============================================================================
@@ -416,30 +429,17 @@ export const POST: APIRoute = async (context) => {
       email_verified: true,
     };
 
-    const sdJwt = new SDJwtInstance({
-      signer: async (data) => {
-        const [headerB64, payloadB64] = data.split(".");
-        const header = JSON.parse(Buffer.from(headerB64, "base64url").toString());
-        const payload = Buffer.from(payloadB64, "base64url");
-        const signed = await new CompactSign(payload).setProtectedHeader(header).sign(privateKey);
-        return signed.split(".").pop()!;
-      },
-      signAlg: signingAlg,
-      hasher: async (data, alg) => {
-        const nodeAlg = alg.replace("-", "");
-        return new Uint8Array(crypto.createHash(nodeAlg).update(data).digest());
-      },
-      hashAlg: "sha-256",
-      saltGenerator: async () => crypto.randomBytes(16).toString("base64url"),
-    });
-
-    const issuanceToken = await sdJwt.issue(evtPayload, undefined, {
-      header: {
+    const evtJwt = await new SignJWT(evtPayload)
+      .setProtectedHeader({
         alg: signingAlg,
         kid: PRIVATE_KEY_JWK.kid,
         typ: "evt+jwt",
-      },
-    });
+      })
+      .sign(privateKey);
+
+    // Standard SD-JWT compatibility requires appending a trailing tilde "~"
+    // to separate the signed token from the key binding section.
+    const issuanceToken = `${evtJwt}~`;
 
     return sendResponse(
       {
