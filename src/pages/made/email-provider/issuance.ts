@@ -16,7 +16,7 @@ import { PRIVATE_KEY_JWK } from "./_keys";
 async function verifyRequestSignature(
   request: Request,
   url: URL,
-  corsHeaders: Record<string, string>,
+  responseHeaders: Record<string, string>,
   logger: { warn: (message: string) => void; error: (message: string) => void },
   rawBody: string,
 ): Promise<{ browserJwk: JWK } | Response> {
@@ -47,7 +47,7 @@ async function verifyRequestSignature(
     return new Response(JSON.stringify(errorBody), {
       status: 400,
       headers: {
-        ...corsHeaders,
+        ...responseHeaders,
         "Signature-Error": `error=${signatureErrorCode}`,
       },
     });
@@ -185,17 +185,9 @@ async function verifyRequestSignature(
 export const POST: APIRoute = async (context) => {
   const { request, cookies, url } = context;
   const logger = context.logger || console;
-  const requestOrigin = request.headers.get("origin");
-  const corsHeaders: Record<string, string> = {
+  const responseHeaders: Record<string, string> = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Headers": "*",
   };
-  if (requestOrigin) {
-    corsHeaders["Access-Control-Allow-Origin"] = requestOrigin;
-    corsHeaders["Access-Control-Allow-Credentials"] = "true";
-  } else {
-    corsHeaders["Access-Control-Allow-Origin"] = "*";
-  }
 
   const sendResponse = (
     bodyObj: { error?: string; error_description?: string; issuance_token?: string },
@@ -211,7 +203,7 @@ export const POST: APIRoute = async (context) => {
     }
     return new Response(JSON.stringify(bodyObj), {
       status,
-      headers: corsHeaders,
+      headers: responseHeaders,
     });
   };
 
@@ -255,7 +247,7 @@ export const POST: APIRoute = async (context) => {
       }
 
       const rawBody = await request.text();
-      const signatureResult = await verifyRequestSignature(request, url, corsHeaders, logger, rawBody);
+      const signatureResult = await verifyRequestSignature(request, url, responseHeaders, logger, rawBody);
       if (signatureResult instanceof Response) {
         return signatureResult;
       }
@@ -301,15 +293,12 @@ export const POST: APIRoute = async (context) => {
       if (contentType.includes("application/x-www-form-urlencoded")) {
         const formData = await request.formData();
         if (formData.get("private_email") || formData.get("directed_email")) {
-          return new Response(
-            JSON.stringify({
+          return sendResponse(
+            {
               error: "private_email_not_supported",
               error_description: "This issuer does not support private email addresses.",
-            }),
-            {
-              status: 400,
-              headers: corsHeaders,
             },
+            400,
           );
         }
         requestToken = formData.get("request_token") as string;
@@ -317,15 +306,12 @@ export const POST: APIRoute = async (context) => {
         try {
           const body = await request.json();
           if (body.private_email || body.directed_email) {
-            return new Response(
-              JSON.stringify({
+            return sendResponse(
+              {
                 error: "private_email_not_supported",
                 error_description: "This issuer does not support private email addresses.",
-              }),
-              {
-                status: 400,
-                headers: corsHeaders,
               },
+              400,
             );
           }
           requestToken = body.request_token || body.email;
@@ -335,15 +321,12 @@ export const POST: APIRoute = async (context) => {
       }
 
       if (!requestToken) {
-        return new Response(
-          JSON.stringify({
+        return sendResponse(
+          {
             error: "invalid_request",
             error_description: "Missing request_token in body.",
-          }),
-          {
-            status: 400,
-            headers: corsHeaders,
           },
+          400,
         );
       }
 

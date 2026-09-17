@@ -543,6 +543,8 @@ describe("EVP Endpoint Unit Tests", () => {
     } as unknown as APIContext);
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
+    expect(response.headers.get("access-control-allow-credentials")).toBeNull();
     const data = (await response.json()) as { issuance_token: string };
     expect(data.issuance_token).toBeDefined();
     expect(data.issuance_token.endsWith("~")).toBe(true);
