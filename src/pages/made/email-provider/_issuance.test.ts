@@ -290,10 +290,11 @@ describe("EVP Endpoint Unit Tests", () => {
     } as unknown as APIContext);
     expect(response.status).toBe(200);
     const data = (await response.json()) as {
-      keys: Array<{ kid: string }>;
+      keys: Array<{ kid: string; alg?: string }>;
     };
     expect(data.keys).toBeDefined();
     expect(data.keys[0].kid).toBe("demo-key-2026");
+    expect(data.keys[0].alg).toBe("Ed25519");
   });
 
   test("issuance endpoint returns 400 when request token is missing (Path B)", async () => {
@@ -554,6 +555,7 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // C. Verify the issued token signature
     const evtJwt = data.issuance_token.split("~")[0];
+    expect(jose.decodeProtectedHeader(evtJwt).alg).toBe("Ed25519");
     const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const { payload } = await verifyJwt(evtJwt, providerPublicKey);
 

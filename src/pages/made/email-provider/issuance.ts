@@ -421,7 +421,8 @@ export const POST: APIRoute = async (context) => {
     // ==============================================================================
     // STEP 4: Issue Email Verification Token (EVT)
     // ==============================================================================
-    const privateKey = await importJWK(PRIVATE_KEY_JWK, "EdDSA");
+    const signingAlg = useHttpMessageSignatures ? "Ed25519" : "EdDSA";
+    const privateKey = await importJWK(PRIVATE_KEY_JWK, signingAlg);
     const origin = url.origin;
     const currentTime = Math.floor(Date.now() / 1000);
 
@@ -444,7 +445,7 @@ export const POST: APIRoute = async (context) => {
         const signed = await new CompactSign(payload).setProtectedHeader(header).sign(privateKey);
         return signed.split(".").pop()!;
       },
-      signAlg: "EdDSA",
+      signAlg: signingAlg,
       hasher: async (data, alg) => {
         const nodeAlg = alg.replace("-", "");
         return new Uint8Array(crypto.createHash(nodeAlg).update(data).digest());
@@ -455,7 +456,7 @@ export const POST: APIRoute = async (context) => {
 
     const issuanceToken = await sdJwt.issue(evtPayload, undefined, {
       header: {
-        alg: "EdDSA",
+        alg: signingAlg,
         kid: PRIVATE_KEY_JWK.kid,
         typ: "evt+jwt",
       },
