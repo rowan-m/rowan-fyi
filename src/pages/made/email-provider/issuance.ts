@@ -75,8 +75,19 @@ async function verifyRequestSignature(
       return returnError("Signature-Key header does not use the 'hwk' scheme or is malformed.");
     }
 
+    if (!params.has("alg")) {
+      return returnError("Signature-Key header is missing the required 'alg' parameter.");
+    }
+
+    const algParam = params.get("alg") as string;
+    const supportedAlgs = ["Ed25519", "EdDSA", "ES256"];
+    if (!supportedAlgs.includes(algParam)) {
+      return returnError(`Unsupported algorithm '${algParam}' in Signature-Key header.`);
+    }
+
     browserJwk = {
       kty: params.get("kty") as string,
+      alg: algParam,
     };
     if (params.has("crv")) browserJwk.crv = params.get("crv") as string;
     if (params.has("x")) browserJwk.x = params.get("x") as string;

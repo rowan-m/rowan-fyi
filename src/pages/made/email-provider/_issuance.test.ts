@@ -42,6 +42,7 @@ async function generateSignatureHeaders({
   privateKeyJwk,
   publicKeyJwk,
   body = JSON.stringify({ email: "demo@rowan.fyi" }),
+  algParam,
 }: {
   method: string;
   authority: string;
@@ -50,12 +51,14 @@ async function generateSignatureHeaders({
   privateKeyJwk: JWK;
   publicKeyJwk: JWK;
   body?: string;
+  algParam?: string | null;
 }) {
   const created = Math.floor(Date.now() / 1000);
   const contentDigest = `sha-256=:${crypto.createHash("sha256").update(body, "utf8").digest("base64")}:`;
 
   // Signature-Key (hwk format)
-  let signatureKeyHeader = `sig=hwk; kty="${publicKeyJwk.kty}"; crv="${publicKeyJwk.crv}"; x="${publicKeyJwk.x}"`;
+  const algStr = algParam === null ? "" : `; alg="${algParam || "Ed25519"}"`;
+  let signatureKeyHeader = `sig=hwk; kty="${publicKeyJwk.kty}"; crv="${publicKeyJwk.crv}"${algStr}; x="${publicKeyJwk.x}"`;
   if (publicKeyJwk.y) {
     signatureKeyHeader += `; y="${publicKeyJwk.y}"`;
   }
@@ -558,6 +561,45 @@ describe("EVP Endpoint Unit Tests", () => {
     const cnf = payload.cnf as { jwk: typeof browserPublicKeyJwk };
     expect(cnf.jwk.x).toBe(browserPublicKeyJwk.x);
     expect(cnf.jwk.crv).toBe("Ed25519");
+    expect(cnf.jwk.alg).toBe("Ed25519");
+  });
+
+  test("issuance endpoint returns 400 when Signature-Key is missing alg parameter (Path A)", async () => {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
+
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const headers = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+      algParam: null,
+    });
+
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(headers),
+        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { error: string; error_description: string };
+    expect(data.error).toBe("invalid_signature");
+    expect(data.error_description).toContain("missing the required 'alg' parameter");
   });
 
   test("issuance endpoint issues EVT on valid legacy request token (Path B)", async () => {
