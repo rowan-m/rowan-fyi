@@ -197,7 +197,6 @@ if (Astro.request.method === "POST") {
       traceSteps[2].inputSent = { submittedEmail, tokenIssuer: iss, dnsLookupTarget: `_email-verification.${domain}` };
 
       let isAuthoritative = false;
-      const issuerHost = iss.startsWith("http") ? new URL(iss).hostname.toLowerCase() : iss.toLowerCase();
 
       traceSteps[2].serverCalled = "System DNS Server (TXT Resolve)";
       try {
@@ -207,12 +206,15 @@ if (Astro.request.method === "POST") {
         for (const record of records) {
           const txt = record.join("");
           if (txt.startsWith("iss=")) {
-            const delegatedIssuer = txt.substring(4);
-            const delegatedHost = delegatedIssuer.startsWith("http")
-              ? new URL(delegatedIssuer).hostname.toLowerCase()
-              : delegatedIssuer.toLowerCase();
-            if (delegatedHost === issuerHost) {
+            const delegatedValue = txt.substring(4).trim();
+            const expectedIssuer = delegatedValue.startsWith("https://") ? delegatedValue : `https://${delegatedValue}`;
+            if (iss === expectedIssuer) {
               isAuthoritative = true;
+              traceSteps[2].outputReceived = {
+                dnsTxtRecords: records,
+                derivedIssuerOrigin: expectedIssuer,
+                exactOriginMatch: true,
+              };
               break;
             }
           }
