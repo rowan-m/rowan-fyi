@@ -25,7 +25,7 @@ async function verifyRequestSignature(
   const signatureKeyHeader = request.headers.get("signature-key");
   const contentDigestHeader = request.headers.get("content-digest");
 
-  const returnError = (msg: string, details?: string) => {
+  const returnError = (msg: string, details?: string, signatureErrorCode = "invalid_signature") => {
     const errorBody = {
       error: "invalid_signature",
       error_description: msg,
@@ -46,7 +46,10 @@ async function verifyRequestSignature(
 
     return new Response(JSON.stringify(errorBody), {
       status: 400,
-      headers: corsHeaders,
+      headers: {
+        ...corsHeaders,
+        "Signature-Error": `error=${signatureErrorCode}`,
+      },
     });
   };
 
@@ -82,7 +85,11 @@ async function verifyRequestSignature(
     const algParam = params.get("alg") as string;
     const supportedAlgs = ["Ed25519", "EdDSA", "ES256"];
     if (!supportedAlgs.includes(algParam)) {
-      return returnError(`Unsupported algorithm '${algParam}' in Signature-Key header.`);
+      return returnError(
+        `Unsupported algorithm '${algParam}' in Signature-Key header.`,
+        undefined,
+        "unsupported_algorithm",
+      );
     }
 
     browserJwk = {

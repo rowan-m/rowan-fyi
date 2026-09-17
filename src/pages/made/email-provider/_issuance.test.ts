@@ -601,9 +601,46 @@ describe("EVP Endpoint Unit Tests", () => {
     } as unknown as APIContext);
 
     expect(response.status).toBe(400);
+    expect(response.headers.get("Signature-Error")).toBe("error=invalid_signature");
     const data = (await response.json()) as { error: string; error_description: string };
     expect(data.error).toBe("invalid_signature");
     expect(data.error_description).toContain("missing the required 'alg' parameter");
+  });
+
+  test("issuance endpoint returns Signature-Error: error=unsupported_algorithm when alg is unsupported (Path A)", async () => {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
+
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const headers = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+      algParam: "RSA-PSS",
+    });
+
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(headers),
+        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("Signature-Error")).toBe("error=unsupported_algorithm");
   });
 
   test("issuance endpoint accepts signature within 300-second window and rejects outside (Path A)", async () => {
