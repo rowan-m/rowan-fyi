@@ -847,6 +847,7 @@ describe("EVP Endpoint Unit Tests", () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
+          "sec-fetch-dest": "email-verification",
         },
         body: JSON.stringify({ private_email: true, email: "demo@rowan.fyi" }),
       }),
@@ -863,6 +864,33 @@ describe("EVP Endpoint Unit Tests", () => {
     const data = (await response.json()) as { error: string; error_description: string };
     expect(data.error).toBe("private_email_not_supported");
     expect(data.error_description).toContain("does not support private email");
+  });
+
+  test("issuance endpoint returns 400 invalid_request when Sec-Fetch-Dest is missing or invalid", async () => {
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "sec-fetch-dest": "document",
+        },
+        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(400);
+    const data = (await response.json()) as { error: string; error_description: string };
+    expect(data.error).toBe("invalid_request");
+    expect(data.error_description).toContain("Missing or invalid Sec-Fetch-Dest header");
   });
 
   test("verifies a multi-part SD-JWT with disclosures and correct sd_hash verification", async () => {

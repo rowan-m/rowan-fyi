@@ -217,10 +217,16 @@ export const POST: APIRoute = async (context) => {
 
   try {
     // To protect user privacy and prevent CSRF / cross-site state detection,
-    // standard-compliant browsers SHOULD set "Sec-Fetch-Dest: email-verification" or "webidentity".
+    // standard-compliant browsers MUST set "Sec-Fetch-Dest: email-verification" (or "webidentity" in Origin Trial).
     const secFetchDest = request.headers.get("sec-fetch-dest");
-    if (secFetchDest && secFetchDest !== "email-verification" && secFetchDest !== "webidentity") {
-      logger.warn(`Unexpected Sec-Fetch-Dest header: ${secFetchDest}`);
+    if (!secFetchDest || (secFetchDest !== "email-verification" && secFetchDest !== "webidentity")) {
+      return sendResponse(
+        {
+          error: "invalid_request",
+          error_description: "Missing or invalid Sec-Fetch-Dest header",
+        },
+        400,
+      );
     }
 
     const contentType = request.headers.get("content-type") || "";
