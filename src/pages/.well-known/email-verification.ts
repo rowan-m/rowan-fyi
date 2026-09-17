@@ -9,7 +9,7 @@ export const GET: APIRoute = async ({ url }) => {
       issuer: origin,
       issuance_endpoint: `${origin}/made/email-provider/issuance`,
       jwks_uri: `${origin}/made/email-provider/jwks`,
-      signing_alg_values_supported: ["EdDSA"],
+      signing_alg_values_supported: ["Ed25519", "EdDSA"],
       private_email_supported: false,
       webauthn_supported: false,
     }),
