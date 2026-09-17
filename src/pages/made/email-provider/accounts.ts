@@ -12,8 +12,7 @@ import type { APIRoute } from "astro";
  * The browser compares the email of these accounts against the autofilled email
  * address to verify identity ownership.
  */
-export const GET: APIRoute = async ({ cookies, request }) => {
-  const origin = request.headers.get("origin") || "*";
+export const GET: APIRoute = async ({ cookies }) => {
   const isLoggedIn = cookies.get("__session")?.value === "active";
 
   const responseBody = {
@@ -33,9 +32,6 @@ export const GET: APIRoute = async ({ cookies, request }) => {
     status: 200,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Credentials": "true",
-      "Access-Control-Allow-Headers": "Content-Type",
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
