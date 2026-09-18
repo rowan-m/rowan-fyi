@@ -163,21 +163,17 @@ if (Astro.request.method === "POST") {
   </style>
 
   <main class="evp-demo-container">
-    <h1>Email provider - Email Verification Protocol (EVP) demo</h1>
-    <p class="evp-setup-notice">
-      <strong
-        >📣 Read the <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial"
-          >announcement and implementation guide</a
-        >.</strong
-      >
-    </p>
+    <h1>Email provider - Email Verification demo</h1>
     <p class="evp-intro-text">
       This is a mock email provider for the <a href="https://github.com/WICG/email-verification"
         >Email Verification API</a
       > and <a href="https://github.com/dickhardt/email-verification">protocol</a>. It plays the issuer: the party that
       already knows the address is yours and will vouch for it. Once you've signed in, use the <a
         href="/made/email-verification/">relying party demo</a
-      > to verify the address.
+      > to verify the address. Read the <a
+        href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial"
+        >announcement and implementation guide</a
+      > for the full picture.
     </p>
 
     {
