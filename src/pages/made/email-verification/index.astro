@@ -581,16 +581,6 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       cursor: not-allowed;
     }
 
-    /* Live report of the hidden token input, populated by the browser */
-    .evp-token-status {
-      margin: -1rem 0 0 0;
-      font-size: 0.9em;
-      color: #6c757d;
-    }
-    .evp-token-status.has-token {
-      color: #28a745;
-    }
-
     /* Message Boxes */
     .msg-box {
       margin-top: 1.5rem;
@@ -801,6 +791,10 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
         )
       }
     </p>
+    <p class="evp-setup-notice">
+      Enter an email address and press <strong>Sign up</strong>. You can open the <strong>Network</strong> panel in DevTools
+      to inspect the requests Chrome sends to the provider in the background.
+    </p>
     <form method="POST" id="verify-form" class="evp-form">
       <div class="form-group">
         <label for="email">Email address:</label>
@@ -818,7 +812,6 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       <input type="hidden" name="token" nonce={activeNonce} autocomplete="email-verification-token" />
       <button type="submit" id="submit-btn">Sign up</button>
     </form>
-    <p class="evp-token-status" id="token-status">Enter an email address, then move focus out of the field.</p>
 
     {
       verificationResult && (
@@ -913,26 +906,6 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       });
       // Restoring from the back/forward cache replays the disabled button, so undo it.
       window.addEventListener("pageshow", () => submitBtn.removeAttribute("disabled"));
-    }
-
-    // The browser fills the hidden token input asynchronously, roughly a second after the
-    // email field is committed. That round trip is invisible, and submitting before it
-    // completes is the most common way this demo appears to "fail", so report the state.
-    const emailInput = document.getElementById("email");
-    const tokenInput = document.querySelector('input[name="token"]');
-    const tokenStatus = document.getElementById("token-status");
-
-    if (emailInput && tokenInput && tokenStatus) {
-      setInterval(() => {
-        if (tokenInput.value) {
-          tokenStatus.textContent = "✅ Verification token received from the browser. Ready to submit.";
-          tokenStatus.classList.add("has-token");
-        } else if (emailInput.value && document.activeElement !== emailInput) {
-          tokenStatus.textContent = "⏳ Asking the browser to verify this address…";
-        } else {
-          tokenStatus.textContent = "Enter an email address, then move focus out of the field.";
-        }
-      }, 250);
     }
 
     // Direct check for Chrome and its major version
