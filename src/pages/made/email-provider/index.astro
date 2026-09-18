@@ -63,22 +63,24 @@ if (Astro.request.method === "POST") {
   />
   <style>
     html {
-      font-family: sans-serif;
+      font-family: system-ui, sans-serif;
+      /* These demos are light-only, so stop the browser offering to invert them. */
+      color-scheme: light;
     }
 
     /* Container layout */
     .evp-demo-container {
       max-width: 800px;
-      margin: 3rem auto;
+      margin: 1.5rem auto;
       padding: 0 1.5rem;
       color: #333;
       line-height: 1.5;
     }
 
     .evp-demo-container h1 {
-      font-size: 2.2em;
+      font-size: 2em;
       margin-top: 0;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
       color: #111;
       letter-spacing: -0.5px;
     }
@@ -87,16 +89,16 @@ if (Astro.request.method === "POST") {
       color: #555;
       font-size: 1.1em;
       margin-top: 0;
-      margin-bottom: 2rem;
-      line-height: 1.6;
+      margin-bottom: 1rem;
+      line-height: 1.5;
     }
 
     .evp-github-link {
       color: #6c757d;
       font-size: 0.9em;
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       border-top: 1px solid #dee2e6;
-      padding-top: 1rem;
+      padding-top: 0.8rem;
     }
 
     /* State Panels */
@@ -119,7 +121,7 @@ if (Astro.request.method === "POST") {
     }
     .status-panel.logged-out {
       background-color: #f8f9fa;
-      border-color: #ddd;
+      border-color: #dee2e6;
       color: #555;
     }
 
@@ -150,12 +152,12 @@ if (Astro.request.method === "POST") {
 
     .evp-setup-notice {
       background-color: #f8f9fa;
-      border: 1px solid #e9ecef;
+      border: 1px solid #dee2e6;
       padding: 0.5rem 0.8rem;
       border-radius: 4px;
       margin: 0.6rem 0;
       font-size: 0.9em;
-      color: #495057;
+      color: #555;
       line-height: 1.4;
     }
   </style>

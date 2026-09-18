@@ -467,7 +467,9 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
   />
   <style>
     html {
-      font-family: sans-serif;
+      font-family: system-ui, sans-serif;
+      /* These demos are light-only, so stop the browser offering to invert them. */
+      color-scheme: light;
     }
 
     /* Container layout */
@@ -499,19 +501,19 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     /* Highlight box for prerequisites and setup */
     .evp-setup-notice {
       background-color: #f8f9fa;
-      border: 1px solid #e9ecef;
+      border: 1px solid #dee2e6;
       padding: 0.5rem 0.8rem;
       border-radius: 4px;
       margin: 0.6rem 0;
       font-size: 0.9em;
-      color: #495057;
+      color: #555;
       line-height: 1.4;
     }
 
     /* Instruction text */
     .evp-instruction {
       font-weight: bold;
-      color: #444;
+      color: #555;
       margin-top: 1.2rem;
       margin-bottom: 0.6rem;
     }
@@ -634,7 +636,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     /* Trace Section Container */
     .trace-container {
       margin-top: 2rem;
-      border-top: 2px solid #ddd;
+      border-top: 2px solid #dee2e6;
       padding-top: 1.5rem;
     }
     .trace-container h2 {
@@ -642,7 +644,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       color: #333;
     }
     .trace-container p {
-      color: #666;
+      color: #555;
       font-size: 0.95em;
     }
 
@@ -654,7 +656,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     .trace-step {
       margin-bottom: 1rem;
       padding: 1rem;
-      border: 1px solid #e2e3e5;
+      border: 1px solid #dee2e6;
       border-radius: 4px;
       background-color: #f8f9fa;
     }
@@ -675,7 +677,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     .trace-step-title {
       margin: 0;
       font-size: 1.1em;
-      color: #444;
+      color: #555;
     }
     .trace-step.success .trace-step-title {
       color: #1e5a2d;
@@ -705,7 +707,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     .trace-step-desc {
       margin: 0.5rem 0;
       font-size: 0.95em;
-      color: #444;
+      color: #555;
       line-height: 1.4;
     }
     .trace-step-error {
@@ -762,7 +764,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       display: block;
       margin-top: 0.25rem;
       padding: 0.5rem;
-      border: 1px solid #e9ecef;
+      border: 1px solid #dee2e6;
       border-radius: 4px;
       background-color: #f8f9fa;
       font-size: 0.85em;
