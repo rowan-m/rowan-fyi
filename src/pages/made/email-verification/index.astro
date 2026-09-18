@@ -74,6 +74,12 @@ let submittedEmail = "";
 const nonceCookieName = "evp_rp_nonce";
 let expectedNonce = Astro.cookies.get(nonceCookieName)?.value;
 
+// Both demos are hosted on rowan.fyi, so this page can read the provider's session
+// cookie directly and tell you whether the prerequisite is met. A real relying party
+// could never do this: the provider is a different site, and bridging that separation
+// without leaking anything is precisely the problem this protocol exists to solve.
+const providerSignedIn = Astro.cookies.get("__session")?.value === "active";
+
 // Initialize the 6-Step Verification Trace Array
 let traceSteps: TraceStep[] = [
   {
@@ -780,12 +786,28 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
     </p>
     <p class="evp-setup-notice">
       Requires Chrome 150+, you're on <span id="ua-browser">[...]</span>&nbsp;
-      <span id="ua-version">[...]</span>: the API is <strong><span id="ua-supported">[...]</span></strong>.
+      <span id="ua-version">[...]</span>: your browser version is <strong><span id="ua-supported">[...]</span></strong>.
+      The origin trial also has to be active on the page, which this check cannot detect.
     </p>
     <p class="evp-setup-notice">
-      <a href="/made/email-provider/" target="_blank">Sign in to the demo provider</a> to create a session for the <code
-        >demo@rowan.fyi</code
-      >.
+      {
+        providerSignedIn ? (
+          <Fragment>
+            ✅ Signed in to the demo provider as <code>demo@rowan.fyi</code>.{" "}
+            <a href="/made/email-provider/" target="_blank">
+              Manage the session
+            </a>
+            .
+          </Fragment>
+        ) : (
+          <Fragment>
+            <a href="/made/email-provider/" target="_blank">
+              Sign in to the demo provider
+            </a>{" "}
+            first, to create a session for <code>demo@rowan.fyi</code>.
+          </Fragment>
+        )
+      }
     </p>
     <p class="evp-github-link">
       🧑‍💻 View the code for the demo on <a
