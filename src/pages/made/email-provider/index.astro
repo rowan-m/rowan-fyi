@@ -9,12 +9,30 @@ let isLoggedIn = Astro.cookies.get(cookieName)?.value === "active";
 let triggerLoginStatusUpdate: "logged-in" | "logged-out" | null = null;
 
 if (Astro.request.method === "POST") {
+  // CSRF protection: the session cookie below is SameSite=None, so the browser will
+  // attach it to cross-site requests and SameSite can no longer defend this form.
+  // Instead we check Fetch Metadata: a real form submission from this page is
+  // "same-origin", while a cross-site auto-submitted form is "cross-site".
+  // (Older browsers omit Sec-Fetch-Site entirely, so a missing header is allowed.)
+  const secFetchSite = Astro.request.headers.get("sec-fetch-site");
+  const isSameOriginRequest = !secFetchSite || secFetchSite === "same-origin" || secFetchSite === "none";
+
+  if (!isSameOriginRequest) {
+    return new Response("Cross-site session changes are not allowed.", { status: 403 });
+  }
+
   const formData = await Astro.request.formData();
   const action = formData.get("action");
 
   if (action === "login") {
     Astro.cookies.set(cookieName, "active", {
       path: "/",
+      // SameSite=None is REQUIRED, not incidental. The browser fetches the FedCM
+      // accounts endpoint and the EVP issuance endpoint itself, on behalf of a
+      // relying party page that is usually on a different site. Those credentialed
+      // requests are cross-site, so a Lax cookie would never be sent and this issuer
+      // would always look logged out. It only appears to work with Lax when the
+      // relying party happens to share this site, as the sibling verifier demo does.
       sameSite: "none",
       secure: true,
       maxAge: 3600, // 1 hour
