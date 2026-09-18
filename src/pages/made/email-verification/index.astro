@@ -112,7 +112,6 @@ let traceSteps: TraceStep[] = [
 let activeTrace: TraceStep[] | null = null;
 
 if (Astro.request.method === "POST") {
-  activeTrace = traceSteps;
   try {
     // Replay Protection: Consume and delete the nonce cookie immediately upon POST receipt.
     Astro.cookies.delete(nonceCookieName, { path: "/" });
@@ -122,6 +121,9 @@ if (Astro.request.method === "POST") {
     const rawToken = ((formData.get("token") as string) || "").trim();
 
     if (rawToken) {
+      // Only show the step trace when there was actually a token to walk through.
+      activeTrace = traceSteps;
+
       // ==============================================================================
       // STEP 1: TOKEN PARSING
       // ==============================================================================
@@ -736,14 +738,17 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       font-size: 0.85em;
       color: #555;
     }
-    .trace-details-content pre {
-      margin: 0.25rem 0 0 0;
+    .trace-json {
+      display: block;
+      margin-top: 0.25rem;
       padding: 0.5rem;
       border: 1px solid #e9ecef;
       border-radius: 4px;
       background-color: #f8f9fa;
       font-size: 0.85em;
-      overflow-x: auto;
+      /* Wrap rather than scroll: raw tokens are ~1000 characters of base64. */
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
   </style>
   <main>
@@ -819,12 +824,12 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
                 <li class={`trace-step ${step.status}`}>
                   <div class="trace-step-header">
                     <h3 class="trace-step-title">{step.name}</h3>
-                    <span class="status-badge">{step.status}</span>
+                    <span class="status-badge">{step.status === "pending" ? "not run" : step.status}</span>
                   </div>
 
                   <p class="trace-step-desc">{step.description}</p>
 
-                  {step.error && <p class="trace-step-error">Exception Details: {step.error}</p>}
+                  {step.error && <p class="trace-step-error">Error: {step.error}</p>}
 
                   {(step.serverCalled || step.inputSent || step.outputReceived) && (
                     <details class="trace-details">
@@ -839,18 +844,14 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
                         {step.inputSent && (
                           <div class="trace-section-mb">
                             <strong>Inputs Sent:</strong>
-                            <pre>
-                              <code>{JSON.stringify(step.inputSent, null, 2)}</code>
-                            </pre>
+                            <code class="trace-json">{JSON.stringify(step.inputSent, null, 2)}</code>
                           </div>
                         )}
 
                         {step.outputReceived && (
                           <div class="trace-section-mb">
                             <strong>Outputs Received:</strong>
-                            <pre>
-                              <code>{JSON.stringify(step.outputReceived, null, 2)}</code>
-                            </pre>
+                            <code class="trace-json">{JSON.stringify(step.outputReceived, null, 2)}</code>
                           </div>
                         )}
                       </div>
