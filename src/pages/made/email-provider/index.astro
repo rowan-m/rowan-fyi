@@ -50,12 +50,12 @@ if (Astro.request.method === "POST") {
 ---
 
 <MetaOnlyLayout
-  title="Issuer - Email Verification Protocol (EVP) demo"
+  title="Email provider - Email Verification Protocol (EVP) demo"
   description="Demo of an Email Verification Protocol (EVP) Issuer"
 >
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Issuer - Email Verification Protocol (EVP) demo" />
+  <meta property="og:title" content="Email provider - Email Verification Protocol (EVP) demo" />
   <meta property="og:description" content="Demo of an Email Verification Protocol (EVP) Issuer" />
   <link
     rel="icon"
@@ -141,10 +141,10 @@ if (Astro.request.method === "POST") {
     .btn-danger:hover {
       background-color: #800000;
     }
-    .btn-success {
+    .btn-primary {
       background-color: #0056b3;
     }
-    .btn-success:hover {
+    .btn-primary:hover {
       background-color: #004085;
     }
 
@@ -161,7 +161,7 @@ if (Astro.request.method === "POST") {
   </style>
 
   <main class="evp-demo-container">
-    <h1>Issuer - Email Verification Protocol (EVP) demo</h1>
+    <h1>Email provider - Email Verification Protocol (EVP) demo</h1>
     <p class="evp-setup-notice">
       <strong
         >📣 Read the <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial"
@@ -170,10 +170,12 @@ if (Astro.request.method === "POST") {
       >
     </p>
     <p class="evp-intro-text">
-      This is a demo of a mock email provider for the <a href="https://github.com/WICG/email-verification"
+      This is a mock email provider for the <a href="https://github.com/WICG/email-verification"
         >Email Verification API</a
-      > and <a href="https://github.com/dickhardt/email-verification">protocol</a>. Once you've signed in, you can use
-      the <a href="/made/email-verification/">verifier demo</a> to verify your email address.
+      > and <a href="https://github.com/dickhardt/email-verification">protocol</a>. It plays the issuer: the party that
+      already knows the address is yours and will vouch for it. Once you've signed in, use the <a
+        href="/made/email-verification/">relying party demo</a
+      > to verify the address.
     </p>
 
     {
@@ -194,13 +196,18 @@ if (Astro.request.method === "POST") {
           <p>Current Session: Not logged in</p>
           <form method="POST">
             <input type="hidden" name="action" value="login" />
-            <button type="submit" class="btn btn-success">
+            <button type="submit" class="btn btn-primary">
               Log in as demo@rowan.fyi
             </button>
           </form>
         </div>
       )
     }
+    <p class="evp-setup-notice">
+      Signing in here does two things: it sets a session cookie, and it calls <code>navigator.login.setStatus()</code> to
+      tell the browser this provider has a signed-in user. Without that second step the browser will not even ask this provider
+      for a token.
+    </p>
     <p class="evp-github-link">
       🧑‍💻 View the code for the demo on <a
         href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/email-provider"
