@@ -302,18 +302,15 @@ export const POST: APIRoute = async (context) => {
     // ==============================================================================
     // STEP 1: Validate Fetch Metadata (Sec-Fetch-Dest)
     // ==============================================================================
-    // To protect user privacy and prevent CSRF / cross-site state detection,
-    // standard-compliant browsers set "Sec-Fetch-Dest: email-verification" (or "webidentity").
-    // Note: Chrome 153's internal C++ SimpleURLLoader omits Sec-Fetch-Dest (or sends "empty"),
-    // so we strictly reject invalid Sec-Fetch-Dest values (e.g., "document", "iframe", "image")
-    // when present, while allowing missing/"empty" for browser compatibility.
+    // The draft spec defines "Sec-Fetch-Dest: email-verification", whereas Chromium's
+    // RequestDestination table (services/network/public/cpp/request_destination.cc)
+    // defines kEmailVerification = "emailverification" (no hyphen, matching Fetch
+    // destinations like "webidentity", "serviceworker", etc.). We accept both spellings
+    // (plus "webidentity" and missing/"empty" for test clients) while rejecting any
+    // other destination (e.g., "document", "iframe", "image").
+    const allowedSecFetchDest = new Set(["email-verification", "emailverification", "webidentity", "empty"]);
     const secFetchDest = request.headers.get("sec-fetch-dest");
-    if (
-      secFetchDest &&
-      secFetchDest !== "email-verification" &&
-      secFetchDest !== "webidentity" &&
-      secFetchDest !== "empty"
-    ) {
+    if (secFetchDest && !allowedSecFetchDest.has(secFetchDest)) {
       return sendResponse(
         {
           error: "invalid_request",

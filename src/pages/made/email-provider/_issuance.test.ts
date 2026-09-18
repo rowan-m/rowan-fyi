@@ -897,6 +897,42 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(data.error_description).toContain("Invalid Sec-Fetch-Dest header");
   });
 
+  test("issuance endpoint accepts Chromium's unhyphenated Sec-Fetch-Dest: emailverification", async () => {
+    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPublicKeyJwk = publicKey.export({ format: "jwk" });
+    const browserPrivateKeyJwk = privateKey.export({ format: "jwk" });
+    const headers = await generateSignatureHeaders({
+      method: "POST",
+      authority: "rowan.fyi",
+      path: "/made/email-provider/issuance",
+      cookieValue: "__session=active",
+      publicKeyJwk: browserPublicKeyJwk,
+      privateKeyJwk: browserPrivateKeyJwk,
+    });
+    headers["sec-fetch-dest"] = "emailverification";
+
+    const response = await postIssuance({
+      url: mockUrl,
+      request: new Request(mockUrl, {
+        method: "POST",
+        headers: new Headers(headers),
+        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+      }),
+      params: {},
+      props: {},
+      redirect: () => new Response(null, { status: 302 }),
+      locals: {},
+      cookies: {
+        get: () => ({ value: "active" }),
+      } as unknown as APIContext["cookies"],
+    } as unknown as APIContext);
+
+    expect(response.status).toBe(200);
+    const data = (await response.json()) as { issuance_token: string };
+    expect(data.issuance_token).toBeTruthy();
+  });
+
   test("verifies a multi-part SD-JWT with disclosures and correct sd_hash verification", async () => {
     // 1. Generate keys
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
