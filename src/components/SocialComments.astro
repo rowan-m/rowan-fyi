@@ -22,22 +22,27 @@ const { canonicalUrl, locationUrl, blueskyUrl, mastodonUrl } = Astro.props;
       title="rowan@fyi on Bluesky"
       class="button share-button"
       target="_blank"
-      rel="noopener"><Bluesky /> Share/reply on Bluesky</a
+      rel="noopener"
     >
+      <Bluesky /> Share/reply on Bluesky
+    </a>
     <a
       href={mastodonUrl || "https://mastodon.social/@rowan_m"}
       title="@rowan_m on Mastodon"
       class="button share-button"
       target="_blank"
-      rel="noopener"><Mastodon /> Share/reply on Mastodon</a
+      rel="noopener"
     >
+      <Mastodon /> Share/reply on Mastodon
+    </a>
   </div>
 
   <social-comments
     canonical-url={canonicalUrl}
     location-url={locationUrl || ""}
     bsky-url={blueskyUrl || ""}
-    mastodon-url={mastodonUrl || ""}></social-comments>
+    mastodon-url={mastodonUrl || ""}
+  ></social-comments>
 </section>
 
 <script>

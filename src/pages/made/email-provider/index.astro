@@ -165,52 +165,44 @@ if (Astro.request.method === "POST") {
   <main class="evp-demo-container">
     <h1>Email provider - Email Verification demo</h1>
     <p class="evp-intro-text">
-      This is a mock email provider for the <a href="https://github.com/WICG/email-verification"
-        >Email Verification API</a
-      > and <a href="https://github.com/dickhardt/email-verification">protocol</a>. It plays the issuer: the party that
-      already knows the address is yours and will vouch for it. Once you've signed in, use the <a
-        href="/made/email-verification/">relying party demo</a
-      > to verify the address. Read the <a
-        href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial"
-        >announcement and implementation guide</a
-      > for the full picture.
+      This is a mock email provider for the{" "}
+      <a href="https://github.com/WICG/email-verification">Email Verification API</a> and{" "}
+      <a href="https://github.com/dickhardt/email-verification">protocol</a>. It plays the issuer: the party that
+      already knows the address is yours and will vouch for it. Once you've signed in, use the{" "}
+      <a href="/made/email-verification/">relying party demo</a> to verify the address. Read the{" "}
+      <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial">
+        announcement and implementation guide
+      </a
+      >{" "} for the full picture.
     </p>
 
-    {
-      isLoggedIn ? (
-        <div class="status-panel logged-in">
-          <p>
-            Current Session: Logged in as <strong>demo@rowan.fyi</strong>
-          </p>
-          <form method="POST">
-            <input type="hidden" name="action" value="logout" />
-            <button type="submit" class="btn btn-danger">
-              Log out
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div class="status-panel logged-out">
-          <p>Current Session: Not logged in</p>
-          <form method="POST">
-            <input type="hidden" name="action" value="login" />
-            <button type="submit" class="btn btn-primary">
-              Log in as demo@rowan.fyi
-            </button>
-          </form>
-        </div>
-      )
-    }
+    {isLoggedIn ? (
+      <div class="status-panel logged-in">
+        <p>Current Session: Logged in as <strong>demo@rowan.fyi</strong></p>
+        <form method="POST">
+          <input type="hidden" name="action" value="logout" />
+          <button type="submit" class="btn btn-danger">Log out</button>
+        </form>
+      </div>
+    ) : (
+      <div class="status-panel logged-out">
+        <p>Current Session: Not logged in</p>
+        <form method="POST">
+          <input type="hidden" name="action" value="login" />
+          <button type="submit" class="btn btn-primary">Log in as demo@rowan.fyi</button>
+        </form>
+      </div>
+    )}
     <p class="evp-setup-notice">
-      Signing in here does two things: it sets a session cookie, and it calls <code>navigator.login.setStatus()</code> to
-      tell the browser this provider has a signed-in user. Without that second step the browser will not even ask this provider
-      for a token.
+      Signing in here does two things: it sets a session cookie, and it calls <code>navigator.login.setStatus()</code
+      >{" "} to tell the browser this provider has a signed-in user. Without that second step the browser will not even
+      ask this provider for a token.
     </p>
     <p class="evp-github-link">
-      🧑‍💻 View the code for the demo on <a
-        href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/email-provider"
-        target="_blank">GitHub</a
-      >
+      🧑‍💻 View the code for the demo on{" "}
+      <a href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/email-provider" target="_blank">
+        GitHub
+      </a>
     </p>
   </main>
 
@@ -224,5 +216,4 @@ if (Astro.request.method === "POST") {
         .then(() => console.log(`navigator.login.setStatus(${triggerLoginStatusUpdate})`))
         .catch((err) => console.error(`navigator.login.setStatus(${triggerLoginStatusUpdate}) error:`, err));
     }
-  </script>
-</MetaOnlyLayout>
+  </script></MetaOnlyLayout>

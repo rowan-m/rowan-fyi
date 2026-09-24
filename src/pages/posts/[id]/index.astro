@@ -46,15 +46,13 @@ const articleData = {
 <!doctype html>
 <html lang="en">
   <DefaultHead title={post.data.title + " | rowan.fyi"} description={post.data.description} />
-  <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)} />
-  {
-    post.data.standardSiteDoc && (
-      <link
-        rel="site.standard.document"
-        href={`at://did:plc:7dtviror2bcs32dnngqsf7ay/site.standard.document/${post.data.standardSiteDoc}`}
-      />
-    )
-  }
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)}></script>
+  {post.data.standardSiteDoc && (
+    <link
+      rel="site.standard.document"
+      href={`at://did:plc:7dtviror2bcs32dnngqsf7ay/site.standard.document/${post.data.standardSiteDoc}`}
+    />
+  )}
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
   <meta property="og:title" content={post.data.title} />
@@ -79,24 +77,24 @@ const articleData = {
     <main class="h-entry">
       <h1 class="p-name">{post.data.title}</h1>
       <div class="post-meta">
-        <div class="pubdate">
-          Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}
-        </div>
-        <span class="dt-published" style="display:none">{post.data.pubDate.toISOString()}</span>
-        <span class="u-url" style="display:none">{new URL(Astro.url.pathname, Astro.site)}</span>
-        <span class="p-summary" style="display:none">{post.data.description}</span>
-        <a rel="author" class="p-author h-card" style="display:none" href={new URL(Astro.site)}>Rowan Merewood</a>
-        {
-          post.data.location && (
-            <a href={post.data.location} target="_blank" rel="noopener" class="button">
-              <NewTabIcon /> Launch
-            </a>
-          )
-        }
+        <div class="pubdate">Published: {new Intl.DateTimeFormat("en-GB").format(post.data.pubDate)}</div>
+        <span class="dt-published" style="display: none">
+          {post.data.pubDate.toISOString()}
+        </span>
+        <span class="u-url" style="display: none">
+          {new URL(Astro.url.pathname, Astro.site)}
+        </span>
+        <span class="p-summary" style="display: none">
+          {post.data.description}
+        </span>
+        <a rel="author" class="p-author h-card" style="display: none" href={new URL(Astro.site)}> Rowan Merewood </a>
+        {post.data.location && <a href={post.data.location} target="_blank" rel="noopener" class="button">
+          <NewTabIcon /> Launch
+        </a>}
         <ShareButton />
-        <a href="#comments" class="button"><Comments /> Comments</a>
+        <a href="#comments" class="button"> <Comments /> Comments </a>
       </div>
-      {post.data.location && <iframe src={post.data.location} title={post.data.title} />}
+      {post.data.location && <iframe src={post.data.location} title={post.data.title}></iframe>}
       <article class="e-content">
         <Content />
       </article>

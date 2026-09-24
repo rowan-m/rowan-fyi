@@ -62,13 +62,9 @@ mergedList.sort((a, b) => a.name.localeCompare(b.name));
         social network if you find something that's broken.
       </p>
       <ul>
-        {
-          mergedList.map((item) => (
-            <li>
-              <a href={item.href}>{item.name}</a>
-            </li>
-          ))
-        }
+        {mergedList.map((item) => <li>
+          <a href={item.href}>{item.name}</a>
+        </li>)}
       </ul>
     </main>
   </DefaultBodyLayout>

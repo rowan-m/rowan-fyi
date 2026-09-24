@@ -192,12 +192,11 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   <main>
     <h1>Musaic Box</h1>
     <div>
-      Use <a href="https://developer.chrome.com/docs/ai/get-started">Chrome's built-in AI</a> and <a
-        href="https://tonejs.github.io/">Tone.js</a
-      > to power a music box.
+      Use <a href="https://developer.chrome.com/docs/ai/get-started">Chrome's built-in AI</a> and{" "}
+      <a href="https://tonejs.github.io/">Tone.js</a> to power a music box.
     </div>
     <div>Enter a vibe and generate.</div>
-    <label>Vibe: <input type="text" name="vibe" /></label>
+    <label> Vibe: <input type="text" name="vibe" /> </label>
     <button type="button" name="generate" disabled>🎶 Generate</button>
     <button type="button" name="playpause" disabled>⏯ Play / pause</button>
     <div id="generating-status" class="hidden">
@@ -207,16 +206,14 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     <div id="playable-status" class="hidden">
       <span class="note">🎵</span>
       <span class="note">🎵</span>
-      <span class="note">🎵</span>
-      "<span class="chosen-vibe"></span>" tune
-      <span>generated</span>! Press Play.
+      <span class="note">🎵</span>"<span class="chosen-vibe"></span>" tune <span>generated</span>! Press Play.
     </div>
   </main>
   <dialog id="download-status">
     <div>
       <div>One-time model download required. Warning: may take a while!</div>
       <button name="download" disabled>Download model</button>
-      <output>Downloaded: <span id="download-percent">0.00</span>%</output>
+      <output> Downloaded: <span id="download-percent">0.00</span>% </output>
     </div>
   </dialog>
   <dialog id="not-supported-status">
@@ -462,5 +459,4 @@ Your tune should be approximately 20 notes or fewer.`;
     (async () => {
       init();
     })();
-  </script>
-</MetaOnlyLayout>
+  </script></MetaOnlyLayout>
