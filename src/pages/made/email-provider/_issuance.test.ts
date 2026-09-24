@@ -3,7 +3,7 @@ import type { JsonWebKey as JWK } from "node:crypto";
 import crypto from "node:crypto";
 import type { APIContext } from "astro";
 import * as jose from "jose";
-import { signatureHeaders, verify as verifyHttpMessageSig } from "http-message-sig";
+import { createSignature, verifySignature } from "http-message-sig";
 import { PRIVATE_KEY_JWK, PUBLIC_KEY_JWK } from "./_keys";
 
 async function signJwt(payload: Record<string, unknown>, header: jose.JWTHeaderParameters, keyInput: unknown) {
@@ -65,17 +65,18 @@ async function generateSignatureHeaders({
     signatureKeyHeader += `; y="${publicKeyJwk.y}"`;
   }
 
-  const requestLike = {
-    method,
-    url: `https://${authority}${path}`,
-    headers: {
-      "content-digest": contentDigest,
-      "signature-key": signatureKeyHeader,
-    } as Record<string, string>,
+  const reqHeaders: Record<string, string> = {
+    "content-digest": contentDigest,
+    "signature-key": signatureKeyHeader,
   };
   if (cookieValue) {
-    requestLike.headers["cookie"] = cookieValue;
+    reqHeaders["cookie"] = cookieValue;
   }
+
+  const requestLike = new Request(`https://${authority}${path}`, {
+    method,
+    headers: reqHeaders,
+  });
 
   const components = ["@method", "@authority", "@path", "content-digest", "signature-key"];
   if (cookieValue) {
@@ -88,26 +89,28 @@ async function generateSignatureHeaders({
   });
 
   const signer = {
-    keyid: "sig",
-    alg: "ed25519" as const,
-    sign: (data: string) => {
-      return crypto.sign(undefined, Buffer.from(data), privateKeyObj);
+    algorithm: "ed25519",
+    sign: (data: Uint8Array) => {
+      return crypto.sign(undefined, data, privateKeyObj);
     },
   };
 
-  const sigHeaders = await signatureHeaders(requestLike, {
+  const sigResult = await createSignature(requestLike, {
+    label: "sig",
     signer,
     components,
-    created: new Date(created * 1000),
-    key: "sig",
+    parameters: {
+      created,
+      keyid: "sig",
+    },
   });
 
   const headers: Record<string, string> = {
     "content-type": "application/json",
     "content-digest": contentDigest,
     "sec-fetch-dest": "email-verification",
-    signature: sigHeaders.Signature,
-    "signature-input": sigHeaders["Signature-Input"],
+    signature: sigResult.signature,
+    "signature-input": sigResult.signatureInput,
     "signature-key": signatureKeyHeader,
   };
 
@@ -138,19 +141,30 @@ describe("EVP Cryptographic Flow", () => {
     });
 
     // 3. Provider validates the request signature using http-message-sig verify function
-    const requestLike = {
+    const reqHeaders: Record<string, string> = { ...headers };
+    const requestLike = new Request(`https://${authority}${path}`, {
       method,
-      url: `https://${authority}${path}`,
-      headers,
-    };
+      headers: reqHeaders,
+    });
 
     let isVerified = false;
-    await verifyHttpMessageSig(requestLike, async (data, signature) => {
-      const pubKey = crypto.createPublicKey({
-        key: browserPublicKeyJwk as crypto.JsonWebKey,
-        format: "jwk",
-      });
-      isVerified = crypto.verify(undefined, Buffer.from(data), pubKey, signature);
+    await verifySignature(requestLike, {
+      policy: {
+        algorithms: ["ed25519"],
+        requiredComponents: ["@method", "@authority", "@path", "content-digest", "signature-key"],
+        requiredParameters: ["created"],
+      },
+      resolveVerifier: () => ({
+        algorithm: "ed25519",
+        verify: (data, signature) => {
+          const pubKey = crypto.createPublicKey({
+            key: browserPublicKeyJwk as crypto.JsonWebKey,
+            format: "jwk",
+          });
+          isVerified = crypto.verify(undefined, data, pubKey, signature);
+          return isVerified;
+        },
+      }),
     });
 
     expect(isVerified).toBe(true);

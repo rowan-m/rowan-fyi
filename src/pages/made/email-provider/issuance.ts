@@ -3,7 +3,7 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { importJWK, jwtVerify, SignJWT, decodeProtectedHeader } from "jose";
 import type { JWK } from "jose";
-import { verify as verifyHttpMessageSig } from "http-message-sig";
+import { verifySignature } from "http-message-sig";
 import { parseDictionary } from "structured-headers";
 import crypto from "node:crypto";
 import { PRIVATE_KEY_JWK } from "./_keys";
@@ -125,42 +125,74 @@ async function verifyRequestSignature(
     hostHeader = "rowan.fyi";
   }
 
-  const requestLike = {
-    method: request.method,
-    url: `${url.protocol}//${hostHeader}${url.pathname}`,
-    headers: {
-      signature: signatureHeader,
-      "signature-input": signatureInputHeader,
-      "signature-key": signatureKeyHeader,
-      cookie: request.headers.get("cookie") || "",
-      "content-digest": contentDigestHeader,
-    },
+  const verifyHeaders: Record<string, string> = {
+    signature: signatureHeader,
+    "signature-input": signatureInputHeader,
+    "signature-key": signatureKeyHeader,
+    "content-digest": contentDigestHeader,
   };
+  const cookie = request.headers.get("cookie");
+  if (cookie) {
+    verifyHeaders["cookie"] = cookie;
+  }
+
+  const requestLike = new Request(`${url.protocol}//${hostHeader}${url.pathname}`, {
+    method: request.method,
+    headers: verifyHeaders,
+  });
 
   try {
-    await verifyHttpMessageSig(requestLike, async (data, signature, params) => {
-      // Timing check (300-second / 5-minute window per RFC 8725 / ev-protocol § 4.2)
-      const createdTime = params.created ? Math.floor(params.created.getTime() / 1000) : NaN;
-      if (isNaN(createdTime)) {
-        throw new Error("Signature-Input is missing the 'created' parameter or it is malformed.");
-      }
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (Math.abs(currentTime - createdTime) > 300) {
-        throw new Error(
-          `The signature timestamp 'created' is outside the acceptable 300-second window. Server: ${currentTime}, header: ${createdTime}`,
-        );
-      }
+    await verifySignature(requestLike, {
+      policy: {
+        algorithms: ["ed25519", "Ed25519", "EdDSA", "es256", "ES256", "ecdsa-p256-sha256"],
+        requiredComponents: ["@method", "@authority", "@path", "content-digest", "signature-key"],
+        requiredParameters: ["created"],
+        clockSkew: 300,
+        validate: (verified) => {
+          const createdTime = typeof verified.parameters.created === "number" ? verified.parameters.created : NaN;
+          if (isNaN(createdTime)) {
+            throw new Error("Signature-Input is missing the 'created' parameter or it is malformed.");
+          }
+          const currentTime = Math.floor(Date.now() / 1000);
+          if (Math.abs(currentTime - createdTime) > 300) {
+            throw new Error(
+              `The signature timestamp 'created' is outside the acceptable 300-second window. Server: ${currentTime}, header: ${createdTime}`,
+            );
+          }
+        },
+      },
+      resolveVerifier: (untrustedCandidate) => {
+        let algorithm = untrustedCandidate.algorithm;
+        if (!algorithm) {
+          if (
+            browserJwk.kty === "OKP" ||
+            browserJwk.crv === "Ed25519" ||
+            browserJwk.alg === "Ed25519" ||
+            browserJwk.alg === "EdDSA"
+          ) {
+            algorithm = "ed25519";
+          } else if (browserJwk.kty === "EC" || browserJwk.crv === "P-256" || browserJwk.alg === "ES256") {
+            algorithm = "ecdsa-p256-sha256";
+          } else {
+            algorithm = "ed25519";
+          }
+        }
 
-      // Cryptographic signature check using node crypto
-      const publicKey = crypto.createPublicKey({
-        key: browserJwk as crypto.JsonWebKey,
-        format: "jwk",
-      });
-
-      const isVerified = crypto.verify(undefined, Buffer.from(data), publicKey, signature);
-      if (!isVerified) {
-        throw new Error("HTTP Message Signature verification failed.");
-      }
+        return {
+          algorithm,
+          verify: (data: Uint8Array, signature: Uint8Array) => {
+            try {
+              const publicKey = crypto.createPublicKey({
+                key: browserJwk as crypto.JsonWebKey,
+                format: "jwk",
+              });
+              return crypto.verify(undefined, data, publicKey, signature);
+            } catch {
+              return false;
+            }
+          },
+        };
+      },
     });
   } catch (err: unknown) {
     return returnError("HTTP Message Signature verification failed.", err instanceof Error ? err.message : String(err));
