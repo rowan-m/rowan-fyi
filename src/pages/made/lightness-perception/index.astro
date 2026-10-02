@@ -17,7 +17,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   />
   <link
     rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⬛</text></svg>"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='%23da0b0b'/><stop offset='1' stop-color='%23daa60b'/></linearGradient></defs><rect width='100' height='100' fill='url(%23g)'/></svg>"
   />
 
   <style>
@@ -41,7 +41,10 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       box-sizing: border-box;
     }
 
-    html,
+    html {
+      color-scheme: dark;
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -58,7 +61,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       line-height: 1.5;
       display: flex;
       flex-direction: column;
-      color-scheme: dark;
     }
 
     /* Header */
@@ -136,16 +138,11 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     .gradient-layer {
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
       background: var(--gradient);
     }
 
     .gradient-layer.fg {
-      clip-path: inset(
-        calc(50% - var(--square-size) / 2) calc(50% - var(--square-size) / 2) calc(50% - var(--square-size) / 2)
-          calc(50% - var(--square-size) / 2)
-      );
+      clip-path: inset(calc(50% - var(--square-size) / 2));
       transform: translateX(var(--offset));
       cursor: grab;
       will-change: transform;
@@ -162,14 +159,12 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 
     @keyframes oscillate {
       0%,
+      50%,
       100% {
         transform: translateX(0px);
       }
       25% {
         transform: translateX(calc(50% - var(--square-size) / 2 - 16px));
-      }
-      50% {
-        transform: translateX(0px);
       }
       75% {
         transform: translateX(calc(-50% + var(--square-size) / 2 + 16px));
@@ -217,24 +212,20 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     }
 
     /* Accessible focus ring for keyboard navigation */
-    .focus-outline {
-      display: none;
+    .gradient-layer.fg:focus {
+      outline: none;
+    }
+
+    .gradient-layer.fg:focus-visible::after {
+      content: "";
       position: absolute;
       top: calc(50% - var(--square-size) / 2);
       left: calc(50% - var(--square-size) / 2);
       width: var(--square-size);
       height: var(--square-size);
       border: 2px dashed rgba(255, 255, 255, 0.85);
-      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7) inset;
       pointer-events: none;
-    }
-
-    .gradient-layer.fg:focus-visible .focus-outline {
-      display: block;
-    }
-
-    .gradient-layer.fg:focus {
-      outline: none;
     }
 
     /* Hint text */
@@ -283,7 +274,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     }
 
     input[type="color"] {
-      -webkit-appearance: none;
       appearance: none;
       width: 40px;
       height: 34px;
@@ -349,7 +339,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 
     /* Fixed-width animate button avoids layout shifts */
     .btn-animate {
-      width: 125px;
       min-width: 125px;
     }
 
@@ -462,9 +451,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
           aria-valuemax="100"
           aria-valuenow="50"
           aria-valuetext="50% (Center)"
-        >
-          <div class="focus-outline" aria-hidden="true"></div>
-        </div>
+        ></div>
         <div class="hint-guide" id="hint-guide" aria-hidden="true">
           <span class="pointing-finger">👆</span>
         </div>
@@ -473,7 +460,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 
     <p class="hint-text">Drag the square back and forth horizontally. It is not changing colour. I promise.</p>
 
-    <form class="controls" onsubmit="event.preventDefault()">
+    <form class="controls">
       <div class="controls-row">
         <div class="color-picker-group">
           <label for="color-start">Start color</label>
@@ -536,6 +523,10 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   <script>
     import { isValidHex } from "./_illusion-math";
 
+    const DEFAULT_START = "#da0b0b";
+    const DEFAULT_END = "#daa60b";
+    const PADDING = 16;
+
     let isDragging = false;
 
     const stage = document.getElementById("stage");
@@ -550,31 +541,47 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     const animLabel = document.getElementById("anim-label");
     const presetChips = document.querySelectorAll(".preset-chip");
 
-    const PADDING = 16;
-
     function getSquareSize() {
-      const vw = window.innerWidth;
-      return Math.min(Math.max(60, vw * 0.12), 110);
+      return Math.min(Math.max(60, window.innerWidth * 0.12), 110);
+    }
+
+    function getMaxOffset() {
+      if (!stage) return 0;
+      return Math.max(0, stage.getBoundingClientRect().width / 2 - getSquareSize() / 2 - PADDING);
+    }
+
+    function updateOffset(offset) {
+      if (!stage) return;
+      const maxOffset = getMaxOffset();
+      const clamped = Math.min(Math.max(offset, -maxOffset), maxOffset);
+      stage.style.setProperty("--offset", `${clamped}px`);
+
+      if (square) {
+        const percentage = Math.round(maxOffset > 0 ? (clamped / (2 * maxOffset) + 0.5) * 100 : 50);
+        square.setAttribute("aria-valuenow", `${percentage}`);
+        let side = " (Right)";
+        if (percentage === 50) {
+          side = " (Center)";
+        } else if (percentage < 50) {
+          side = " (Left)";
+        }
+        square.setAttribute("aria-valuetext", `${percentage}%${side}`);
+      }
     }
 
     function dismissHint() {
-      if (hintGuide) {
-        hintGuide.classList.add("hidden");
-      }
+      hintGuide?.classList.add("hidden");
     }
 
     function showHint() {
-      if (hintGuide) {
-        hintGuide.classList.remove("hidden");
-      }
+      hintGuide?.classList.remove("hidden");
     }
 
     function stopAnimation() {
-      if (!stage || !stage.classList.contains("is-animating")) return;
-      // Examine the current translate value of the element to freeze it in place
+      if (!stage?.classList.contains("is-animating")) return;
       if (square) {
         const matrix = new DOMMatrix(window.getComputedStyle(square).transform);
-        stage.style.setProperty("--offset", `${matrix.m41}px`);
+        updateOffset(matrix.m41);
       }
       stage.classList.remove("is-animating");
       if (animIcon) animIcon.textContent = "▶️";
@@ -584,7 +591,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     function startAnimation() {
       if (!stage) return;
       dismissHint();
-      // Remove any static offset so CSS keyframes control transform smoothly
       stage.style.removeProperty("--offset");
       stage.classList.add("is-animating");
       if (animIcon) animIcon.textContent = "⏸️";
@@ -594,57 +600,26 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     function setPositionFromClientX(clientX) {
       if (!stage) return;
       const rect = stage.getBoundingClientRect();
-      const relativeX = clientX - rect.left;
-      const halfWidth = rect.width / 2;
-      const squareSize = getSquareSize();
-      const maxOffset = Math.max(0, halfWidth - squareSize / 2 - PADDING);
-
-      const offset = relativeX - halfWidth;
-      const clampedOffset = Math.min(Math.max(offset, -maxOffset), maxOffset);
-      stage.style.setProperty("--offset", `${clampedOffset}px`);
-
-      if (square) {
-        const ratio = maxOffset > 0 ? (clampedOffset / (2 * maxOffset) + 0.5) * 100 : 50;
-        const percentage = Math.round(ratio);
-        square.setAttribute("aria-valuenow", `${percentage}`);
-        let label = `${percentage}%`;
-        if (percentage === 50) label += " (Center)";
-        else if (percentage < 50) label += " (Left)";
-        else label += " (Right)";
-        square.setAttribute("aria-valuetext", label);
-      }
+      updateOffset(clientX - rect.left - rect.width / 2);
     }
 
-    // Pointer Events for dragging
+    // Pointer events for dragging
     stage?.addEventListener("pointerdown", (e) => {
       dismissHint();
       stopAnimation();
       isDragging = true;
       square?.classList.add("is-dragging");
-      try {
-        square?.setPointerCapture(e.pointerId);
-      } catch {
-        // Fallback for environments lacking pointer capture support
-      }
       setPositionFromClientX(e.clientX);
     });
 
     window.addEventListener("pointermove", (e) => {
-      if (!isDragging) return;
-      setPositionFromClientX(e.clientX);
+      if (isDragging) setPositionFromClientX(e.clientX);
     });
 
-    const onPointerEnd = (e) => {
+    const onPointerEnd = () => {
       if (!isDragging) return;
       isDragging = false;
       square?.classList.remove("is-dragging");
-      try {
-        if (e && square?.hasPointerCapture(e.pointerId)) {
-          square?.releasePointerCapture(e.pointerId);
-        }
-      } catch {
-        // Safe fallback
-      }
     };
 
     window.addEventListener("pointerup", onPointerEnd);
@@ -655,31 +630,25 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       dismissHint();
       stopAnimation();
       if (!stage) return;
-      const rect = stage.getBoundingClientRect();
-      const halfWidth = rect.width / 2;
-      const squareSize = getSquareSize();
-      const maxOffset = Math.max(0, halfWidth - squareSize / 2 - PADDING);
 
       const currentOffset = parseFloat(stage.style.getPropertyValue("--offset") || "0");
       const step = 20;
 
       if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
         e.preventDefault();
-        const next = Math.max(-maxOffset, currentOffset - step);
-        stage.style.setProperty("--offset", `${next}px`);
+        updateOffset(currentOffset - step);
       } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
         e.preventDefault();
-        const next = Math.min(maxOffset, currentOffset + step);
-        stage.style.setProperty("--offset", `${next}px`);
+        updateOffset(currentOffset + step);
       } else if (e.key === "Home") {
         e.preventDefault();
-        stage.style.setProperty("--offset", `${-maxOffset}px`);
+        updateOffset(-getMaxOffset());
       } else if (e.key === "End") {
         e.preventDefault();
-        stage.style.setProperty("--offset", `${maxOffset}px`);
+        updateOffset(getMaxOffset());
       } else if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        stage.style.setProperty("--offset", "0px");
+        updateOffset(0);
       }
     });
 
@@ -690,16 +659,17 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
       document.documentElement.style.setProperty("--color-start", start);
       document.documentElement.style.setProperty("--color-end", end);
 
+      const lowerStart = start.toLowerCase();
+      const lowerEnd = end.toLowerCase();
       presetChips.forEach((chip) => {
         const matches =
-          chip.dataset.start?.toLowerCase() === start.toLowerCase() &&
-          chip.dataset.end?.toLowerCase() === end.toLowerCase();
+          chip.dataset.start?.toLowerCase() === lowerStart && chip.dataset.end?.toLowerCase() === lowerEnd;
         chip.classList.toggle("active", matches);
       });
 
-      if (updateUrl && typeof window !== "undefined") {
+      if (updateUrl) {
         const url = new URL(window.location.href);
-        if (start.toLowerCase() === "#da0b0b" && end.toLowerCase() === "#daa60b") {
+        if (lowerStart === DEFAULT_START && lowerEnd === DEFAULT_END) {
           url.searchParams.delete("start");
           url.searchParams.delete("end");
         } else {
@@ -728,15 +698,10 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     resetBtn?.addEventListener("click", () => {
       showHint();
       stopAnimation();
-      stage?.style.setProperty("--offset", "0px");
-      if (square) {
-        square.setAttribute("aria-valuenow", "50");
-        square.setAttribute("aria-valuetext", "50% (Center)");
-      }
+      updateOffset(0);
     });
 
     animateBtn?.addEventListener("click", () => {
-      dismissHint();
       if (stage?.classList.contains("is-animating")) {
         stopAnimation();
       } else {
