@@ -1,0 +1,765 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout
+  title="Lightness perception illusion - Akiyoshi Kitaoka"
+  description="An interactive demonstration of Akiyoshi Kitaoka's lightness perception illusion featuring a horizontal gradient and a draggable center square."
+>
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Lightness perception illusion - Akiyoshi Kitaoka" />
+  <meta
+    property="og:description"
+    content="An interactive demonstration of Akiyoshi Kitaoka's lightness perception illusion featuring a horizontal gradient and a draggable center square."
+  />
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⬛</text></svg>"
+  />
+
+  <style>
+    :root {
+      --color-start: #da0b0b;
+      --color-end: #daa60b;
+      --gradient: linear-gradient(to right, var(--color-start), var(--color-end));
+      --square-size: clamp(60px, 12vw, 110px);
+      --offset: 0px;
+
+      --bg-page: #121316;
+      --bg-surface: #1c1d22;
+      --bg-surface-hover: #26272e;
+      --border-color: #2e3038;
+      --text-main: #f0f0f4;
+      --text-muted: #9ba0aa;
+      --accent-color: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      color-scheme: dark;
+    }
+
+    /* Header */
+    .app-header {
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .app-header h1 {
+      font-size: 1.25rem;
+      font-weight: 300;
+      margin: 0;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .header-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: color 0.2s;
+    }
+
+    .header-nav a:hover {
+      color: var(--text-main);
+      text-decoration: underline;
+    }
+
+    /* Main Container */
+    .app-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      padding: 1.5rem 0;
+    }
+
+    /* Illusion Stage */
+    .stage-wrapper {
+      width: 100%;
+      max-width: 1100px;
+      padding: 0 1rem;
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: clamp(220px, 42vh, 420px);
+      border-radius: 12px;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+      cursor: crosshair;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* The two identically sized layers */
+    .gradient-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient);
+    }
+
+    .gradient-layer.fg {
+      clip-path: inset(
+        calc(50% - var(--square-size) / 2) calc(50% - var(--square-size) / 2) calc(50% - var(--square-size) / 2)
+          calc(50% - var(--square-size) / 2)
+      );
+      transform: translateX(var(--offset));
+      cursor: grab;
+      will-change: transform;
+    }
+
+    .gradient-layer.fg:active,
+    .gradient-layer.fg.is-dragging {
+      cursor: grabbing;
+    }
+
+    .stage.is-animating .gradient-layer.fg {
+      animation: oscillate 8s ease-in-out infinite;
+    }
+
+    @keyframes oscillate {
+      0%,
+      100% {
+        transform: translateX(0px);
+      }
+      25% {
+        transform: translateX(calc(50% - var(--square-size) / 2 - 16px));
+      }
+      50% {
+        transform: translateX(0px);
+      }
+      75% {
+        transform: translateX(calc(-50% + var(--square-size) / 2 + 16px));
+      }
+    }
+
+    /* Initial onboarding guide with finger pointing */
+    .hint-guide {
+      position: absolute;
+      top: calc(50% - var(--square-size) / 2);
+      left: calc(50% - var(--square-size) / 2);
+      width: var(--square-size);
+      height: var(--square-size);
+      border: 2px dashed rgba(255, 255, 255, 0.85);
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.3s ease;
+    }
+
+    .hint-guide.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .pointing-finger {
+      font-size: 2.2rem;
+      animation: finger-nudge 1.6s ease-in-out infinite;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
+      user-select: none;
+    }
+
+    @keyframes finger-nudge {
+      0%,
+      100% {
+        transform: translateX(-18px);
+      }
+      50% {
+        transform: translateX(18px);
+      }
+    }
+
+    /* Accessible focus ring for keyboard navigation */
+    .focus-outline {
+      display: none;
+      position: absolute;
+      top: calc(50% - var(--square-size) / 2);
+      left: calc(50% - var(--square-size) / 2);
+      width: var(--square-size);
+      height: var(--square-size);
+      border: 2px dashed rgba(255, 255, 255, 0.85);
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
+      pointer-events: none;
+    }
+
+    .gradient-layer.fg:focus-visible .focus-outline {
+      display: block;
+    }
+
+    .gradient-layer.fg:focus {
+      outline: none;
+    }
+
+    /* Hint text */
+    .hint-text {
+      margin: 1rem 0 0.5rem;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 0 1rem;
+    }
+
+    /* Controls Panel */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      margin-top: 1rem;
+      width: 100%;
+      max-width: 900px;
+      padding: 1.25rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .color-picker-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .color-picker-group label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 40px;
+      height: 34px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 4px;
+    }
+
+    input[type="color"]::-moz-color-swatch {
+      border: none;
+      border-radius: 4px;
+    }
+
+    input[type="color"]:hover {
+      transform: scale(1.05);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-page);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      height: 36px;
+      gap: 0.4rem;
+    }
+
+    .btn:hover {
+      background: var(--bg-surface-hover);
+      border-color: #3f424e;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-icon {
+      padding: 0.5rem 0.75rem;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    /* Fixed-width animate button avoids layout shifts */
+    .btn-animate {
+      width: 125px;
+      min-width: 125px;
+    }
+
+    .presets-container {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .presets-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-right: 0.25rem;
+    }
+
+    .preset-chip {
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-page);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .preset-chip:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+      border-color: #4a4d5a;
+    }
+
+    .preset-chip.active {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+      border-color: var(--accent-color);
+      font-weight: 600;
+    }
+
+    /* Footer */
+    .app-footer {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 1.5rem 1rem;
+      border-top: 1px solid var(--border-color);
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .app-footer a {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .app-footer a:hover {
+      color: var(--accent-color);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 640px) {
+      .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .controls {
+        padding: 1rem 0.75rem;
+      }
+    }
+  </style>
+
+  <header class="app-header">
+    <h1>Lightness perception illusion</h1>
+    <nav class="header-nav" aria-label="Author links">
+      <span> Original illusion by</span
+      ><span>
+        <a href="https://www.ritsumei.ac.jp/~akitaoka/" target="_blank" rel="noopener"
+          ><span aria-hidden="true">🌐</span> Akiyoshi Kitaoka</a
+        >
+      </span>
+      <a href="https://bsky.app/profile/akiyoshikitaoka.bsky.social" target="_blank" rel="noopener"
+        ><span aria-hidden="true">🦋</span> akiyoshikitaoka.bsky.social</a
+      >
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <div class="stage-wrapper">
+      <div
+        class="stage"
+        id="stage"
+        role="region"
+        aria-label="Illusion stage: horizontal gradient with draggable center square"
+      >
+        <div class="gradient-layer bg" aria-hidden="true"></div>
+        <div
+          class="gradient-layer fg"
+          id="square"
+          role="slider"
+          tabindex="0"
+          aria-label="Target square horizontal position"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="50"
+          aria-valuetext="50% (Center)"
+        >
+          <div class="focus-outline" aria-hidden="true"></div>
+        </div>
+        <div class="hint-guide" id="hint-guide" aria-hidden="true">
+          <span class="pointing-finger">👆</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint-text">Drag the square back and forth horizontally. It is not changing colour. I promise.</p>
+
+    <form class="controls" onsubmit="event.preventDefault()">
+      <div class="controls-row">
+        <div class="color-picker-group">
+          <label for="color-start">Start color</label>
+          <input type="color" id="color-start" name="color-start" value="#da0b0b" aria-label="Gradient start color" />
+        </div>
+
+        <button type="button" id="swap-btn" class="btn btn-icon" title="Swap colors" aria-label="Swap colors">⇄</button>
+
+        <div class="color-picker-group">
+          <label for="color-end">End color</label>
+          <input type="color" id="color-end" name="color-end" value="#daa60b" aria-label="Gradient end color" />
+        </div>
+
+        <button type="button" id="reset-btn" class="btn"><span aria-hidden="true">🔁</span> Reset</button>
+        <button
+          type="button"
+          id="animate-btn"
+          class="btn btn-animate"
+          title="Toggle horizontal animation"
+          aria-label="Toggle horizontal animation"
+        >
+          <span id="anim-icon" aria-hidden="true">▶️</span>
+          <span id="anim-label">Auto-play</span>
+        </button>
+      </div>
+
+      <div class="controls-row presets-container" role="group" aria-label="Gradient presets">
+        <span class="presets-label">Presets:</span>
+        <button type="button" class="preset-chip active" data-start="#da0b0b" data-end="#daa60b">Red – Gold</button>
+        <button type="button" class="preset-chip" data-start="#1a2a6c" data-end="#fdbb2d">Indigo – Gold</button>
+        <button type="button" class="preset-chip" data-start="#b20a2c" data-end="#00b4db">Crimson – Cyan</button>
+        <button type="button" class="preset-chip" data-start="#4a0e4e" data-end="#88d49e">Violet – Lime</button>
+        <button type="button" class="preset-chip" data-start="#1a1a1a" data-end="#e0e0e0">Charcoal – Silver</button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="app-footer">
+    <a
+      href="https://github.com/rowan-m/rowan-fyi/tree/main/src/pages/made/lightness-perception"
+      target="_blank"
+      rel="noopener"
+      ><span aria-hidden="true">🧑‍💻</span> Code</a
+    >
+    <a href="https://rowan.fyi" target="_blank" rel="noopener" aria-label="Website rowan.fyi"
+      ><span aria-hidden="true">🌐</span> rowan.fyi</a
+    >
+    <a href="https://bsky.app/profile/rowan.fyi" target="_blank" rel="noopener" aria-label="Bluesky profile rowan.fyi"
+      ><span aria-hidden="true">🦋</span> rowan.fyi</a
+    >
+    <a
+      href="https://mastodon.social/@rowan_m"
+      target="_blank"
+      rel="noopener"
+      aria-label="Mastodon profile rowan_m@mastodon.social"
+      ><span aria-hidden="true">🦣</span> rowan_m</a
+    >
+  </footer>
+
+  <script>
+    import { isValidHex } from "./_illusion-math";
+
+    let isDragging = false;
+
+    const stage = document.getElementById("stage");
+    const square = document.getElementById("square");
+    const hintGuide = document.getElementById("hint-guide");
+    const colorStart = document.getElementById("color-start");
+    const colorEnd = document.getElementById("color-end");
+    const swapBtn = document.getElementById("swap-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const animateBtn = document.getElementById("animate-btn");
+    const animIcon = document.getElementById("anim-icon");
+    const animLabel = document.getElementById("anim-label");
+    const presetChips = document.querySelectorAll(".preset-chip");
+
+    const PADDING = 16;
+
+    function getSquareSize() {
+      const vw = window.innerWidth;
+      return Math.min(Math.max(60, vw * 0.12), 110);
+    }
+
+    function dismissHint() {
+      if (hintGuide) {
+        hintGuide.classList.add("hidden");
+      }
+    }
+
+    function showHint() {
+      if (hintGuide) {
+        hintGuide.classList.remove("hidden");
+      }
+    }
+
+    function stopAnimation() {
+      if (!stage || !stage.classList.contains("is-animating")) return;
+      // Examine the current translate value of the element to freeze it in place
+      if (square) {
+        const matrix = new DOMMatrix(window.getComputedStyle(square).transform);
+        stage.style.setProperty("--offset", `${matrix.m41}px`);
+      }
+      stage.classList.remove("is-animating");
+      if (animIcon) animIcon.textContent = "▶️";
+      if (animLabel) animLabel.textContent = "Auto-play";
+    }
+
+    function startAnimation() {
+      if (!stage) return;
+      dismissHint();
+      // Remove any static offset so CSS keyframes control transform smoothly
+      stage.style.removeProperty("--offset");
+      stage.classList.add("is-animating");
+      if (animIcon) animIcon.textContent = "⏸️";
+      if (animLabel) animLabel.textContent = "Pause";
+    }
+
+    function setPositionFromClientX(clientX) {
+      if (!stage) return;
+      const rect = stage.getBoundingClientRect();
+      const relativeX = clientX - rect.left;
+      const halfWidth = rect.width / 2;
+      const squareSize = getSquareSize();
+      const maxOffset = Math.max(0, halfWidth - squareSize / 2 - PADDING);
+
+      const offset = relativeX - halfWidth;
+      const clampedOffset = Math.min(Math.max(offset, -maxOffset), maxOffset);
+      stage.style.setProperty("--offset", `${clampedOffset}px`);
+
+      if (square) {
+        const ratio = maxOffset > 0 ? (clampedOffset / (2 * maxOffset) + 0.5) * 100 : 50;
+        const percentage = Math.round(ratio);
+        square.setAttribute("aria-valuenow", `${percentage}`);
+        let label = `${percentage}%`;
+        if (percentage === 50) label += " (Center)";
+        else if (percentage < 50) label += " (Left)";
+        else label += " (Right)";
+        square.setAttribute("aria-valuetext", label);
+      }
+    }
+
+    // Pointer Events for dragging
+    stage?.addEventListener("pointerdown", (e) => {
+      dismissHint();
+      stopAnimation();
+      isDragging = true;
+      square?.classList.add("is-dragging");
+      try {
+        square?.setPointerCapture(e.pointerId);
+      } catch {
+        // Fallback for environments lacking pointer capture support
+      }
+      setPositionFromClientX(e.clientX);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!isDragging) return;
+      setPositionFromClientX(e.clientX);
+    });
+
+    const onPointerEnd = (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      square?.classList.remove("is-dragging");
+      try {
+        if (e && square?.hasPointerCapture(e.pointerId)) {
+          square?.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Safe fallback
+      }
+    };
+
+    window.addEventListener("pointerup", onPointerEnd);
+    window.addEventListener("pointercancel", onPointerEnd);
+
+    // Keyboard navigation
+    square?.addEventListener("keydown", (e) => {
+      dismissHint();
+      stopAnimation();
+      if (!stage) return;
+      const rect = stage.getBoundingClientRect();
+      const halfWidth = rect.width / 2;
+      const squareSize = getSquareSize();
+      const maxOffset = Math.max(0, halfWidth - squareSize / 2 - PADDING);
+
+      const currentOffset = parseFloat(stage.style.getPropertyValue("--offset") || "0");
+      const step = 20;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const next = Math.max(-maxOffset, currentOffset - step);
+        stage.style.setProperty("--offset", `${next}px`);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const next = Math.min(maxOffset, currentOffset + step);
+        stage.style.setProperty("--offset", `${next}px`);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        stage.style.setProperty("--offset", `${-maxOffset}px`);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        stage.style.setProperty("--offset", `${maxOffset}px`);
+      } else if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        stage.style.setProperty("--offset", "0px");
+      }
+    });
+
+    // Color gradient controls
+    function setColors(start, end, updateUrl = true) {
+      if (colorStart) colorStart.value = start;
+      if (colorEnd) colorEnd.value = end;
+      document.documentElement.style.setProperty("--color-start", start);
+      document.documentElement.style.setProperty("--color-end", end);
+
+      presetChips.forEach((chip) => {
+        const matches =
+          chip.dataset.start?.toLowerCase() === start.toLowerCase() &&
+          chip.dataset.end?.toLowerCase() === end.toLowerCase();
+        chip.classList.toggle("active", matches);
+      });
+
+      if (updateUrl && typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        if (start.toLowerCase() === "#da0b0b" && end.toLowerCase() === "#daa60b") {
+          url.searchParams.delete("start");
+          url.searchParams.delete("end");
+        } else {
+          url.searchParams.set("start", start);
+          url.searchParams.set("end", end);
+        }
+        window.history.replaceState({}, "", url.toString());
+      }
+    }
+
+    colorStart?.addEventListener("input", (e) => {
+      dismissHint();
+      setColors(e.target.value, colorEnd.value);
+    });
+
+    colorEnd?.addEventListener("input", (e) => {
+      dismissHint();
+      setColors(colorStart.value, e.target.value);
+    });
+
+    swapBtn?.addEventListener("click", () => {
+      dismissHint();
+      setColors(colorEnd.value, colorStart.value);
+    });
+
+    resetBtn?.addEventListener("click", () => {
+      showHint();
+      stopAnimation();
+      stage?.style.setProperty("--offset", "0px");
+      if (square) {
+        square.setAttribute("aria-valuenow", "50");
+        square.setAttribute("aria-valuetext", "50% (Center)");
+      }
+    });
+
+    animateBtn?.addEventListener("click", () => {
+      dismissHint();
+      if (stage?.classList.contains("is-animating")) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    });
+
+    presetChips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        dismissHint();
+        const start = chip.dataset.start;
+        const end = chip.dataset.end;
+        if (start && end) {
+          setColors(start, end);
+        }
+      });
+    });
+
+    // Initial setup from URL parameters if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramStart = urlParams.get("start");
+    const paramEnd = urlParams.get("end");
+    if (paramStart && paramEnd && isValidHex(paramStart) && isValidHex(paramEnd)) {
+      setColors(paramStart, paramEnd, false);
+    }
+  </script></MetaOnlyLayout>
