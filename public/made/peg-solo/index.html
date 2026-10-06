@@ -330,6 +330,19 @@
     a:visited {
       color: darkslategray;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .selected {
+        animation: none;
+      }
+
+      .cell,
+      .hole,
+      nav button,
+      dialog button {
+        transition: none;
+      }
+    }
   </style>
   <header>
     <h1>Peg Solitaire / Solo Noble</h1>
@@ -379,6 +392,8 @@
     if (location.protocol !== "https:" && location.hostname !== "localhost") {
       location.protocol = "https:";
     }
+
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const DEFAULT_BOARD = [
       [0, 0, 2, 2, 2, 0, 0],
@@ -669,6 +684,10 @@
       }
 
       jump(cell, x, y) {
+        if (reducedMotionQuery.matches) {
+          return;
+        }
+
         const el = document.createElement("div");
         el.classList.add("cell", "jump");
         el.setAttribute("aria-hidden", "true");
@@ -686,6 +705,10 @@
       }
 
       remove(cell, x, y) {
+        if (reducedMotionQuery.matches) {
+          return;
+        }
+
         const el = document.createElement("div");
         el.classList.add("cell", "remove");
         el.setAttribute("aria-hidden", "true");
@@ -704,6 +727,10 @@
       }
 
       restore(cell) {
+        if (reducedMotionQuery.matches) {
+          return;
+        }
+
         const el = document.createElement("div");
         el.classList.add("cell", "restore");
         el.setAttribute("aria-hidden", "true");
@@ -770,13 +797,14 @@
         this.updateAria();
         board.appendChild(el);
         this.randomAction = this.randomAction.bind(this);
-        if (this.type === Cell.PEG) {
+        if (this.type === Cell.PEG && !reducedMotionQuery.matches) {
           this.actionTimeout = setTimeout(this.randomAction, 500 + Math.random() * 5000);
         }
       }
 
       randomAction() {
-        if (this.type === Cell.HOLE) {
+        if (this.type === Cell.HOLE || reducedMotionQuery.matches) {
+          this.el.classList.remove("happy", "happier", "sly");
           this.actionTimeout = null;
           return;
         }
@@ -819,6 +847,13 @@
         this.updateAria(false);
         clearTimeout(this.addTimeout);
         clearTimeout(this.actionTimeout);
+        if (reducedMotionQuery.matches) {
+          this.addTimeout = null;
+          this.actionTimeout = null;
+          this.el.classList.add("peg");
+          this.el.classList.remove("hole");
+          return;
+        }
         this.addTimeout = setTimeout(() => {
           this.addTimeout = null;
           if (this.type === Cell.PEG) {
