@@ -344,6 +344,7 @@
       static WIN = "win";
       gameState;
       stateEl;
+      selectedPeg;
 
       constructor() {
         this.handleClick = this.handleClick.bind(this);
@@ -351,6 +352,7 @@
         this.timer = 0;
         this.cells = new Array();
         this.gameState = Board.NEW;
+        this.selectedPeg = null;
       }
 
       setBoard(data) {
@@ -369,6 +371,7 @@
       reset() {
         this.timer = 0;
         this.gameState = Board.NEW;
+        this.selectedPeg = null;
         this.timerEl.textContent = `00:00`;
         this.stateEl.textContent = "😺 New";
         this.el.classList.remove("win", "lose");
