@@ -10,9 +10,10 @@ import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 let staticDirs: string[] = [];
 try {
   const staticPath = path.resolve("public/made");
-  staticDirs = fs.readdirSync(staticPath).filter((file) => {
-    return fs.statSync(path.join(staticPath, file)).isDirectory();
-  });
+  staticDirs = fs
+    .readdirSync(staticPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
 } catch (e) {
   console.warn("Could not read public/made directory", e);
 }
@@ -21,9 +22,10 @@ try {
 let astroDirs: string[] = [];
 try {
   const astroPath = path.resolve("src/pages/made");
-  astroDirs = fs.readdirSync(astroPath).filter((file) => {
-    return file !== "index.astro" && fs.statSync(path.join(astroPath, file)).isDirectory();
-  });
+  astroDirs = fs
+    .readdirSync(astroPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
 } catch (e) {
   console.warn("Could not read src/pages/made directory", e);
 }

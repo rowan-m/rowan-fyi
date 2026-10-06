@@ -31,6 +31,13 @@ import { GET as getDiscovery } from "../../.well-known/email-verification";
 import { GET as getJwks } from "./jwks";
 import { POST as postIssuance } from "./issuance";
 
+const DEMO_EMAIL = "demo@rowan.fyi";
+const SEC_FETCH_DEST_EVP = "email-verification";
+const ISSUANCE_PATH = "/made/email-provider/issuance";
+const ISSUER_ORIGIN = "https://rowan.fyi";
+const ISSUANCE_URL = `${ISSUER_ORIGIN}${ISSUANCE_PATH}`;
+const ACTIVE_SESSION_COOKIE = "__session=active";
+
 /**
  * Helper to dynamically sign request headers using RFC 9421 and http-message-sig.
  */
@@ -41,7 +48,7 @@ async function generateSignatureHeaders({
   cookieValue,
   privateKeyJwk,
   publicKeyJwk,
-  body = JSON.stringify({ email: "demo@rowan.fyi" }),
+  body = JSON.stringify({ email: DEMO_EMAIL }),
   algParam,
   createdTimestamp,
 }: {
@@ -108,7 +115,7 @@ async function generateSignatureHeaders({
   const headers: Record<string, string> = {
     "content-type": "application/json",
     "content-digest": contentDigest,
-    "sec-fetch-dest": "email-verification",
+    "sec-fetch-dest": SEC_FETCH_DEST_EVP,
     signature: sigResult.signature,
     "signature-input": sigResult.signatureInput,
     "signature-key": signatureKeyHeader,
@@ -131,7 +138,7 @@ describe("EVP Cryptographic Flow", () => {
     // 2. Generate standard signature headers using generateSignatureHeaders helper
     const method = "POST";
     const authority = "rowan.fyi";
-    const path = "/made/email-provider/issuance";
+    const path = ISSUANCE_PATH;
     const headers = await generateSignatureHeaders({
       method,
       authority,
@@ -172,13 +179,13 @@ describe("EVP Cryptographic Flow", () => {
     // 4. Provider signs an Email Verification Token (EVT)
     const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const evtPayload = {
-      iss: "https://rowan.fyi",
+      iss: ISSUER_ORIGIN,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 300,
       cnf: {
         jwk: browserPublicKeyJwk,
       },
-      email: "demo@rowan.fyi",
+      email: DEMO_EMAIL,
       email_verified: true,
     };
 
@@ -198,7 +205,7 @@ describe("EVP Cryptographic Flow", () => {
     const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const parsedEvt = fullEvt.split("~")[0];
     const { payload: verifiedEvt } = await verifyJwt(parsedEvt, providerPublicKey);
-    expect(verifiedEvt.email.toLowerCase()).toBe("demo@rowan.fyi");
+    expect(verifiedEvt.email.toLowerCase()).toBe(DEMO_EMAIL);
     expect(verifiedEvt.email_verified).toBe(true);
 
     const cnf = verifiedEvt.cnf as { jwk: typeof browserPublicKeyJwk };
@@ -212,7 +219,7 @@ describe("EVP Cryptographic Flow", () => {
 
     // 2. Browser signs a request token
     const requestToken = await signJwt(
-      { email: "demo@rowan.fyi" },
+      { email: DEMO_EMAIL },
       {
         alg: "ES256",
         jwk: browserJwkData,
@@ -223,18 +230,18 @@ describe("EVP Cryptographic Flow", () => {
     // 3. Provider validates the request token
     const decodedHeader = crypto.createPublicKey({ key: browserJwkData as crypto.JsonWebKey, format: "jwk" });
     const { payload: requestPayload } = await verifyJwt(requestToken, decodedHeader);
-    expect(requestPayload.email).toBe("demo@rowan.fyi");
+    expect(requestPayload.email).toBe(DEMO_EMAIL);
 
     // 4. Provider signs an Email Verification Token (EVT)
     const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const evtPayload = {
-      iss: "https://rowan.fyi",
+      iss: ISSUER_ORIGIN,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 300,
       cnf: {
         jwk: browserJwkData,
       },
-      email: "demo@rowan.fyi",
+      email: DEMO_EMAIL,
       email_verified: true,
     };
 
@@ -254,7 +261,7 @@ describe("EVP Cryptographic Flow", () => {
     const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const parsedEvt = fullEvt.split("~")[0];
     const { payload: verifiedEvt } = await verifyJwt(parsedEvt, providerPublicKey);
-    expect(verifiedEvt.email.toLowerCase()).toBe("demo@rowan.fyi");
+    expect(verifiedEvt.email.toLowerCase()).toBe(DEMO_EMAIL);
     expect(verifiedEvt.email_verified).toBe(true);
 
     const cnf = verifiedEvt.cnf as { jwk: typeof browserJwkData };
@@ -284,8 +291,8 @@ describe("EVP Endpoint Unit Tests", () => {
       private_email_supported: boolean;
       webauthn_supported?: boolean;
     };
-    expect(data.issuer).toBe("https://rowan.fyi");
-    expect(data.issuance_endpoint).toBe("https://rowan.fyi/made/email-provider/issuance");
+    expect(data.issuer).toBe(ISSUER_ORIGIN);
+    expect(data.issuance_endpoint).toBe(ISSUANCE_URL);
     expect(data.jwks_uri).toBe("https://rowan.fyi/made/email-provider/jwks");
     expect(data.signing_alg_values_supported).toEqual(["Ed25519", "EdDSA"]);
     expect(data.private_email_supported).toBe(false);
@@ -313,14 +320,14 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint returns 400 when request token is missing (Path B)", async () => {
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const response = await postIssuance({
       url: mockUrl,
       request: new Request(mockUrl, {
         method: "POST",
         headers: {
           "content-type": "application/x-www-form-urlencoded",
-          "sec-fetch-dest": "email-verification",
+          "sec-fetch-dest": SEC_FETCH_DEST_EVP,
         },
       }),
       params: {},
@@ -342,14 +349,14 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint returns 400 on malformed or invalid request_token signature (Path B)", async () => {
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const response = await postIssuance({
       url: mockUrl,
       request: new Request(mockUrl, {
         method: "POST",
         headers: {
           "content-type": "application/x-www-form-urlencoded",
-          "sec-fetch-dest": "email-verification",
+          "sec-fetch-dest": SEC_FETCH_DEST_EVP,
         },
         body: "request_token=invalid.jwt.token",
       }),
@@ -376,13 +383,13 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const body = "email=demo%40rowan.fyi";
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       body,
@@ -418,15 +425,15 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
-      body: JSON.stringify({ email: "demo@rowan.fyi" }),
+      body: JSON.stringify({ email: DEMO_EMAIL }),
     });
 
     // Send a different body than what was digested/signed
@@ -457,11 +464,11 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
+      path: ISSUANCE_PATH,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
     });
@@ -471,7 +478,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -492,12 +499,12 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const body = JSON.stringify({ email: "attacker@malicious.com" });
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
+      path: ISSUANCE_PATH,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       body,
@@ -531,12 +538,12 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
     // B. Build signature headers with cookie binding
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
     });
@@ -546,7 +553,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -570,7 +577,7 @@ describe("EVP Endpoint Unit Tests", () => {
     const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const { payload } = await verifyJwt(evtJwt, providerPublicKey);
 
-    expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
+    expect(payload.email.toLowerCase()).toBe(DEMO_EMAIL);
     expect(payload.email_verified).toBe(true);
 
     const cnf = payload.cnf as { jwk: typeof browserPublicKeyJwk };
@@ -584,12 +591,12 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       algParam: null,
@@ -600,7 +607,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -624,12 +631,12 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       algParam: "RSA-PSS",
@@ -640,7 +647,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -659,15 +666,15 @@ describe("EVP Endpoint Unit Tests", () => {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const now = Math.floor(Date.now() / 1000);
 
     // 1. 120 seconds skew -> valid under 300-second window
     const validHeaders = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       createdTimestamp: now - 120,
@@ -678,7 +685,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(validHeaders),
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -695,8 +702,8 @@ describe("EVP Endpoint Unit Tests", () => {
     const staleHeaders = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       createdTimestamp: now - 400,
@@ -707,7 +714,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(staleHeaders),
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -729,13 +736,13 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const body = JSON.stringify({ email: "DEMO@rowan.fyi" });
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       body,
@@ -773,7 +780,7 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // B. Sign a request token
     const requestToken = await signJwt(
-      { email: "demo@rowan.fyi" },
+      { email: DEMO_EMAIL },
       {
         alg: "ES256",
         jwk: browserJwkData,
@@ -781,14 +788,14 @@ describe("EVP Endpoint Unit Tests", () => {
       privateKey,
     );
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const response = await postIssuance({
       url: mockUrl,
       request: new Request(mockUrl, {
         method: "POST",
         headers: {
           "content-type": "application/x-www-form-urlencoded",
-          "sec-fetch-dest": "email-verification",
+          "sec-fetch-dest": SEC_FETCH_DEST_EVP,
         },
         body: `request_token=${encodeURIComponent(requestToken)}`,
       }),
@@ -811,7 +818,7 @@ describe("EVP Endpoint Unit Tests", () => {
     const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const { payload } = await verifyJwt(evtJwt, providerPublicKey);
 
-    expect(payload.email.toLowerCase()).toBe("demo@rowan.fyi");
+    expect(payload.email.toLowerCase()).toBe(DEMO_EMAIL);
     expect(payload.email_verified).toBe(true);
 
     const cnf = payload.cnf as { jwk: typeof browserJwkData };
@@ -823,13 +830,13 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" }) as JWK;
 
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
-    const body = JSON.stringify({ email: "demo@rowan.fyi", private_email: true });
+    const mockUrl = new URL(ISSUANCE_URL);
+    const body = JSON.stringify({ email: DEMO_EMAIL, private_email: true });
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
       body,
@@ -858,16 +865,16 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint returns 400 and private_email_not_supported on private_email request (Path B)", async () => {
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const response = await postIssuance({
       url: mockUrl,
       request: new Request(mockUrl, {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "sec-fetch-dest": "email-verification",
+          "sec-fetch-dest": SEC_FETCH_DEST_EVP,
         },
-        body: JSON.stringify({ private_email: true, email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ private_email: true, email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -885,7 +892,7 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint returns 400 invalid_request when Sec-Fetch-Dest is invalid", async () => {
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const response = await postIssuance({
       url: mockUrl,
       request: new Request(mockUrl, {
@@ -894,7 +901,7 @@ describe("EVP Endpoint Unit Tests", () => {
           "content-type": "application/json",
           "sec-fetch-dest": "document",
         },
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -912,15 +919,15 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("issuance endpoint accepts Chromium's unhyphenated Sec-Fetch-Dest: emailverification", async () => {
-    const mockUrl = new URL("https://rowan.fyi/made/email-provider/issuance");
+    const mockUrl = new URL(ISSUANCE_URL);
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" });
     const browserPrivateKeyJwk = privateKey.export({ format: "jwk" });
     const headers = await generateSignatureHeaders({
       method: "POST",
       authority: "rowan.fyi",
-      path: "/made/email-provider/issuance",
-      cookieValue: "__session=active",
+      path: ISSUANCE_PATH,
+      cookieValue: ACTIVE_SESSION_COOKIE,
       publicKeyJwk: browserPublicKeyJwk,
       privateKeyJwk: browserPrivateKeyJwk,
     });
@@ -931,7 +938,7 @@ describe("EVP Endpoint Unit Tests", () => {
       request: new Request(mockUrl, {
         method: "POST",
         headers: new Headers(headers),
-        body: JSON.stringify({ email: "demo@rowan.fyi" }),
+        body: JSON.stringify({ email: DEMO_EMAIL }),
       }),
       params: {},
       props: {},
@@ -955,13 +962,13 @@ describe("EVP Endpoint Unit Tests", () => {
     // 2. Sign EVT
     const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
     const evtPayload = {
-      iss: "https://rowan.fyi",
+      iss: ISSUER_ORIGIN,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 300,
       cnf: {
         jwk: browserPublicKeyJwk,
       },
-      email: "demo@rowan.fyi",
+      email: DEMO_EMAIL,
       email_verified: true,
     };
     const evtJwt = await signJwt(
@@ -985,7 +992,7 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // 6. Sign Key Binding JWT (KB-JWT)
     const kbPayload = {
-      aud: "https://rowan.fyi",
+      aud: ISSUER_ORIGIN,
       nonce: "demo-nonce",
       iat: Math.floor(Date.now() / 1000),
       sd_hash: calculatedHash,
@@ -1039,16 +1046,16 @@ describe("EVP Endpoint Unit Tests", () => {
     const buildAndVerify = async (
       evtOverrides = {},
       kbOverrides = {},
-      options = { expectedNonce: "demo-nonce", expectedAudience: "https://rowan.fyi" },
+      options = { expectedNonce: "demo-nonce", expectedAudience: ISSUER_ORIGIN },
     ) => {
       const evtPayload = {
-        iss: "https://rowan.fyi",
+        iss: ISSUER_ORIGIN,
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 300,
         cnf: {
           jwk: browserPublicKeyJwk,
         },
-        email: "demo@rowan.fyi",
+        email: DEMO_EMAIL,
         email_verified: true,
         ...evtOverrides,
       };
@@ -1067,7 +1074,7 @@ describe("EVP Endpoint Unit Tests", () => {
       const calculatedHash = crypto.createHash("sha256").update(sdJwtPortion).digest("base64url");
 
       const kbPayload = {
-        aud: "https://rowan.fyi",
+        aud: ISSUER_ORIGIN,
         nonce: "demo-nonce",
         iat: Math.floor(Date.now() / 1000),
         sd_hash: calculatedHash,
@@ -1209,11 +1216,11 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // Test 1: Valid token verification succeeds
     const payload = await buildAndVerify();
-    expect(payload.email).toBe("demo@rowan.fyi");
+    expect(payload.email).toBe(DEMO_EMAIL);
 
     // Test: Verification succeeds when exp is omitted
     const payloadNoExp = await buildAndVerify({ exp: undefined });
-    expect(payloadNoExp.email).toBe("demo@rowan.fyi");
+    expect(payloadNoExp.email).toBe(DEMO_EMAIL);
     expect(payloadNoExp.exp).toBeUndefined();
 
     // Test 2: Expired token verification fails
