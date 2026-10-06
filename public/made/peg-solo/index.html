@@ -335,16 +335,16 @@
     <h1>Peg Solitaire / Solo Noble</h1>
   </header>
   <main>
-    <div class="board"></div>
+    <div class="board" role="group" aria-label="Peg Solitaire board"></div>
   </main>
-  <nav>
-    <button type="button" class="reset">🔁</button>
-    <button type="button" class="undo" disabled>↩️</button>
-    <button type="button" class="docs">❓</button>
-    <span class="timer">⏳ <span class="time">00:00</span></span>
-    <span class="status">😺 New</span>
+  <nav aria-label="Game controls">
+    <button type="button" class="reset" aria-label="Reset game">🔁</button>
+    <button type="button" class="undo" aria-label="Undo move" disabled>↩️</button>
+    <button type="button" class="docs" aria-label="How to play">❓</button>
+    <span class="timer" aria-label="Elapsed time">⏳ <span class="time">00:00</span></span>
+    <span class="status" role="status" aria-live="polite">😺 New</span>
   </nav>
-  <dialog class="docs">
+  <dialog class="docs" aria-label="How to play">
     <div>
       <p>Tap or click on a cat to select it.</p>
       <p>
@@ -406,6 +406,12 @@
         [0, 1],
         [0, -1],
       ];
+      static KEY_DIRS = {
+        ArrowRight: [1, 0],
+        ArrowLeft: [-1, 0],
+        ArrowDown: [0, 1],
+        ArrowUp: [0, -1],
+      };
       gameState;
       stateEl;
       undoEl;
@@ -414,6 +420,7 @@
 
       constructor() {
         this.handleClick = this.handleClick.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.updateTimer = this.updateTimer.bind(this);
         this.timer = 0;
         this.timerTimeout = null;
@@ -468,6 +475,49 @@
 
       addListener() {
         this.el.addEventListener("click", this.handleClick);
+        this.el.addEventListener("keydown", this.handleKeyDown);
+      }
+
+      handleKeyDown(ev) {
+        if (ev.key === "Escape" && this.selectedPeg) {
+          ev.preventDefault();
+          this.deselectPeg(this.selectedPeg);
+          return;
+        }
+
+        const dir = Board.KEY_DIRS[ev.key];
+        if (!dir || !ev.target.classList.contains("cell")) {
+          return;
+        }
+
+        ev.preventDefault();
+        const x = Number(ev.target.dataset.x);
+        const y = Number(ev.target.dataset.y);
+        const [dx, dy] = dir;
+        const direct = this.cells[x + dx]?.[y + dy];
+        if (direct) {
+          direct.el.focus();
+          return;
+        }
+
+        let nearest = null;
+        let minDistance = Infinity;
+        this.cells.forEach((col) => {
+          col.forEach((candidate) => {
+            const onTargetLine = dx !== 0 ? candidate.x === x + dx : candidate.y === y + dy;
+            if (onTargetLine) {
+              const dist = dx !== 0 ? Math.abs(candidate.y - y) : Math.abs(candidate.x - x);
+              if (dist < minDistance) {
+                minDistance = dist;
+                nearest = candidate;
+              }
+            }
+          });
+        });
+
+        if (nearest) {
+          nearest.el.focus();
+        }
       }
 
       handleClick(ev) {
@@ -504,7 +554,10 @@
       clearValidMoves() {
         this.cells.forEach((row) => {
           row.forEach((cell) => {
-            cell.el.classList.remove("valid");
+            if (cell.el.classList.contains("valid")) {
+              cell.el.classList.remove("valid");
+              cell.updateAria();
+            }
           });
         });
       }
@@ -549,7 +602,9 @@
 
         Board.DIRECTIONS.forEach(([dx, dy]) => {
           if (this.jumpPossible(cell, dx, dy)) {
-            this.cells[cell.x + 2 * dx][cell.y + 2 * dy].el.classList.add("valid");
+            const target = this.cells[cell.x + 2 * dx][cell.y + 2 * dy];
+            target.el.classList.add("valid");
+            target.updateAria();
           }
         });
       }
@@ -616,6 +671,7 @@
       jump(cell, x, y) {
         const el = document.createElement("div");
         el.classList.add("cell", "jump");
+        el.setAttribute("aria-hidden", "true");
         el.style.gridColumn = cell.x + 1;
         el.style.gridRow = cell.y + 1;
         this.el.appendChild(el);
@@ -632,6 +688,7 @@
       remove(cell, x, y) {
         const el = document.createElement("div");
         el.classList.add("cell", "remove");
+        el.setAttribute("aria-hidden", "true");
         el.style.gridColumn = cell.x + 1;
         el.style.gridRow = cell.y + 1;
         this.el.appendChild(el);
@@ -649,6 +706,7 @@
       restore(cell) {
         const el = document.createElement("div");
         el.classList.add("cell", "restore");
+        el.setAttribute("aria-hidden", "true");
         el.style.gridColumn = cell.x + 1;
         el.style.gridRow = cell.y + 1;
         el.style.transform = "translateY(20%) scale(0.8)";
@@ -686,6 +744,18 @@
         this.actionTimeout = null;
       }
 
+      updateAria(selected = false) {
+        const pos = `row ${this.y + 1}, column ${this.x + 1}`;
+        if (this.type === Cell.PEG) {
+          this.el.setAttribute("aria-label", `Cat, ${pos}`);
+          this.el.setAttribute("aria-pressed", String(selected));
+        } else {
+          const prefix = this.el.classList.contains("valid") ? "Valid move, empty hole" : "Empty hole";
+          this.el.setAttribute("aria-label", `${prefix}, ${pos}`);
+          this.el.removeAttribute("aria-pressed");
+        }
+      }
+
       addToBoard(board) {
         const el = document.createElement("button");
         el.type = "button";
@@ -696,8 +766,9 @@
         el.dataset.y = this.y;
         el.classList.add("cell");
         el.classList.add(Cell.KEY[this.type]);
-        board.appendChild(el);
         this.el = el;
+        this.updateAria();
+        board.appendChild(el);
         this.randomAction = this.randomAction.bind(this);
         if (this.type === Cell.PEG) {
           this.actionTimeout = setTimeout(this.randomAction, 500 + Math.random() * 5000);
@@ -734,15 +805,18 @@
         this.addTimeout = null;
         this.el.classList.add("selected");
         this.el.classList.remove("peg", "hole");
+        this.updateAria(true);
       }
 
       deselect() {
         this.el.classList.add("peg");
         this.el.classList.remove("selected");
+        this.updateAria(false);
       }
 
       add() {
         this.type = Cell.PEG;
+        this.updateAria(false);
         clearTimeout(this.addTimeout);
         clearTimeout(this.actionTimeout);
         this.addTimeout = setTimeout(() => {
@@ -764,6 +838,7 @@
         this.el.style.transform = "";
         this.el.classList.add("hole");
         this.el.classList.remove("peg", "selected", "happy", "happier", "sly");
+        this.updateAria(false);
       }
 
       destroy() {
