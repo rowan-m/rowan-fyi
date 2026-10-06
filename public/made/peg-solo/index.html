@@ -105,11 +105,20 @@
     }
 
     .hole {
-      text-shadow: unset;
+      text-shadow: 0 0 0 transparent;
+      transform-origin: center;
+      transition:
+        transform 0.2s ease-out,
+        text-shadow 0.2s ease-out;
     }
 
     .hole::before {
       content: "🔹";
+    }
+
+    .hole.valid {
+      text-shadow: 0 0 1vmin steelblue;
+      transform: scale(1.15);
     }
 
     .hole:focus,
@@ -391,6 +400,12 @@
       static PLAYING = "playing";
       static LOSE = "lose";
       static WIN = "win";
+      static DIRECTIONS = [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ];
       gameState;
       stateEl;
       undoEl;
@@ -486,18 +501,21 @@
         );
       }
 
+      clearValidMoves() {
+        this.cells.forEach((row) => {
+          row.forEach((cell) => {
+            cell.el.classList.remove("valid");
+          });
+        });
+      }
+
       checkEndgame() {
         let possibleWin = true;
         let possibleLose = true;
         this.cells.forEach((row) => {
           row.forEach((cell) => {
             if (cell.type === Cell.PEG) {
-              if (
-                this.jumpPossible(cell, 1, 0) ||
-                this.jumpPossible(cell, -1, 0) ||
-                this.jumpPossible(cell, 0, 1) ||
-                this.jumpPossible(cell, 0, -1)
-              ) {
+              if (Board.DIRECTIONS.some(([dx, dy]) => this.jumpPossible(cell, dx, dy))) {
                 possibleLose = false;
                 return;
               }
@@ -524,14 +542,22 @@
         if (this.selectedPeg) {
           this.selectedPeg.deselect();
         }
+        this.clearValidMoves();
 
         cell.select();
         this.selectedPeg = cell;
+
+        Board.DIRECTIONS.forEach(([dx, dy]) => {
+          if (this.jumpPossible(cell, dx, dy)) {
+            this.cells[cell.x + 2 * dx][cell.y + 2 * dy].el.classList.add("valid");
+          }
+        });
       }
 
       deselectPeg(cell) {
         cell.deselect();
         this.selectedPeg = null;
+        this.clearValidMoves();
       }
 
       jumpPeg(cell) {
@@ -541,6 +567,7 @@
           const midCell = this.cells[this.selectedPeg.x + dx / 2][this.selectedPeg.y + dy / 2];
           if (midCell.type === Cell.PEG) {
             const fromCell = this.selectedPeg;
+            this.clearValidMoves();
             this.jump(fromCell, dx, dy);
             cell.add();
             fromCell.remove();
