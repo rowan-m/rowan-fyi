@@ -205,23 +205,30 @@
       width: 90vmin;
     }
 
-    nav button {
+    nav button,
+    dialog button {
       background: ivory;
       border-radius: 20%;
       border: 0.15rem outset burlywood;
       box-shadow: 0.3vmin 0.3vmin 1vmin #00000088;
+      color: steelblue;
+      cursor: pointer;
+      font-weight: bold;
       padding: 0.5rem;
       transition: box-shadow 0.1s ease;
       user-select: none;
     }
 
     nav button:focus,
-    nav button:hover {
+    nav button:hover,
+    dialog button:focus,
+    dialog button:hover {
       background: aliceblue;
       box-shadow: 0.5vmin 0.5vmin 1.75vmin #00000088;
     }
 
-    nav button:active {
+    nav button:active,
+    dialog button:active {
       box-shadow: 0.1vmin 0.1vmin 0.25vmin #00000088;
       border: 0.15rem inset burlywood;
     }
@@ -253,6 +260,17 @@
       font-size: 2rem;
       text-align: center;
       width: 100%;
+    }
+
+    dialog form {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    dialog button {
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
     }
 
     .timer {
@@ -314,6 +332,9 @@
       <p>
         <code>🔹🔹🔹<br />🔹😻🔹<br />🔹🔹🔹</code>
       </p>
+      <form method="dialog">
+        <button type="submit">😺 Got it!</button>
+      </form>
     </div>
   </dialog>
   <footer>
