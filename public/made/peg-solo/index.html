@@ -302,6 +302,29 @@
       padding: 0.5rem 1rem;
     }
 
+    .endgame-title {
+      font-size: 1.3rem;
+      margin: 0 0 1rem;
+      text-align: center;
+    }
+
+    .endgame-board {
+      font-family: inherit;
+      font-size: 1.4rem;
+      line-height: 1.25;
+      margin: 0 auto 1rem;
+      text-align: left;
+      user-select: all;
+      width: fit-content;
+    }
+
+    .endgame-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
     .timer {
       font-variant-numeric: tabular-nums;
     }
@@ -380,6 +403,20 @@
       </form>
     </div>
   </dialog>
+  <dialog class="endgame" aria-label="Game over">
+    <div>
+      <p class="endgame-title"></p>
+      <pre class="endgame-board"></pre>
+      <div class="endgame-actions">
+        <button type="button" class="share">📤 Share</button>
+        <button type="button" class="endgame-undo">↩️ Undo</button>
+        <button type="button" class="endgame-reset">🔁 Play again</button>
+      </div>
+      <form method="dialog">
+        <button type="submit">😺 Close</button>
+      </form>
+    </div>
+  </dialog>
   <footer>
     <span>🧑‍💻<a href="https://github.com/rowan-m/rowan-fyi/blob/main/public/made/peg-solo/index.html">Code</a></span>
     <span>🧵<a href="https://www.threads.com/@rowan_m">@rowan_m</a></span>
@@ -411,6 +448,9 @@
       timer;
       timerTimeout;
       timerEl;
+      endgameTimeout;
+      endgameDialog;
+      shareHeader;
       static NEW = "new";
       static PLAYING = "playing";
       static LOSE = "lose";
@@ -439,6 +479,8 @@
         this.updateTimer = this.updateTimer.bind(this);
         this.timer = 0;
         this.timerTimeout = null;
+        this.endgameTimeout = null;
+        this.shareHeader = "";
         this.cells = [];
         this.gameState = Board.NEW;
         this.selectedPeg = null;
@@ -460,8 +502,11 @@
 
       reset() {
         clearTimeout(this.timerTimeout);
+        clearTimeout(this.endgameTimeout);
         this.timerTimeout = null;
+        this.endgameTimeout = null;
         this.timer = 0;
+        this.shareHeader = "";
         this.gameState = Board.NEW;
         this.selectedPeg = null;
         this.history = [];
@@ -478,12 +523,16 @@
         });
       }
 
+      formatElapsed() {
+        const elapsed = Date.now() - this.timer;
+        const seconds = Math.floor(elapsed / 1000);
+        const minutes = Math.floor(seconds / 60);
+        return `${minutes.toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+      }
+
       updateTimer() {
         if (this.gameState === Board.PLAYING) {
-          const elapsed = Date.now() - this.timer;
-          const seconds = Math.floor(elapsed / 1000);
-          const minutes = Math.floor(seconds / 60);
-          this.timerEl.textContent = `${minutes.toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+          this.timerEl.textContent = this.formatElapsed();
           this.timerTimeout = setTimeout(this.updateTimer, 1000);
         }
       }
@@ -577,32 +626,92 @@
         });
       }
 
+      renderTextBoard(pegEmoji) {
+        const rows = [];
+        for (let y = 0; y < 7; y++) {
+          let row = "";
+          for (let x = 0; x < 7; x++) {
+            const cell = this.cells[x]?.[y];
+            if (cell) {
+              row += cell.type === Cell.PEG ? pegEmoji : "🔹";
+            } else if (x < 2) {
+              row += "\u3000\u2005";
+            }
+          }
+          rows.push(row);
+        }
+        return rows.join("\n");
+      }
+
+      getShareText() {
+        const isWin = this.gameState === Board.WIN;
+        const pegEmoji = isWin ? "😻" : "😿";
+        const cta = isWin ? "Can you beat my time?" : "Can you do better?";
+        return `${this.shareHeader}\n\n${this.renderTextBoard(pegEmoji)}\n\n${cta}\nhttps://rowan.fyi/made/peg-solo`;
+      }
+
+      showEndgameDialog(headline, pegEmoji) {
+        if (!this.endgameDialog) {
+          return;
+        }
+        this.endgameDialog.querySelector(".endgame-title").textContent = headline;
+        this.endgameDialog.querySelector(".endgame-board").textContent = this.renderTextBoard(pegEmoji);
+        const delay = reducedMotionQuery.matches ? 0 : 750;
+        clearTimeout(this.endgameTimeout);
+        this.endgameTimeout = setTimeout(() => {
+          this.endgameTimeout = null;
+          this.endgameDialog.showModal();
+        }, delay);
+      }
+
       checkEndgame() {
-        let possibleWin = true;
-        let possibleLose = true;
+        let remaining = 0;
+        let hasMoves = false;
         this.cells.forEach((row) => {
           row.forEach((cell) => {
             if (cell.type === Cell.PEG) {
-              if (Board.DIRECTIONS.some(([dx, dy]) => this.jumpPossible(cell, dx, dy))) {
-                possibleLose = false;
-                return;
+              remaining++;
+              if (!hasMoves && Board.DIRECTIONS.some(([dx, dy]) => this.jumpPossible(cell, dx, dy))) {
+                hasMoves = true;
               }
-            }
-
-            if (cell.type !== Cell.HOLE && !(cell.x === 3 && cell.y === 3)) {
-              possibleWin = false;
             }
           });
         });
 
-        if (possibleWin && this.cells[3][3].type === Cell.PEG) {
+        if (hasMoves) {
+          return;
+        }
+
+        clearTimeout(this.timerTimeout);
+        this.timerTimeout = null;
+        const time = this.formatElapsed();
+        this.timerEl.textContent = time;
+
+        if (remaining === 1 && this.cells[3][3].type === Cell.PEG) {
           this.gameState = Board.WIN;
           this.stateEl.textContent = "😻 Win!";
           this.el.classList.add("win");
-        } else if (possibleLose) {
+          this.shareHeader = `😻 Win! (${time})`;
+          this.showEndgameDialog(this.shareHeader, "😻");
+        } else {
           this.gameState = Board.LOSE;
-          this.stateEl.textContent = "😿 Lose";
           this.el.classList.add("lose");
+          let tier;
+          if (remaining === 1) {
+            this.stateEl.textContent = "😸 1 left";
+            tier = "😸 So close — 1 left";
+          } else if (remaining <= 3) {
+            this.stateEl.textContent = `😼 ${remaining} left`;
+            tier = `😼 Almost — ${remaining} left`;
+          } else if (remaining <= 6) {
+            this.stateEl.textContent = `😿 ${remaining} left`;
+            tier = `😿 Lose — ${remaining} left`;
+          } else {
+            this.stateEl.textContent = `🙀 ${remaining} left`;
+            tier = `🙀 Cat-astrophe — ${remaining} left`;
+          }
+          this.shareHeader = `${tier} (${time})`;
+          this.showEndgameDialog(this.shareHeader, "😿");
         }
       }
 
@@ -656,6 +765,9 @@
         if (this.history.length === 0) {
           return;
         }
+
+        clearTimeout(this.endgameTimeout);
+        this.endgameTimeout = null;
 
         if (this.selectedPeg) {
           this.deselectPeg(this.selectedPeg);
@@ -885,11 +997,13 @@
       }
     }
 
+    const endgameDialog = document.querySelector("dialog.endgame");
     const board = new Board();
     board.el = document.querySelector(".board");
     board.timerEl = document.querySelector(".time");
     board.stateEl = document.querySelector(".status");
     board.undoEl = document.querySelector("button.undo");
+    board.endgameDialog = endgameDialog;
     board.setBoard(DEFAULT_BOARD);
     board.addListener();
 
@@ -909,6 +1023,47 @@
     docsDialog.addEventListener("click", (e) => {
       if (docsDialog === e.target) {
         docsDialog.close();
+      }
+    });
+
+    endgameDialog.addEventListener("click", (e) => {
+      if (endgameDialog === e.target) {
+        endgameDialog.close();
+      }
+    });
+
+    endgameDialog.querySelector("button.endgame-undo").addEventListener("click", () => {
+      endgameDialog.close();
+      board.undo();
+    });
+
+    endgameDialog.querySelector("button.endgame-reset").addEventListener("click", () => {
+      endgameDialog.close();
+      board.reset();
+      board.setBoard(DEFAULT_BOARD);
+    });
+
+    const shareBtn = endgameDialog.querySelector("button.share");
+    let shareTimeout = null;
+    shareBtn.addEventListener("click", async () => {
+      const text = board.getShareText();
+      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (err) {
+          if (err.name === "AbortError") {
+            return;
+          }
+        }
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        clearTimeout(shareTimeout);
+        shareBtn.textContent = "📋 Copied!";
+        shareTimeout = setTimeout(() => {
+          shareBtn.textContent = "📤 Share";
+        }, 2000);
       }
     });
 
