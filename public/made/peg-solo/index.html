@@ -576,11 +576,13 @@
       y;
       type;
       el;
+      addTimeout;
 
       constructor(x, y, type) {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.addTimeout = null;
       }
 
       addToBoard(board) {
@@ -628,9 +630,11 @@
       }
 
       select() {
+        clearTimeout(this.addTimeout);
+        this.addTimeout = null;
         this.type = Cell.SELECTED;
         this.el.classList.add("selected");
-        this.el.classList.remove("peg");
+        this.el.classList.remove("peg", "hole");
       }
 
       deselect() {
@@ -641,13 +645,19 @@
 
       add() {
         this.type = Cell.PEG;
-        setTimeout(() => {
-          this.el.classList.add("peg");
-          this.el.classList.remove("hole");
+        clearTimeout(this.addTimeout);
+        this.addTimeout = setTimeout(() => {
+          this.addTimeout = null;
+          if (this.type === Cell.PEG) {
+            this.el.classList.add("peg");
+            this.el.classList.remove("hole");
+          }
         }, 500);
       }
 
       remove() {
+        clearTimeout(this.addTimeout);
+        this.addTimeout = null;
         this.type = Cell.HOLE;
         this.el.style.transform = "";
         this.el.classList.add("hole");
