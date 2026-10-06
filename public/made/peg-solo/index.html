@@ -2,28 +2,42 @@
 <html lang="en">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#4682b4" />
+  <link rel="me" href="https://bsky.app/profile/rowan.fyi" />
+  <link rel="me" href="https://mastodon.social/@rowan_m" />
+  <link rel="me" href="https://github.com/rowan-m/" />
+  <link rel="me" href="https://www.threads.com/@rowan_m" />
+  <link rel="me" href="https://www.linkedin.com/in/rowanmerewood/" />
+  <link rel="me" href="https://www.instagram.com/rowan_m/" />
+  <meta name="fediverse:creator" content="@rowan_m@mastodon.social" />
+  <link rel="author" href="https://rowan.fyi" />
   <link
     rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😹</text></svg>"
   />
   <link rel="manifest" href="./manifest.json" />
 
-  <title>Peg Solitaire</title>
+  <title>Peg Solitaire / Solo Noble</title>
   <meta
-    name="Description"
+    name="description"
     content="Play an online version of the classic game: Peg Solitaire AKA Solo Noble AKA Brainvita with bonus cat emoji."
   />
 
-  <meta property="og:url" content="https://rowan.fyi/made/peg-solo" />
+  <meta property="og:url" content="https://rowan.fyi/made/peg-solo/" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Play Peg Solitaire" />
+  <meta property="og:title" content="Peg Solitaire / Solo Noble" />
   <meta
     property="og:description"
-    content="Online version of the classic game of Peg Solitaire AKA Solo Noble AKA Brainvita all with bonus cat emoji."
+    content="Play an online version of the classic game: Peg Solitaire AKA Solo Noble AKA Brainvita with bonus cat emoji."
   />
-  <meta property="og:image" content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png" />
-  <meta property="og:image:width" content="1919" />
-  <meta property="og:image:height" content="920" />
+  <meta
+    name="image"
+    property="og:image"
+    content="https://rowan.fyi/made/peg-solo/assets/play-peg-solitaire-screenshot.png"
+  />
+  <meta property="og:image:alt" content="Peg Solitaire game board filled with cat emoji pegs" />
+  <meta property="og:image:width" content="1920" />
+  <meta property="og:image:height" content="960" />
 
   <style>
     @keyframes happyjiggle {
@@ -330,27 +344,27 @@
     }
 
     footer {
-      margin-top: 1rem;
-      font-size: min(3vw, 0.8em);
       color: dimgray;
       display: flex;
       flex-wrap: wrap;
+      font-size: min(3vw, 0.8em);
+      gap: 1.5ch;
       justify-content: center;
+      margin-top: 1rem;
     }
 
-    footer > span {
-      margin-right: 1ch;
-    }
-
-    a {
+    footer a {
+      align-items: center;
       color: slategray;
+      display: inline-flex;
+      gap: 0.35ch;
     }
 
-    a:active {
+    footer a:active {
       color: lightslategray;
     }
 
-    a:visited {
+    footer a:visited {
       color: darkslategray;
     }
 
@@ -418,11 +432,25 @@
     </div>
   </dialog>
   <footer>
-    <span>🧑‍💻<a href="https://github.com/rowan-m/rowan-fyi/blob/main/public/made/peg-solo/index.html">Code</a></span>
-    <span>🧵<a href="https://www.threads.com/@rowan_m">@rowan_m</a></span>
-    <span>🦣<a href="https://mastodon.social/@rowan_m">@rowan_m</a></span>
-    <span>🔵<a href="https://bsky.app/profile/rowan-m.bsky.social">@rowan-m</a></span>
-    <span>🦤<a href="https://twitter.com/rowan_m">@rowan_m</a></span>
+    <a
+      href="https://github.com/rowan-m/rowan-fyi/blob/main/public/made/peg-solo/index.html"
+      target="_blank"
+      rel="noopener"
+      ><span aria-hidden="true">🧑‍💻</span> Code</a
+    >
+    <a href="https://rowan.fyi" target="_blank" rel="noopener" aria-label="Website rowan.fyi"
+      ><span aria-hidden="true">🌐</span> rowan.fyi</a
+    >
+    <a href="https://bsky.app/profile/rowan.fyi" target="_blank" rel="noopener" aria-label="Bluesky profile rowan.fyi"
+      ><span aria-hidden="true">🦋</span> rowan.fyi</a
+    >
+    <a
+      href="https://mastodon.social/@rowan_m"
+      target="_blank"
+      rel="noopener"
+      aria-label="Mastodon profile rowan_m@mastodon.social"
+      ><span aria-hidden="true">🦣</span> rowan_m</a
+    >
   </footer>
   <script>
     "use strict";
