@@ -288,7 +288,7 @@
     <h1>Peg Solitaire / Solo Noble</h1>
   </header>
   <main>
-    <form class="board"></form>
+    <div class="board"></div>
   </main>
   <nav>
     <button type="button" class="reset">🔁</button>
@@ -316,11 +316,8 @@
       </p>
     </div>
   </dialog>
-  <dialog class="share">
-    <div></div>
-  </dialog>
   <footer>
-    <span>🧑‍💻<a href="https://glitch.com/edit/#!/peg-solo?path=index.html">Code</a></span>
+    <span>🧑‍💻<a href="https://github.com/rowan-m/rowan-fyi/blob/main/public/made/peg-solo/index.html">Code</a></span>
     <span>🧵<a href="https://www.threads.com/@rowan_m">@rowan_m</a></span>
     <span>🦣<a href="https://mastodon.social/@rowan_m">@rowan_m</a></span>
     <span>🔵<a href="https://bsky.app/profile/rowan-m.bsky.social">@rowan-m</a></span>
@@ -332,11 +329,19 @@
       location.protocol = "https:";
     }
 
+    const DEFAULT_BOARD = [
+      [0, 0, 2, 2, 2, 0, 0],
+      [0, 0, 2, 2, 2, 0, 0],
+      [2, 2, 2, 2, 2, 2, 2],
+      [2, 2, 2, 1, 2, 2, 2],
+      [2, 2, 2, 2, 2, 2, 2],
+      [0, 0, 2, 2, 2, 0, 0],
+      [0, 0, 2, 2, 2, 0, 0],
+    ];
+
     class Board {
       cells;
       el;
-      jumpEl;
-      removeEl;
       timer;
       timerTimeout;
       timerEl;
@@ -353,15 +358,15 @@
         this.updateTimer = this.updateTimer.bind(this);
         this.timer = 0;
         this.timerTimeout = null;
-        this.cells = new Array();
+        this.cells = [];
         this.gameState = Board.NEW;
         this.selectedPeg = null;
       }
 
       setBoard(data) {
-        this.cells = new Array();
+        this.cells = [];
         data.forEach((col, x) => {
-          this.cells.push(new Array());
+          this.cells.push([]);
           col.forEach((type, y) => {
             if (type > 0) {
               this.cells[x][y] = new Cell(x, y, type);
@@ -415,40 +420,29 @@
 
         const cell = this.cells[ev.target.dataset.x][ev.target.dataset.y];
 
-        switch (true) {
-          case cell.type === Cell.PEG:
-            this.selectPeg(cell);
-            break;
-          case cell === this.selectedPeg:
-            this.deselectPeg(cell);
-            break;
-          case cell.type === Cell.HOLE && this.selectedPeg !== null:
-            this.jumpPeg(cell);
-            this.checkEndgame();
-            break;
+        if (cell === this.selectedPeg) {
+          this.deselectPeg(cell);
+        } else if (cell.type === Cell.PEG) {
+          this.selectPeg(cell);
+        } else if (cell.type === Cell.HOLE && this.selectedPeg !== null) {
+          this.jumpPeg(cell);
+          this.checkEndgame();
         }
       }
 
       jumpPossible(cell, xdir, ydir) {
-        if (
-          this.cells[cell.x + 1 * xdir] &&
-          this.cells[cell.x + 1 * xdir][cell.y + 1 * ydir] &&
-          this.cells[cell.x + 1 * xdir][cell.y + 1 * ydir].type === Cell.PEG &&
-          this.cells[cell.x + 2 * xdir] &&
-          this.cells[cell.x + 2 * xdir][cell.y + 2 * ydir] &&
-          this.cells[cell.x + 2 * xdir][cell.y + 2 * ydir].type === Cell.HOLE
-        ) {
-          return true;
-        }
-
-        return false;
+        return Boolean(
+          this.cells[cell.x + 1 * xdir]?.[cell.y + 1 * ydir]?.type === Cell.PEG &&
+          this.cells[cell.x + 2 * xdir]?.[cell.y + 2 * ydir]?.type === Cell.HOLE,
+        );
       }
+
       checkEndgame() {
-        var possibleWin = true;
-        var possibleLose = true;
-        this.cells.forEach((row, x) => {
-          row.forEach((cell, y) => {
-            if (cell.type == Cell.PEG) {
+        let possibleWin = true;
+        let possibleLose = true;
+        this.cells.forEach((row) => {
+          row.forEach((cell) => {
+            if (cell.type === Cell.PEG) {
               if (
                 this.jumpPossible(cell, 1, 0) ||
                 this.jumpPossible(cell, -1, 0) ||
@@ -460,17 +454,17 @@
               }
             }
 
-            if (cell.type !== Cell.HOLE && !(cell.x == 3 && cell.y == 3)) {
+            if (cell.type !== Cell.HOLE && !(cell.x === 3 && cell.y === 3)) {
               possibleWin = false;
             }
           });
         });
 
-        if (possibleWin === true && this.cells[3][3].type === Cell.PEG) {
+        if (possibleWin && this.cells[3][3].type === Cell.PEG) {
           this.gameState = Board.WIN;
           this.stateEl.textContent = "😻 Win!";
           this.el.classList.add("win");
-        } else if (possibleLose === true) {
+        } else if (possibleLose) {
           this.gameState = Board.LOSE;
           this.stateEl.textContent = "😿 Lose";
           this.el.classList.add("lose");
@@ -492,47 +486,18 @@
       }
 
       jumpPeg(cell) {
-        switch (true) {
-          case cell.x - 2 === this.selectedPeg.x &&
-            cell.y === this.selectedPeg.y &&
-            this.cells[cell.x - 1][cell.y].type === Cell.PEG:
-            this.jump(this.selectedPeg, 2, 0);
+        const dx = cell.x - this.selectedPeg.x;
+        const dy = cell.y - this.selectedPeg.y;
+        if ((Math.abs(dx) === 2 && dy === 0) || (dx === 0 && Math.abs(dy) === 2)) {
+          const midCell = this.cells[this.selectedPeg.x + dx / 2][this.selectedPeg.y + dy / 2];
+          if (midCell.type === Cell.PEG) {
+            this.jump(this.selectedPeg, dx, dy);
             cell.add();
             this.selectedPeg.remove();
             this.selectedPeg = null;
-            this.cells[cell.x - 1][cell.y].remove();
-            this.remove(this.cells[cell.x - 1][cell.y], -0.5, -2);
-            break;
-          case cell.x + 2 === this.selectedPeg.x &&
-            cell.y === this.selectedPeg.y &&
-            this.cells[cell.x + 1][cell.y].type === Cell.PEG:
-            this.jump(this.selectedPeg, -2, 0);
-            cell.add();
-            this.selectedPeg.remove();
-            this.selectedPeg = null;
-            this.cells[cell.x + 1][cell.y].remove();
-            this.remove(this.cells[cell.x + 1][cell.y], 0.5, -2);
-            break;
-          case cell.x === this.selectedPeg.x &&
-            cell.y - 2 === this.selectedPeg.y &&
-            this.cells[cell.x][cell.y - 1].type === Cell.PEG:
-            this.jump(this.selectedPeg, 0, 2);
-            cell.add();
-            this.selectedPeg.remove();
-            this.selectedPeg = null;
-            this.cells[cell.x][cell.y - 1].remove();
-            this.remove(this.cells[cell.x][cell.y - 1], -0.5, -2);
-            break;
-          case cell.x === this.selectedPeg.x &&
-            cell.y + 2 === this.selectedPeg.y &&
-            this.cells[cell.x][cell.y + 1].type === Cell.PEG:
-            this.jump(this.selectedPeg, 0, -2);
-            cell.add();
-            this.selectedPeg.remove();
-            this.selectedPeg = null;
-            this.cells[cell.x][cell.y + 1].remove();
-            this.remove(this.cells[cell.x][cell.y + 1], 1, -2);
-            break;
+            midCell.remove();
+            this.remove(midCell, dx > 0 || dy > 0 ? -0.5 : 0.5, -2);
+          }
         }
       }
 
@@ -574,8 +539,7 @@
       static BOARD = 0;
       static HOLE = 1;
       static PEG = 2;
-      static SELECTED = 3;
-      static KEY = ["board", "hole", "peg", "selected"];
+      static KEY = ["board", "hole", "peg"];
       x;
       y;
       type;
@@ -615,28 +579,20 @@
           return;
         }
 
-        var next = 4000;
+        let next = 700 + Math.random() * 500;
         const action = Math.random() * 10;
-        switch (true) {
-          case action <= 7:
-            this.el.classList.remove("happy", "happier", "sly");
-            next = 10000 + Math.random() * 10000;
-            break;
-          case action <= 8:
-            this.el.classList.add("happy");
-            this.el.classList.remove("happier", "sly");
-            next = 700 + Math.random() * 500;
-            break;
-          case action <= 9:
-            this.el.classList.add("sly");
-            this.el.classList.remove("happy", "happier");
-            next = 700 + Math.random() * 500;
-            break;
-          case action <= 10:
-            this.el.classList.remove("happy", "sly");
-            this.el.classList.add("happier");
-            next = 700 + Math.random() * 500;
-            break;
+        if (action <= 7) {
+          this.el.classList.remove("happy", "happier", "sly");
+          next = 10000 + Math.random() * 10000;
+        } else if (action <= 8) {
+          this.el.classList.add("happy");
+          this.el.classList.remove("happier", "sly");
+        } else if (action <= 9) {
+          this.el.classList.add("sly");
+          this.el.classList.remove("happy", "happier");
+        } else {
+          this.el.classList.remove("happy", "sly");
+          this.el.classList.add("happier");
         }
 
         this.actionTimeout = setTimeout(this.randomAction, next);
@@ -645,13 +601,11 @@
       select() {
         clearTimeout(this.addTimeout);
         this.addTimeout = null;
-        this.type = Cell.SELECTED;
         this.el.classList.add("selected");
         this.el.classList.remove("peg", "hole");
       }
 
       deselect() {
-        this.type = Cell.PEG;
         this.el.classList.add("peg");
         this.el.classList.remove("selected");
       }
@@ -694,37 +648,12 @@
     board.el = document.querySelector(".board");
     board.timerEl = document.querySelector(".time");
     board.stateEl = document.querySelector(".status");
-    board.setBoard([
-      [0, 0, 2, 2, 2, 0, 0],
-      [0, 0, 2, 2, 2, 0, 0],
-      [2, 2, 2, 2, 2, 2, 2],
-      [2, 2, 2, 1, 2, 2, 2],
-      [2, 2, 2, 2, 2, 2, 2],
-      [0, 0, 2, 2, 2, 0, 0],
-      [0, 0, 2, 2, 2, 0, 0],
-    ]);
-    // board.setBoard([
-    //   [0, 0, 1, 1, 1, 0, 0],
-    //   [0, 0, 1, 1, 1, 0, 0],
-    //   [1, 1, 1, 1, 1, 1, 1],
-    //   [1, 1, 1, 1, 2, 2, 1],
-    //   [1, 1, 1, 1, 1, 1, 1],
-    //   [0, 0, 1, 1, 1, 0, 0],
-    //   [0, 0, 1, 1, 1, 0, 0],
-    // ]);
+    board.setBoard(DEFAULT_BOARD);
     board.addListener();
 
     document.querySelector("button.reset").addEventListener("click", () => {
       board.reset();
-      board.setBoard([
-        [0, 0, 2, 2, 2, 0, 0],
-        [0, 0, 2, 2, 2, 0, 0],
-        [2, 2, 2, 2, 2, 2, 2],
-        [2, 2, 2, 1, 2, 2, 2],
-        [2, 2, 2, 2, 2, 2, 2],
-        [0, 0, 2, 2, 2, 0, 0],
-        [0, 0, 2, 2, 2, 0, 0],
-      ]);
+      board.setBoard(DEFAULT_BOARD);
     });
 
     const docsDialog = document.querySelector("dialog.docs");
