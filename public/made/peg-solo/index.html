@@ -338,6 +338,7 @@
       jumpEl;
       removeEl;
       timer;
+      timerTimeout;
       timerEl;
       static NEW = "new";
       static PLAYING = "playing";
@@ -351,6 +352,7 @@
         this.handleClick = this.handleClick.bind(this);
         this.updateTimer = this.updateTimer.bind(this);
         this.timer = 0;
+        this.timerTimeout = null;
         this.cells = new Array();
         this.gameState = Board.NEW;
         this.selectedPeg = null;
@@ -370,6 +372,8 @@
       }
 
       reset() {
+        clearTimeout(this.timerTimeout);
+        this.timerTimeout = null;
         this.timer = 0;
         this.gameState = Board.NEW;
         this.selectedPeg = null;
@@ -378,7 +382,7 @@
         this.el.classList.remove("win", "lose");
         this.cells.forEach((row) => {
           row.forEach((cell) => {
-            cell.el.remove();
+            cell.destroy();
           });
         });
       }
@@ -389,7 +393,7 @@
           const seconds = Math.floor(elapsed / 1000);
           const minutes = Math.floor(seconds / 60);
           this.timerEl.textContent = `${minutes.toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
-          setTimeout(this.updateTimer, 1000);
+          this.timerTimeout = setTimeout(this.updateTimer, 1000);
         }
       }
 
@@ -577,12 +581,14 @@
       type;
       el;
       addTimeout;
+      actionTimeout;
 
       constructor(x, y, type) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.addTimeout = null;
+        this.actionTimeout = null;
       }
 
       addToBoard(board) {
@@ -598,10 +604,17 @@
         board.appendChild(el);
         this.el = el;
         this.randomAction = this.randomAction.bind(this);
-        setTimeout(this.randomAction, 500 + Math.random() * 5000);
+        if (this.type === Cell.PEG) {
+          this.actionTimeout = setTimeout(this.randomAction, 500 + Math.random() * 5000);
+        }
       }
 
       randomAction() {
+        if (this.type === Cell.HOLE) {
+          this.actionTimeout = null;
+          return;
+        }
+
         var next = 4000;
         const action = Math.random() * 10;
         switch (true) {
@@ -626,7 +639,7 @@
             break;
         }
 
-        setTimeout(this.randomAction, next);
+        this.actionTimeout = setTimeout(this.randomAction, next);
       }
 
       select() {
@@ -646,6 +659,7 @@
       add() {
         this.type = Cell.PEG;
         clearTimeout(this.addTimeout);
+        clearTimeout(this.actionTimeout);
         this.addTimeout = setTimeout(() => {
           this.addTimeout = null;
           if (this.type === Cell.PEG) {
@@ -653,15 +667,26 @@
             this.el.classList.remove("hole");
           }
         }, 500);
+        this.actionTimeout = setTimeout(this.randomAction, 500 + Math.random() * 5000);
       }
 
       remove() {
         clearTimeout(this.addTimeout);
+        clearTimeout(this.actionTimeout);
         this.addTimeout = null;
+        this.actionTimeout = null;
         this.type = Cell.HOLE;
         this.el.style.transform = "";
         this.el.classList.add("hole");
-        this.el.classList.remove("peg", "selected");
+        this.el.classList.remove("peg", "selected", "happy", "happier", "sly");
+      }
+
+      destroy() {
+        clearTimeout(this.addTimeout);
+        clearTimeout(this.actionTimeout);
+        this.addTimeout = null;
+        this.actionTimeout = null;
+        this.el.remove();
       }
     }
 
