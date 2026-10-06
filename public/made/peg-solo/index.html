@@ -93,6 +93,7 @@
       line-height: 100%;
       outline: inherit;
       padding: 0;
+      text-align: center;
       text-shadow: 0.3vmin 0.3vmin 0.5vmin #00000088;
       transform-origin: center bottom;
       transition: 0.1s ease-out;
@@ -160,8 +161,8 @@
 
     .jump,
     .remove {
-      grid-area: 3/3;
-      z-index: -10;
+      pointer-events: none;
+      z-index: 10;
     }
 
     .jump {
@@ -533,13 +534,15 @@
 
       jump(cell, x, y) {
         const el = document.createElement("div");
-        el.classList.add("cell");
-        el.classList.add("jump");
+        el.classList.add("cell", "jump");
         el.style.gridColumn = cell.x + 1;
         el.style.gridRow = cell.y + 1;
-        el.style.zIndex = 10;
         this.el.appendChild(el);
-        el.style.transform = `translate(${cell.el.offsetWidth * x}px, ${cell.el.offsetHeight * y}px)`;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
+          });
+        });
         setTimeout(() => {
           el.remove();
         }, 500);
@@ -547,14 +550,16 @@
 
       remove(cell, x, y) {
         const el = document.createElement("div");
-        el.classList.add("cell");
-        el.classList.add("remove");
+        el.classList.add("cell", "remove");
         el.style.gridColumn = cell.x + 1;
         el.style.gridRow = cell.y + 1;
-        el.style.zIndex = 10;
         this.el.appendChild(el);
-        el.style.transform = `translate(${cell.el.offsetWidth * x}px, ${cell.el.offsetHeight * y}px) scale(1.5)`;
-        el.style.opacity = 0;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.style.transform = `translate(${x * 100}%, ${y * 100}%) scale(1.5)`;
+            el.style.opacity = 0;
+          });
+        });
         setTimeout(() => {
           el.remove();
         }, 750);
