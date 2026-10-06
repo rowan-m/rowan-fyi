@@ -88,11 +88,14 @@
       border: 0;
       color: inherit;
       cursor: pointer;
+      display: grid;
+      font-family: inherit;
       font-size: var(--font-size);
       height: 100%;
       line-height: 100%;
       outline: inherit;
       padding: 0;
+      place-items: center;
       text-align: center;
       text-shadow: 0.3vmin 0.3vmin 0.5vmin #00000088;
       transform-origin: center bottom;
@@ -160,7 +163,8 @@
     }
 
     .jump,
-    .remove {
+    .remove,
+    .restore {
       pointer-events: none;
       z-index: 10;
     }
@@ -187,6 +191,16 @@
       content: "🙀";
     }
 
+    .restore {
+      transition:
+        transform 0.5s ease-out,
+        opacity 0.5s ease-out;
+    }
+
+    .restore::before {
+      content: "😺";
+    }
+
     nav,
     nav button {
       font-size: 1.2rem;
@@ -198,7 +212,7 @@
       color: steelblue;
       display: grid;
       font-weight: bold;
-      grid-template-columns: 1fr 1fr 2fr 2fr;
+      grid-template-columns: 1fr 1fr 1fr 2fr 2fr;
       margin-top: 1rem;
       max-width: 80vh;
       place-items: center;
@@ -219,18 +233,24 @@
       user-select: none;
     }
 
-    nav button:focus,
-    nav button:hover,
+    nav button:not(:disabled):focus,
+    nav button:not(:disabled):hover,
     dialog button:focus,
     dialog button:hover {
       background: aliceblue;
       box-shadow: 0.5vmin 0.5vmin 1.75vmin #00000088;
     }
 
-    nav button:active,
+    nav button:not(:disabled):active,
     dialog button:active {
       box-shadow: 0.1vmin 0.1vmin 0.25vmin #00000088;
       border: 0.15rem inset burlywood;
+    }
+
+    nav button:disabled {
+      box-shadow: none;
+      cursor: default;
+      opacity: 0.4;
     }
 
     dialog {
@@ -310,6 +330,7 @@
   </main>
   <nav>
     <button type="button" class="reset">🔁</button>
+    <button type="button" class="undo" disabled>↩️</button>
     <button type="button" class="docs">❓</button>
     <span class="timer">⏳ <span class="time">00:00</span></span>
     <span class="status">😺 New</span>
@@ -372,7 +393,9 @@
       static WIN = "win";
       gameState;
       stateEl;
+      undoEl;
       selectedPeg;
+      history;
 
       constructor() {
         this.handleClick = this.handleClick.bind(this);
@@ -382,6 +405,7 @@
         this.cells = [];
         this.gameState = Board.NEW;
         this.selectedPeg = null;
+        this.history = [];
       }
 
       setBoard(data) {
@@ -403,6 +427,10 @@
         this.timer = 0;
         this.gameState = Board.NEW;
         this.selectedPeg = null;
+        this.history = [];
+        if (this.undoEl) {
+          this.undoEl.disabled = true;
+        }
         this.timerEl.textContent = `00:00`;
         this.stateEl.textContent = "😺 New";
         this.el.classList.remove("win", "lose");
@@ -512,13 +540,49 @@
         if ((Math.abs(dx) === 2 && dy === 0) || (dx === 0 && Math.abs(dy) === 2)) {
           const midCell = this.cells[this.selectedPeg.x + dx / 2][this.selectedPeg.y + dy / 2];
           if (midCell.type === Cell.PEG) {
-            this.jump(this.selectedPeg, dx, dy);
+            const fromCell = this.selectedPeg;
+            this.jump(fromCell, dx, dy);
             cell.add();
-            this.selectedPeg.remove();
+            fromCell.remove();
             this.selectedPeg = null;
             midCell.remove();
             this.remove(midCell, dx > 0 || dy > 0 ? -0.5 : 0.5, -2);
+            this.history.push({ from: fromCell, mid: midCell, to: cell });
+            if (this.undoEl) {
+              this.undoEl.disabled = false;
+            }
           }
+        }
+      }
+
+      undo() {
+        if (this.history.length === 0) {
+          return;
+        }
+
+        if (this.selectedPeg) {
+          this.deselectPeg(this.selectedPeg);
+        }
+
+        const { from, mid, to } = this.history.pop();
+        const dx = from.x - to.x;
+        const dy = from.y - to.y;
+        this.jump(to, dx, dy);
+        to.remove();
+        from.add();
+        this.restore(mid);
+        mid.add();
+
+        if (this.gameState === Board.WIN || this.gameState === Board.LOSE) {
+          this.gameState = Board.PLAYING;
+          this.stateEl.textContent = "😼 Game on";
+          this.el.classList.remove("win", "lose");
+          clearTimeout(this.timerTimeout);
+          this.updateTimer();
+        }
+
+        if (this.undoEl) {
+          this.undoEl.disabled = this.history.length === 0;
         }
       }
 
@@ -553,6 +617,25 @@
         setTimeout(() => {
           el.remove();
         }, 750);
+      }
+
+      restore(cell) {
+        const el = document.createElement("div");
+        el.classList.add("cell", "restore");
+        el.style.gridColumn = cell.x + 1;
+        el.style.gridRow = cell.y + 1;
+        el.style.transform = "translateY(20%) scale(0.8)";
+        el.style.opacity = 0;
+        this.el.appendChild(el);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.style.transform = "translateY(0) scale(1)";
+            el.style.opacity = 1;
+          });
+        });
+        setTimeout(() => {
+          el.remove();
+        }, 500);
       }
     }
 
@@ -669,12 +752,17 @@
     board.el = document.querySelector(".board");
     board.timerEl = document.querySelector(".time");
     board.stateEl = document.querySelector(".status");
+    board.undoEl = document.querySelector("button.undo");
     board.setBoard(DEFAULT_BOARD);
     board.addListener();
 
     document.querySelector("button.reset").addEventListener("click", () => {
       board.reset();
       board.setBoard(DEFAULT_BOARD);
+    });
+
+    board.undoEl.addEventListener("click", () => {
+      board.undo();
     });
 
     const docsDialog = document.querySelector("dialog.docs");
