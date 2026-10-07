@@ -1,6 +1,6 @@
 ---
 title: Musaic box
-location: https://rowan.fyi/made/musaic-box
+location: https://rowan.fyi/made/musaic-box/
 blueskyUrl: https://bsky.app/profile/rowan.fyi/post/3m5gzdwjibk2f
 mastodonUrl: https://mastodon.social/@rowan_m/115537547843057826
 image: background.png

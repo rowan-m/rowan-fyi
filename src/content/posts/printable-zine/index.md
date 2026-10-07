@@ -9,9 +9,9 @@ tags: ["zine-machine"]
 I loved the ingenuity of zine templates, that origami or map-like magic of a single piece of paper folding into an entire little book. That made me think, surely we should be able to do this on the web - right? A web page that you can read on a screen, but when you press print it turns into that magical little book. The answer is: of course we can! If you want the short version, then jump right in and read about how to make a CSS zine... in the form of a CSS zine!
 
 Have a peek below ⤵️ or
-on ➡️ [**`zine-machine.glitch.me`**](https://rowan.fyi/made/zine-machine)
+on ➡️ [**`zine-machine.glitch.me`**](https://rowan.fyi/made/zine-machine/)
 
-<iframe src="https://rowan.fyi/made/zine-machine" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/zine-machine/" class="glitch"></iframe>
 
 We're going to need two key bits of functionality to make this happen:
 

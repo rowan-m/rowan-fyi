@@ -8,7 +8,7 @@ tags: ["rotavo"]
 
 _This is the second in a series of posts detailing how I built the_ [🥑 _Rotavo PWA_](https://bit.ly/rotavo-pwa)_. Give it a whirl and see what you can draw!_
 
-In the [previous instalment](https://dev.to/rowan_m/you-spin-me-right-r-und-k32) we built the touch-controlled `<input-knob>` component that let us create a rotating knob with a `value` attribute corresponding to its angle. However, [fun](https://rowan.fyi/made/paul-spinlan) as that might have been it's still missing some functionality to be practical for general use.
+In the [previous instalment](https://dev.to/rowan_m/you-spin-me-right-r-und-k32) we built the touch-controlled `<input-knob>` component that let us create a rotating knob with a `value` attribute corresponding to its angle. However, [fun](https://rowan.fyi/made/paul-spinlan/) as that might have been it's still missing some functionality to be practical for general use.
 
 ## Contents
 
@@ -22,7 +22,7 @@ In the [previous instalment](https://dev.to/rowan_m/you-spin-me-right-r-und-k32)
 
 First though, let's freshen up [the previous demo](https://rowan.fyi/made/building-rotavo-04/) with a few cosmetic improvements. I said we were going to build something that resembled a volume control knob on a stereo. Now, we got the rotating behaviour in there but our knob was square... traditionally they're round. You were all kind enough not to mention that, but we should fix that before we move on.
 
-We also want an indicator for which way is "up" on our knob. As we saw in the [final demo](https://rowan.fyi/made/paul-spinlan) last time, we can just add any content we need inside the element. So we'll drop in a little triangle indicator there:
+We also want an indicator for which way is "up" on our knob. As we saw in the [final demo](https://rowan.fyi/made/paul-spinlan/) last time, we can just add any content we need inside the element. So we'll drop in a little triangle indicator there:
 
 ```html
 <input-knob value="2.5"><div class="mark">▲</div></input-knob>
@@ -61,7 +61,7 @@ input-knob::part(container) {
 
 Rounded corners! The original CSS holy grail - revel in it.
 
-<iframe src="https://rowan.fyi/made/building-rotavo-04" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/building-rotavo-04/" class="glitch"></iframe>
 
 There is also a little improvement we can make to the styling of `:host` on our Shadow DOM template as well. Specifically, we want the cursor to change into the little 👆 pointer indicating to the user they can interact with it.
 
@@ -117,7 +117,7 @@ document.addEventListener("knob-move-start", logEvent);
 
 Take a peek at the demo below to see how we're using the `logEvent()` function to light up some `<span>` elements when the events fire.
 
-<iframe src="https://rowan.fyi/made/building-rotavo-05" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/building-rotavo-05/" class="glitch"></iframe>
 
 ## ⚖️ Have some sense of proportion
 
@@ -160,7 +160,7 @@ this.value = this._angle / (TWO_PI / this.scale);
 
 So, to reverse what we had above if the angle comes out at π then we should expect a value of 5. That's... well, that's actually it for adding scale. So, you can verify that in the demo below. We've set the scale to 10, so ⬆️ = 0, ➡️ = 2.5, ⬇️ = 5, ⬅️ = 7.5. Give it a 🔃 below!
 
-<iframe src="https://rowan.fyi/made/building-rotavo-06" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/building-rotavo-06/" class="glitch"></iframe>
 
 As a little bonus, take a peek at the CSS in this demo. The layout uses a CSS Grid layout with `grid-template-areas` where you basically draw a little text diagram of the layout you want. So, the arrangement of the items above is literally:
 
@@ -231,7 +231,7 @@ With that logic in place, now we can add a knob that restricts its movement betw
 
 Give it a go in the demo. Spin all you like, but those upper values are all off limits! ⛔
 
-<iframe src="https://rowan.fyi/made/building-rotavo-07" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/building-rotavo-07/" class="glitch"></iframe>
 
 ## 🧛‍♂️ Count rotations
 
@@ -317,7 +317,7 @@ range.value = curValue;
 
 Now 10 rotations of the element should take you all the way from 0 to 💯. Ideal place to wrap things up for this entry, I think.
 
-<iframe src="https://rowan.fyi/made/building-rotavo-08" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/building-rotavo-08/" class="glitch"></iframe>
 
 _Next time we are going to ensure our component is accessible, because while the touch input is fun - it's not an option for everyone._
 
@@ -325,4 +325,4 @@ _Next time we are going to ensure our component is accessible, because while the
 
 Oh ho, I couldn't leave you without a little treat at the end now, could I? So, continuing the somewhat dubious tradition of borrowing my colleagues' faces (thank you / apologies to [Jake Archibald](https://twitter.com/jaffathecake)) please feel free to discover what happens when you wind up this... "Jake in a box".
 
-<iframe src="https://rowan.fyi/made/jake-in-the-box" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/jake-in-the-box/" class="glitch"></iframe>

@@ -1,8 +1,10 @@
 ---
+const isNotFoundPage = Astro.url.pathname === "/404" || Astro.url.pathname === "/404/";
 ---
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+{!isNotFoundPage && <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />}
 <link rel="me" href="https://bsky.app/profile/rowan.fyi" />
 <link rel="me" href="https://mastodon.social/@rowan_m" />
 <link rel="me" href="https://github.com/rowan-m/" />

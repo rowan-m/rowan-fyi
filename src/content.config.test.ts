@@ -22,7 +22,7 @@ describe("collections.posts.schema", () => {
       ...validPost,
       image: "test-image.jpg",
       imageAlt: "A test image",
-      location: "London, UK",
+      location: "https://rowan.fyi/made/test-project/",
       tags: ["test", "astro"],
       blueskyUrl: "https://bsky.app/profile/user/post/123",
       mastodonUrl: "https://mastodon.social/@user/123",
@@ -30,6 +30,30 @@ describe("collections.posts.schema", () => {
     };
     const result = zodSchema.safeParse(fullPost);
     expect(result.success).toBe(true);
+  });
+
+  test("rejects post with rowan.fyi location missing trailing slash", () => {
+    const invalidPost = {
+      ...validPost,
+      location: "https://rowan.fyi/made/test-project",
+    };
+    const result = zodSchema.safeParse(invalidPost);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(["location"]);
+    }
+  });
+
+  test("rejects post with non-URL location", () => {
+    const invalidPost = {
+      ...validPost,
+      location: "not-a-url",
+    };
+    const result = zodSchema.safeParse(invalidPost);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(["location"]);
+    }
   });
 
   test("rejects post with non-string standardSiteDoc", () => {

@@ -233,7 +233,7 @@ Ok, ok - you're underwhelmed, I should give you something interactive. Let's bri
 
 Try it for yourself here below. The slider should take the square from 0 to just under 2π (6.28) radians or a full rotation.
 
-<iframe src="https://rowan.fyi/made/building-rotavo-01" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/building-rotavo-01/" class="glitch"></iframe>
 
 ## 🚧 Browser support
 
@@ -433,7 +433,7 @@ this.value = this._angle;
 
 Oh my goodness, take a breather. If you're still with me, you… you've earned this. You can reach out with your mouse or finger and just spin that square around all you like.
 
-<iframe src="https://rowan.fyi/made/building-rotavo-02" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/building-rotavo-02/" class="glitch"></iframe>
 
 ## 🚧 Oh wait… browser support
 
@@ -556,7 +556,7 @@ Whoo! That wasn't too bad - now our code has a better separation of concerns and
 
 ## 🖌️ Painting and performance
 
-We're not quite done here though. Even though the element is functioning, we should take a peek at how well the element is performing. For this, you will want to open up the [previous Glitch demo](https://rowan.fyi/made/building-rotavo-02) in a new window so you can fire up Chrome's DevTools. We want to enable "Paint flashing" - you can find it under the 3 dot menu → More tools → Rendering → Paint flashing, or if you don't enjoy three levels of menus then bring up the command palette with `Ctrl / Cmd + Shift + P` and type "paint flashing". When you try rotating the element you will see a constant green rectangle drawn over it.
+We're not quite done here though. Even though the element is functioning, we should take a peek at how well the element is performing. For this, you will want to open up the [previous Glitch demo](https://rowan.fyi/made/building-rotavo-02/) in a new window so you can fire up Chrome's DevTools. We want to enable "Paint flashing" - you can find it under the 3 dot menu → More tools → Rendering → Paint flashing, or if you don't enjoy three levels of menus then bring up the command palette with `Ctrl / Cmd + Shift + P` and type "paint flashing". When you try rotating the element you will see a constant green rectangle drawn over it.
 
 ![Paint flashing rectangle displaying when the element moves](g9l606dermuf6ohmqbkw.png)
 
@@ -570,12 +570,12 @@ This is bad. It means the browser is having to paint on every single interaction
 }
 ```
 
-Now the browser knows we intend to change the `transform` property and it can optimise for that result. Compare this [updated Glitch demo](https://rowan.fyi/made/building-rotavo-03) with this one line added. You should see a brief initial flash, but after that - no paint events at all. Success!
+Now the browser knows we intend to change the `transform` property and it can optimise for that result. Compare this [updated Glitch demo](https://rowan.fyi/made/building-rotavo-03/) with this one line added. You should see a brief initial flash, but after that - no paint events at all. Success!
 
 ## 🏆 Bonus content
 
 So far, we haven't put any content within our element - we've just styled the element itself. If you look at the [Rotavo app](https://bit.ly/rotavo-pwa) you'll see that the little 🥑 controls are just SVGs inside the tag. Turns out you can put any content you want inside that tag and render it. So, to finish things off for this article _(**with a huge thank you to the ever patient [Paul Kinlan](https://twitter.com/Paul_Kinlan) for lending me his face**)_ please feel free to get to know… Paul Spinlan.
 
-<iframe src="https://rowan.fyi/made/paul-spinlan" class="glitch"></iframe>
+<iframe src="https://rowan.fyi/made/paul-spinlan/" class="glitch"></iframe>
 
 _Next time we will explore adding custom events, min/max values, and counting rotations to the element so we can build an app around it!_
