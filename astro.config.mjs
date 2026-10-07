@@ -1,4 +1,5 @@
 // @ts-check
+import fs from "node:fs";
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import node from "@astrojs/node";
@@ -7,8 +8,52 @@ import rehypeMathjax from "rehype-mathjax";
 import { unified } from "@astrojs/markdown-remark";
 
 /**
+ * Checks whether a bare module specifier imported in an `.astro` file during
+ * Vite's dev dependency scan belongs to a `<script type="importmap">` or an
+ * unbundled `<script is:inline>` block.
+ *
+ * @param {string} id
+ * @param {string} astroFilePath
+ * @returns {boolean}
+ */
+function isClientSideInlineImport(id, astroFilePath) {
+  let source;
+  try {
+    source = fs.readFileSync(astroFilePath, "utf-8");
+  } catch {
+    return false;
+  }
+
+  for (const match of source.matchAll(/<script\b[^>]*\btype=["']importmap["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      const parsed = JSON.parse(match[1]);
+      const imports = parsed?.imports;
+      if (imports && typeof imports === "object") {
+        for (const key of Object.keys(imports)) {
+          if (id === key || (key.endsWith("/") && id.startsWith(key))) {
+            return true;
+          }
+        }
+      }
+    } catch {
+      // Ignore malformed importmap JSON
+    }
+  }
+
+  for (const match of source.matchAll(/<script\b[^>]*\bis:inline\b[^>]*>([\s\S]*?)<\/script>/gi)) {
+    if (match[1].includes(id)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Exempts extensionless API endpoints (e.g. /.well-known/*, /made/email-provider/jwks)
- * from Astro's `trailingSlash: "always"` enforcement and 301/308 redirects.
+ * from Astro's `trailingSlash: "always"` enforcement and 301/308 redirects, and
+ * prevents Vite's dev dependency scanner from failing on client-side `<script is:inline>`
+ * / `<script type="importmap">` imports.
  *
  * @returns {import("astro").AstroIntegration}
  */
@@ -36,6 +81,16 @@ function exemptEndpointsFromTrailingSlash() {
             plugins: [
               {
                 name: "exempt-endpoints-from-trailing-slash-vite",
+                resolveId(id, importer, options) {
+                  const scanOptions = /** @type {{ scan?: boolean } | undefined} */ (options);
+                  if (scanOptions?.scan && importer?.includes(".astro")) {
+                    const astroFilePath = importer.split("?")[0];
+                    if (isClientSideInlineImport(id, astroFilePath)) {
+                      return { id, external: true };
+                    }
+                  }
+                  return null;
+                },
                 transform(code, id) {
                   if (id.includes("@astrojs/node") && id.endsWith("serve-static.js")) {
                     return code.replace(
