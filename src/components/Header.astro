@@ -1,5 +1,6 @@
 ---
 import Logo from "@/assets/logo.svg";
+import SocialIcons from "@/components/SocialIcons.astro";
 interface Props {
   useH1Header?: boolean;
 }
@@ -18,4 +19,5 @@ const { useH1Header } = Astro.props;
       <Logo />
     </a>
   )}
+  <SocialIcons />
 </header>

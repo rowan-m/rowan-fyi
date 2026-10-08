@@ -163,6 +163,7 @@ header {
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
+  align-items: center;
   border-block-end: var(--sec-border) solid 2px;
 }
 
@@ -221,6 +222,20 @@ main a:hover {
 .socials svg {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+@media (max-width: 30rem) {
+  header .socials {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 0.4rem 0.75rem;
+    padding: 0.25rem 0;
+  }
+
+  header .socials svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
 .post-meta {
