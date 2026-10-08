@@ -1,0 +1,415 @@
+---
+export const prerender = true;
+import coreCssUrl from "./_core.css?url";
+import dayCssUrl from "./_day.css?url";
+import nightCssUrl from "./_night.css?url";
+import computeWGSL from "./compute.wgsl?raw";
+import renderWGSL from "./render.wgsl?raw";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Persistence of Memory</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#e0ebeb" />
+
+    <link rel="stylesheet" href={coreCssUrl} />
+    <link
+      rel="stylesheet"
+      href={dayCssUrl}
+      media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+    />
+    <link rel="stylesheet" href={nightCssUrl} media="(prefers-color-scheme: dark)" />
+  </head>
+  <body>
+    <header>
+      <h1>La persistencia de la memoria (WebGPU)</h1>
+      <button class="start" type="button"> Apply gravity</button>
+    </header>
+    <main class="watch">
+      <div class="crown"></div>
+      <div class="casing">
+        <div class="face">
+          <div class="hour-numbers">
+            <span class="hour-num num-1"><span>1</span></span>
+            <span class="hour-num num-2"><span>2</span></span>
+            <span class="hour-num num-3"><span>3</span></span>
+            <span class="hour-num num-4"><span>4</span></span>
+            <span class="hour-num num-5"><span>5</span></span>
+            <span class="hour-num num-6"><span>6</span></span>
+            <span class="hour-num num-7"><span>7</span></span>
+            <span class="hour-num num-8"><span>8</span></span>
+            <span class="hour-num num-9"><span>9</span></span>
+            <span class="hour-num num-10"><span>10</span></span>
+            <span class="hour-num num-11"><span>11</span></span>
+            <span class="hour-num num-12"><span>12</span></span>
+          </div>
+          <canvas class="watch-hands" width="1000" height="1000"></canvas>
+        </div>
+      </div>
+    </main>
+    <footer>
+      <nav>
+        <dark-mode-toggle id="dmt" appearance="switch" dark="Night" light="Day" remember="Permanent"></dark-mode-toggle>
+        <a href="https://en.wikipedia.org/wiki/The_Persistence_of_Memory">🖼️ Salvador Dalí</a>
+        <a href="https://glitch.com/edit/#!/persistence">💻 Code</a>
+        <a href="https://twitter.com/rowan_m">🖤 @rowan_m</a><br />
+        <a href="/made/persistence/">🎨 Canvas version</a>
+        <a href="/made/persistence/svg/">🖋️ SVG version</a>
+      </nav>
+    </footer>
+
+    <script
+      is:inline
+      type="module"
+      src="https://googlechromelabs.github.io/dark-mode-toggle/src/dark-mode-toggle.mjs"
+    ></script>
+    <script is:inline define:vars={{ computeWGSL, renderWGSL }}>
+      "use strict";
+      class Acceleration {
+        constructor(startButt) {
+          this.watch = null;
+          this.worker = null;
+          this.startButt = startButt;
+          this.updated = Date.now();
+          this.smoothing = 800;
+          this.sensorDirection = 1;
+          this.x = 0;
+          this.y = 9.8;
+          this.z = 0;
+
+          this.start = this.start.bind(this);
+          this.request = this.request.bind(this);
+          this.handle = this.handle.bind(this);
+        }
+
+        setWatch(watch) {
+          this.watch = watch;
+        }
+
+        setWorker(worker) {
+          this.worker = worker;
+        }
+
+        start() {
+          if (window.DeviceMotionEvent) {
+            if (DeviceMotionEvent.requestPermission) {
+              this.startButt.addEventListener("click", this.request);
+              this.startButt.style.display = "block";
+            } else {
+              window.addEventListener("deviceorientation", this.handle);
+            }
+          }
+        }
+
+        request() {
+          DeviceMotionEvent.requestPermission().then((response) => {
+            if (response == "granted") {
+              this.startButt.style.display = "none";
+              this.sensorDirection = -1;
+              window.addEventListener("deviceorientation", this.handle);
+            }
+          });
+        }
+
+        handle(e) {
+          const now = Date.now();
+          const elapsedTime = now - this.updated;
+
+          this.x += (elapsedTime * (e.gamma * this.sensorDirection - this.x)) / this.smoothing;
+          this.y += (elapsedTime * (e.beta * this.sensorDirection - this.y)) / this.smoothing;
+          this.z += (elapsedTime * (e.alpha * this.sensorDirection - this.z)) / this.smoothing;
+          this.updated = now;
+
+          if (this.worker !== null) {
+            this.worker.postMessage({
+              cmd: "accel",
+              accel: this.x + "," + this.y + "," + this.z,
+            });
+          } else if (this.watch !== null) {
+            this.watch.setAccel({ x: this.x, y: this.y, z: this.z });
+          }
+        }
+      }
+
+      async function initWebGPU() {
+        if (!navigator.gpu) {
+          console.error("WebGPU not supported on this browser.");
+          document.body.innerHTML = "<h1>WebGPU not supported on this browser.</h1>";
+          return;
+        }
+
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) {
+          console.error("No WebGPU adapter found.");
+          return;
+        }
+        const device = await adapter.requestDevice();
+
+        const canvas = document.querySelector("canvas.watch-hands");
+        const context = canvas.getContext("webgpu");
+        const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
+        context.configure({
+          device,
+          format: presentationFormat,
+          alphaMode: "premultiplied",
+        });
+
+        // Shaders provided via define:vars
+
+        const computeModule = device.createShaderModule({ code: computeWGSL });
+        const renderModule = device.createShaderModule({ code: renderWGSL });
+
+        // Uniform buffer layout:
+        // gravity: vec2f, angles: vec4f (hour, minute, second, padding),
+        // dt: f32, theme: u32, canvasSize: vec2f
+        const uniformBufferSize = 64;
+        const uniformBuffer = device.createBuffer({
+          size: uniformBufferSize,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        // Particle buffer setup: 3 hands * 20 particles = 60 particles.
+        // Each particle (48 bytes):
+        // pos: vec2f (0), prev_pos: vec2f (8), dist: f32 (16),
+        // radius: f32 (20), is_pinned: f32 (24), padding: vec3f (32)
+        const particleSize = 48;
+        const numParticles = 60;
+        const initialParticleData = new ArrayBuffer(numParticles * particleSize);
+        const particleView = new DataView(initialParticleData);
+
+        const initHand = (handIdx, length, counterweight, radius) => {
+          const numSegments = 20;
+          const totalLen = length + counterweight;
+          const segLen = totalLen / (numSegments - 1);
+
+          for (let i = 0; i < numSegments; i++) {
+            const pIdx = handIdx * numSegments + i;
+            const offset = pIdx * particleSize;
+            const dist = i * segLen - counterweight;
+
+            // Start them pointing UP (angle = 0)
+            particleView.setFloat32(offset + 0, 500, true); // pos.x
+            particleView.setFloat32(offset + 4, 500 - dist, true); // pos.y
+            particleView.setFloat32(offset + 8, 500, true); // prev_pos.x
+            particleView.setFloat32(offset + 12, 500 - dist, true); // prev_pos.y
+            particleView.setFloat32(offset + 16, dist, true); // dist_from_center
+
+            // Taper the radius slightly at the tip
+            let r = radius;
+            if (i > numSegments - 5) r *= 1.0 - ((i - (numSegments - 5)) / 5) * 0.8;
+
+            particleView.setFloat32(offset + 20, r, true); // radius
+
+            // Pin the particle closest to the pivot (dist near 0) AND the tip (last particle)
+            const isPinned = Math.abs(dist) < segLen || i === numSegments - 1 ? 1.0 : 0.0;
+            particleView.setFloat32(offset + 24, isPinned, true); // is_pinned
+          }
+        };
+
+        // hands: hour (len 310, cw 50, rad 16), minute (len 410, cw 50, rad 16), second (len 390, cw 50, rad 5)
+        initHand(0, 310, 50, 16); // Hour
+        initHand(1, 410, 50, 16); // Minute
+        initHand(2, 390, 50, 5); // Second
+
+        const particleBuffer = device.createBuffer({
+          size: numParticles * particleSize,
+          usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+          mappedAtCreation: true,
+        });
+        new Uint8Array(particleBuffer.getMappedRange()).set(new Uint8Array(initialParticleData));
+        particleBuffer.unmap();
+
+        // Pipelines
+        const computeBindGroupLayout = device.createBindGroupLayout({
+          entries: [
+            {
+              binding: 0,
+              visibility: GPUShaderStage.COMPUTE,
+              buffer: { type: "uniform" },
+            },
+            {
+              binding: 1,
+              visibility: GPUShaderStage.COMPUTE,
+              buffer: { type: "storage" },
+            },
+          ],
+        });
+
+        const renderBindGroupLayout = device.createBindGroupLayout({
+          entries: [
+            {
+              binding: 0,
+              visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+              buffer: { type: "uniform" },
+            },
+            {
+              binding: 1,
+              visibility: GPUShaderStage.VERTEX,
+              buffer: { type: "read-only-storage" },
+            },
+          ],
+        });
+
+        const computeBindGroup = device.createBindGroup({
+          layout: computeBindGroupLayout,
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: particleBuffer } },
+          ],
+        });
+
+        const renderBindGroup = device.createBindGroup({
+          layout: renderBindGroupLayout,
+          entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+            { binding: 1, resource: { buffer: particleBuffer } },
+          ],
+        });
+
+        const computePipelineLayout = device.createPipelineLayout({
+          bindGroupLayouts: [computeBindGroupLayout],
+        });
+        const computePipeline = device.createComputePipeline({
+          layout: computePipelineLayout,
+          compute: { module: computeModule, entryPoint: "main" },
+        });
+
+        const renderPipelineLayout = device.createPipelineLayout({
+          bindGroupLayouts: [renderBindGroupLayout],
+        });
+        const renderPipeline = device.createRenderPipeline({
+          layout: renderPipelineLayout,
+          vertex: { module: renderModule, entryPoint: "vs_main" },
+          fragment: {
+            module: renderModule,
+            entryPoint: "fs_main",
+            targets: [
+              {
+                format: presentationFormat,
+                blend: {
+                  color: {
+                    srcFactor: "src-alpha",
+                    dstFactor: "one-minus-src-alpha",
+                    operation: "add",
+                  },
+                  alpha: {
+                    srcFactor: "one",
+                    dstFactor: "one-minus-src-alpha",
+                    operation: "add",
+                  },
+                },
+              },
+            ],
+          },
+          primitive: { topology: "triangle-list" },
+        });
+
+        // Watch setup
+        let theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0;
+        document.addEventListener("colorschemechange", (e) => {
+          theme = e.detail.colorScheme === "dark" ? 1 : 0;
+        });
+
+        const _2PI = Math.PI * 2;
+        const uniformData = new ArrayBuffer(uniformBufferSize);
+        const uniformView = new DataView(uniformData);
+
+        let currentAccel = { x: 0, y: 9.8, z: 0 };
+
+        // Fake watch implementation to receive Acceleration updates
+        const fakeWatch = { setAccel: (a) => (currentAccel = a) };
+        const startButt = document.querySelector(".start");
+        const accel = new Acceleration(startButt);
+        accel.setWatch(fakeWatch);
+        accel.start();
+
+        let lastTime = performance.now();
+
+        function frame(timestamp) {
+          const dt = Math.min((timestamp - lastTime) / 1000, 0.05); // max 50ms to prevent explosion
+          lastTime = timestamp;
+
+          const time = new Date();
+          const hour = time.getHours() % 12;
+          const minute = time.getMinutes();
+          const second = time.getSeconds();
+          const millis = time.getMilliseconds();
+
+          const secondAngle = (_2PI / 60) * second + (_2PI / 60 / 1000) * millis;
+          const minuteAngle = (_2PI / 60) * minute + (_2PI / 60 / 60) * second + (_2PI / 60 / 60 / 1000) * millis;
+          const hourAngle =
+            (_2PI / 12) * hour +
+            (_2PI / 12 / 60) * minute +
+            (_2PI / 12 / 60 / 60) * second +
+            (_2PI / 12 / 60 / 60 / 1000) * millis;
+
+          // Update Uniforms: gravity, angles (hour, minute, second), dt, theme, canvasSize
+          uniformView.setFloat32(0, currentAccel.x, true);
+          uniformView.setFloat32(4, currentAccel.y, true);
+
+          uniformView.setFloat32(16, hourAngle, true);
+          uniformView.setFloat32(20, minuteAngle, true);
+          uniformView.setFloat32(24, secondAngle, true);
+          uniformView.setFloat32(28, 0.0, true); // angle padding
+
+          uniformView.setFloat32(32, dt, true);
+          uniformView.setUint32(36, theme, true);
+          uniformView.setFloat32(40, canvas.width, true);
+          uniformView.setFloat32(44, canvas.height, true);
+
+          device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+
+          const commandEncoder = device.createCommandEncoder();
+
+          // Compute pass
+          const computePass = commandEncoder.beginComputePass();
+          computePass.setPipeline(computePipeline);
+          computePass.setBindGroup(0, computeBindGroup);
+          computePass.dispatchWorkgroups(3); // 3 hands
+          computePass.end();
+
+          // Render pass
+          const textureView = context.getCurrentTexture().createView();
+          const renderPass = commandEncoder.beginRenderPass({
+            colorAttachments: [
+              {
+                view: textureView,
+                clearValue: { r: 0, g: 0, b: 0, a: 0 },
+                loadOp: "clear",
+                storeOp: "store",
+              },
+            ],
+          });
+          renderPass.setPipeline(renderPipeline);
+          renderPass.setBindGroup(0, renderBindGroup);
+          renderPass.draw(6, 57); // 6 vertices per quad, 57 instances (3 hands * 19 segments)
+          renderPass.end();
+
+          device.queue.submit([commandEncoder.finish()]);
+
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+
+        // Rotate numbers like SVG version
+        const numberEls = document.querySelectorAll(".hour-num>span");
+
+        function rotateNumbers() {
+          const gRot = (Math.atan2(currentAccel.y, currentAccel.x) * 180) / Math.PI - 90;
+          numberEls.forEach((num) => {
+            num.style.transform = `rotate(${num.textContent * -30 + gRot}deg)`;
+          });
+          requestAnimationFrame(rotateNumbers);
+        }
+        requestAnimationFrame(rotateNumbers);
+      }
+
+      initWebGPU();
+    </script>
+  </body>
+</html>

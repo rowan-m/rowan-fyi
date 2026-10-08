@@ -1,0 +1,35 @@
+import type { APIRoute } from "astro";
+
+export const prerender = true;
+
+export const GET: APIRoute = () => {
+  const manifest = {
+    name: "Persistence of Memory",
+    short_name: "Persistence",
+    start_url: "/made/persistence/",
+    icons: [
+      {
+        src: "/made/persistence/assets/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any maskable",
+      },
+      {
+        src: "/made/persistence/assets/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any maskable",
+      },
+    ],
+    theme_color: "#e0ebeb",
+    background_color: "#e0ebeb",
+    display: "standalone",
+    orientation: "portrait",
+  };
+
+  return new Response(JSON.stringify(manifest, null, 2), {
+    headers: {
+      "Content-Type": "application/manifest+json; charset=utf-8",
+    },
+  });
+};

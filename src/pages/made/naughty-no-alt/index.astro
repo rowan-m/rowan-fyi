@@ -1,0 +1,67 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import img1 from "./assets/71142347_446078422703384_5461860829958837723_n.jpg";
+import img2 from "./assets/70361582_2580952328805913_6535199330128237535_n.jpg";
+import img3 from "./assets/82224617_471660250454277_8102177855991322547_n.jpg";
+import img4 from "./assets/72289281_2465643027010170_3575790183307336154_n.jpg";
+import img5 from "./assets/69432156_515626225853279_3431010009738289326_n.jpg";
+import img6 from "./assets/77308863_589651738505034_1193382705711115891_n.jpg";
+import img7 from "./assets/74435676_936875253358725_6039719083395354991_n.jpg";
+import img8 from "./assets/80736819_245664206412796_6601888962660608142_n.jpg";
+import img9 from "./assets/79012467_487868828599854_1035374634562053056_n.jpg";
+---
+
+<MetaOnlyLayout title="Naughty naughty no alt" description="CSS selector highlighting images missing alt attributes.">
+  <style>
+    body {
+      margin: 5vw;
+    }
+
+    img {
+      max-width: 25vw;
+      margin: 1vw;
+      box-sizing: border-box;
+    }
+    img:not([alt]) {
+      border: 2px solid red;
+      animation: pulse 1.2s ease infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1) rotate(0);
+      }
+      25% {
+        transform: scale(1.3) rotate(15deg);
+        filter: blur(2px);
+        opacity: 0.8;
+        box-shadow: 0 0 2vw 2vw red;
+      }
+      50% {
+        transform: scale(1) rotate(0);
+        filter: none;
+      }
+      75% {
+        transform: scale(1.3) rotate(-15deg);
+        filter: blur(5px);
+        opacity: 0.8;
+        box-shadow: 0 0 2vw 2vw red;
+      }
+
+      100% {
+        transform: scale(1) rotate(0);
+      }
+    }
+  </style>
+  <img src={img1.src} />
+  <img alt="The nighttime city scape of Tokyo" src={img2.src} />
+  <img src={img3.src} />
+  <img alt="The nighttime cityscape of foggy San Francisco" src={img4.src} />
+  <img src={img5.src} />
+  <img alt="The daytime cityscape of Tokyo" src={img6.src} />
+  <img src={img7.src} />
+  <img alt="A close-up view of a wise, ginger cat" src={img8.src} />
+  <img alt="The dome of Kings Cross station in London" src={img9.src} />
+</MetaOnlyLayout>

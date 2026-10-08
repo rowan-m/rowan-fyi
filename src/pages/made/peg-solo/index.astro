@@ -1,0 +1,1120 @@
+---
+export const prerender = true;
+import ogImage from "./assets/play-peg-solitaire-screenshot.png";
+
+const ogImageSrc = typeof ogImage === "string" ? ogImage : ogImage.src;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#4682b4" />
+    <link rel="me" href="https://bsky.app/profile/rowan.fyi" />
+    <link rel="me" href="https://mastodon.social/@rowan_m" />
+    <link rel="me" href="https://github.com/rowan-m/" />
+    <link rel="me" href="https://www.threads.com/@rowan_m" />
+    <link rel="me" href="https://www.linkedin.com/in/rowanmerewood/" />
+    <link rel="me" href="https://www.instagram.com/rowan_m/" />
+    <meta name="fediverse:creator" content="@rowan_m@mastodon.social" />
+    <link rel="author" href="https://rowan.fyi" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😹</text></svg>"
+    />
+    <link rel="manifest" href="/made/peg-solo/manifest.json" />
+
+    <title>Peg Solitaire / Solo Noble</title>
+    <meta
+      name="description"
+      content="Play an online version of the classic game: Peg Solitaire AKA Solo Noble AKA Brainvita with bonus cat emoji."
+    />
+
+    <meta property="og:url" content="https://rowan.fyi/made/peg-solo/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Peg Solitaire / Solo Noble" />
+    <meta
+      property="og:description"
+      content="Play an online version of the classic game: Peg Solitaire AKA Solo Noble AKA Brainvita with bonus cat emoji."
+    />
+    <meta name="image" property="og:image" content={new URL(ogImageSrc, "https://rowan.fyi").href} />
+    <meta property="og:image:alt" content="Peg Solitaire game board filled with cat emoji pegs" />
+    <meta property="og:image:width" content="1920" />
+    <meta property="og:image:height" content="960" />
+
+    <style is:inline>
+      @keyframes happyjiggle {
+        from {
+          transform: rotate(0deg) translateY(0) scaleY(1);
+        }
+
+        to {
+          transform: rotate(0deg) translateY(-0.5vmin) scaleY(1.05);
+        }
+      }
+
+      :root {
+        --font-size: 8vmin;
+      }
+
+      body {
+        align-content: space-between;
+        align-items: center;
+        display: flex;
+        flex-flow: column nowrap;
+        font-family: sans-serif;
+        justify-content: center;
+      }
+
+      header {
+        background: aliceblue;
+        border-radius: 0.5rem;
+        margin: 1vh;
+        max-width: 80vh;
+        padding: 0.5rem;
+        text-align: center;
+        width: 90vmin;
+      }
+
+      h1 {
+        color: steelblue;
+        font-size: 1.2rem;
+        margin: 0;
+      }
+
+      .board {
+        background: ivory;
+        border-radius: 50%;
+        border: 1.2vmin double burlywood;
+        box-shadow: 1vmin 1vmin 3vmin #00000088;
+        display: grid;
+        grid-template-columns: repeat(7, 11vmin);
+        grid-template-rows: repeat(7, 11vmin);
+        height: 80vmin;
+        margin: auto;
+        max-height: 77vh;
+        max-width: 77vh;
+        place-content: center;
+        place-items: center;
+        width: 80vmin;
+      }
+
+      .cell {
+        -webkit-tap-highlight-color: transparent;
+        background: 0 0;
+        border: 0;
+        color: inherit;
+        cursor: pointer;
+        display: grid;
+        font-family: inherit;
+        font-size: var(--font-size);
+        height: 100%;
+        line-height: 100%;
+        outline: inherit;
+        padding: 0;
+        place-items: center;
+        text-align: center;
+        text-shadow: 0.3vmin 0.3vmin 0.5vmin #00000088;
+        transform-origin: center bottom;
+        transition: 0.1s ease-out;
+        width: 100%;
+        contain: strict;
+      }
+
+      .hole {
+        text-shadow: 0 0 0 transparent;
+        transform-origin: center;
+        transition:
+          transform 0.2s ease-out,
+          text-shadow 0.2s ease-out;
+      }
+
+      .hole::before {
+        content: "🔹";
+      }
+
+      .hole.valid {
+        text-shadow: 0 0 1vmin steelblue;
+        transform: scale(1.15);
+      }
+
+      .hole:focus,
+      .hole:hover {
+        text-shadow: 0 0 1.2vmin #000;
+      }
+
+      .peg::before {
+        content: "🐱";
+      }
+
+      .peg.sly::before {
+        content: "😼";
+      }
+
+      .peg.happy::before {
+        content: "😽";
+      }
+
+      .peg.happier::before {
+        content: "😸";
+      }
+
+      .peg:focus,
+      .peg:hover {
+        font-size: calc(var(--font-size) * 1.05);
+        text-shadow: 0.5vmin 0.5vmin 0.6vmin #00000088;
+      }
+
+      .peg:focus::before,
+      .peg:hover::before {
+        content: "😺";
+      }
+
+      .selected {
+        animation: happyjiggle ease-out 0.4s alternate infinite;
+        font-size: calc(var(--font-size) * 1.1);
+        text-shadow: 0.7vmin 0.7vmin 0.7vmin #00000088;
+      }
+
+      .selected::before {
+        content: "😺";
+      }
+
+      .lose > .peg::before {
+        content: "😿";
+      }
+
+      .win > .peg::before {
+        content: "😻";
+      }
+
+      .jump,
+      .remove,
+      .restore {
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .jump {
+        font-size: calc(var(--font-size) * 1.15);
+        text-shadow: 0.9vmin 0.9vmin 0.8vmin #00000088;
+        transition: 0.5s ease;
+      }
+
+      .jump::before {
+        content: "😸";
+      }
+
+      .remove {
+        font-size: var(--font-size);
+        text-shadow: 0.9vmin 0.9vmin 0.5vmin #00000088;
+        transition:
+          transform 0.75s ease-out,
+          opacity 0.75s ease-in;
+      }
+
+      .remove::before {
+        content: "🙀";
+      }
+
+      .restore {
+        transition:
+          transform 0.5s ease-out,
+          opacity 0.5s ease-out;
+      }
+
+      .restore::before {
+        content: "😺";
+      }
+
+      nav,
+      nav button {
+        font-size: 1.2rem;
+      }
+
+      nav {
+        background: aliceblue;
+        border-radius: 0.5rem;
+        color: steelblue;
+        display: grid;
+        font-weight: bold;
+        grid-template-columns: 1fr 1fr 1fr 2fr 2fr;
+        margin-top: 1rem;
+        max-width: 80vh;
+        place-items: center;
+        width: 90vmin;
+      }
+
+      nav button,
+      dialog button {
+        background: ivory;
+        border-radius: 20%;
+        border: 0.15rem outset burlywood;
+        box-shadow: 0.3vmin 0.3vmin 1vmin #00000088;
+        color: steelblue;
+        cursor: pointer;
+        font-weight: bold;
+        padding: 0.5rem;
+        transition: box-shadow 0.1s ease;
+        user-select: none;
+      }
+
+      nav button:not(:disabled):focus,
+      nav button:not(:disabled):hover,
+      dialog button:focus,
+      dialog button:hover {
+        background: aliceblue;
+        box-shadow: 0.5vmin 0.5vmin 1.75vmin #00000088;
+      }
+
+      nav button:not(:disabled):active,
+      dialog button:active {
+        box-shadow: 0.1vmin 0.1vmin 0.25vmin #00000088;
+        border: 0.15rem inset burlywood;
+      }
+
+      nav button:disabled {
+        box-shadow: none;
+        cursor: default;
+        opacity: 0.4;
+      }
+
+      dialog {
+        background: ivory;
+        border-radius: 3vmin;
+        border: 1vmin double burlywood;
+        box-shadow: 1vmin 1vmin 3vmin #00000088;
+        opacity: 1;
+        padding: 0;
+      }
+
+      dialog > div {
+        color: steelblue;
+        font-size: 1rem;
+        font-weight: bold;
+        margin: auto;
+        max-width: 70vw;
+        padding: 3vh;
+      }
+
+      dialog::backdrop {
+        background: #00000088;
+      }
+
+      dialog code {
+        display: inline-block;
+        font-size: 2rem;
+        text-align: center;
+        width: 100%;
+      }
+
+      dialog form {
+        margin-top: 1rem;
+        text-align: center;
+      }
+
+      dialog button {
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+      }
+
+      .endgame-title {
+        font-size: 1.3rem;
+        margin: 0 0 1rem;
+        text-align: center;
+      }
+
+      .endgame-board {
+        font-family: inherit;
+        font-size: 1.4rem;
+        line-height: 1.25;
+        margin: 0 auto 1rem;
+        text-align: left;
+        user-select: all;
+        width: fit-content;
+      }
+
+      .endgame-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+
+      .timer {
+        font-variant-numeric: tabular-nums;
+      }
+
+      footer {
+        color: dimgray;
+        display: flex;
+        flex-wrap: wrap;
+        font-size: min(3vw, 0.8em);
+        gap: 1.5ch;
+        justify-content: center;
+        margin-top: 1rem;
+      }
+
+      footer a {
+        align-items: center;
+        color: slategray;
+        display: inline-flex;
+        gap: 0.35ch;
+      }
+
+      footer a:active {
+        color: lightslategray;
+      }
+
+      footer a:visited {
+        color: darkslategray;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .selected {
+          animation: none;
+        }
+
+        .cell,
+        .hole,
+        nav button,
+        dialog button {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Peg Solitaire / Solo Noble</h1>
+    </header>
+    <main>
+      <div class="board" role="group" aria-label="Peg Solitaire board"></div>
+    </main>
+    <nav aria-label="Game controls">
+      <button type="button" class="reset" aria-label="Reset game">🔁</button>
+      <button type="button" class="undo" aria-label="Undo move" disabled>↩️</button>
+      <button type="button" class="docs" aria-label="How to play">❓</button>
+      <span class="timer" aria-label="Elapsed time">⏳ <span class="time">00:00</span></span>
+      <span class="status" role="status" aria-live="polite">😺 New</span>
+    </nav>
+    <dialog class="docs" aria-label="How to play">
+      <div>
+        <p>Tap or click on a cat to select it.</p>
+        <p>
+          <code>🐱🐱🔹<br />👆&nbsp;&nbsp;&nbsp;&nbsp;</code>
+        </p>
+        <p>Tap on an empty space one hop left, right, up, or down from your selected cat.</p>
+        <p>
+          <code>😺🐱🔹<br />&nbsp;&nbsp;&nbsp;&nbsp;👆</code>
+        </p>
+        <p>Your selected cat hops over the middle one and removes it!</p>
+        <p>
+          <code>🔹🔹😸<br />&nbsp;&nbsp;&nbsp;&nbsp;🤌</code>
+        </p>
+        <p>To win, hop until all cats are removed except for one in the centre!</p>
+        <p>
+          <code>🔹🔹🔹<br />🔹😻🔹<br />🔹🔹🔹</code>
+        </p>
+        <form method="dialog">
+          <button type="submit">😺 Got it!</button>
+        </form>
+      </div>
+    </dialog>
+    <dialog class="endgame" aria-label="Game over">
+      <div>
+        <p class="endgame-title"></p>
+        <pre class="endgame-board"></pre>
+        <div class="endgame-actions">
+          <button type="button" class="share">📤 Share</button>
+          <button type="button" class="endgame-undo">↩️ Undo</button>
+          <button type="button" class="endgame-reset">🔁 Play again</button>
+        </div>
+        <form method="dialog">
+          <button type="submit">😺 Close</button>
+        </form>
+      </div>
+    </dialog>
+    <footer>
+      <a
+        href="https://github.com/rowan-m/rowan-fyi/blob/main/src/pages/made/peg-solo/index.astro"
+        target="_blank"
+        rel="noopener"
+        ><span aria-hidden="true">🧑‍💻</span> Code</a
+      >
+      <a href="https://rowan.fyi" target="_blank" rel="noopener" aria-label="Website rowan.fyi"
+        ><span aria-hidden="true">🌐</span> rowan.fyi</a
+      >
+      <a href="https://bsky.app/profile/rowan.fyi" target="_blank" rel="noopener" aria-label="Bluesky profile rowan.fyi"
+        ><span aria-hidden="true">🦋</span> rowan.fyi</a
+      >
+      <a
+        href="https://mastodon.social/@rowan_m"
+        target="_blank"
+        rel="noopener"
+        aria-label="Mastodon profile rowan_m@mastodon.social"
+        ><span aria-hidden="true">🦣</span> rowan_m</a
+      >
+    </footer>
+    <script is:inline>
+      "use strict";
+      if (location.protocol !== "https:" && location.hostname !== "localhost") {
+        location.protocol = "https:";
+      }
+
+      const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      const DEFAULT_BOARD = [
+        [0, 0, 2, 2, 2, 0, 0],
+        [0, 0, 2, 2, 2, 0, 0],
+        [2, 2, 2, 2, 2, 2, 2],
+        [2, 2, 2, 1, 2, 2, 2],
+        [2, 2, 2, 2, 2, 2, 2],
+        [0, 0, 2, 2, 2, 0, 0],
+        [0, 0, 2, 2, 2, 0, 0],
+      ];
+
+      class Board {
+        cells;
+        el;
+        timer;
+        timerTimeout;
+        timerEl;
+        endgameTimeout;
+        endgameDialog;
+        shareHeader;
+        static get NEW() {
+          return "new";
+        }
+        static get PLAYING() {
+          return "playing";
+        }
+        static get LOSE() {
+          return "lose";
+        }
+        static get WIN() {
+          return "win";
+        }
+        static get DIRECTIONS() {
+          return [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+          ];
+        }
+        static get KEY_DIRS() {
+          return { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] };
+        }
+        gameState;
+        stateEl;
+        undoEl;
+        selectedPeg;
+        history;
+
+        constructor() {
+          this.handleClick = this.handleClick.bind(this);
+          this.handleKeyDown = this.handleKeyDown.bind(this);
+          this.updateTimer = this.updateTimer.bind(this);
+          this.timer = 0;
+          this.timerTimeout = null;
+          this.endgameTimeout = null;
+          this.shareHeader = "";
+          this.cells = [];
+          this.gameState = Board.NEW;
+          this.selectedPeg = null;
+          this.history = [];
+        }
+
+        setBoard(data) {
+          this.cells = [];
+          data.forEach((col, x) => {
+            this.cells.push([]);
+            col.forEach((type, y) => {
+              if (type > 0) {
+                this.cells[x][y] = new Cell(x, y, type);
+                this.cells[x][y].addToBoard(this.el);
+              }
+            });
+          });
+        }
+
+        reset() {
+          clearTimeout(this.timerTimeout);
+          clearTimeout(this.endgameTimeout);
+          this.timerTimeout = null;
+          this.endgameTimeout = null;
+          this.timer = 0;
+          this.shareHeader = "";
+          this.gameState = Board.NEW;
+          this.selectedPeg = null;
+          this.history = [];
+          if (this.undoEl) {
+            this.undoEl.disabled = true;
+          }
+          this.timerEl.textContent = `00:00`;
+          this.stateEl.textContent = "😺 New";
+          this.el.classList.remove("win", "lose");
+          this.cells.forEach((row) => {
+            row.forEach((cell) => {
+              cell.destroy();
+            });
+          });
+        }
+
+        formatElapsed() {
+          const elapsed = Date.now() - this.timer;
+          const seconds = Math.floor(elapsed / 1000);
+          const minutes = Math.floor(seconds / 60);
+          return `${minutes.toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
+        }
+
+        updateTimer() {
+          if (this.gameState === Board.PLAYING) {
+            this.timerEl.textContent = this.formatElapsed();
+            this.timerTimeout = setTimeout(this.updateTimer, 1000);
+          }
+        }
+
+        addListener() {
+          this.el.addEventListener("click", this.handleClick);
+          this.el.addEventListener("keydown", this.handleKeyDown);
+        }
+
+        handleKeyDown(ev) {
+          if (ev.key === "Escape" && this.selectedPeg) {
+            ev.preventDefault();
+            this.deselectPeg(this.selectedPeg);
+            return;
+          }
+
+          const dir = Board.KEY_DIRS[ev.key];
+          if (!dir || !ev.target.classList.contains("cell")) {
+            return;
+          }
+
+          ev.preventDefault();
+          const x = Number(ev.target.dataset.x);
+          const y = Number(ev.target.dataset.y);
+          const [dx, dy] = dir;
+          const direct = this.cells[x + dx]?.[y + dy];
+          if (direct) {
+            direct.el.focus();
+            return;
+          }
+
+          let nearest = null;
+          let minDistance = Infinity;
+          this.cells.forEach((col) => {
+            col.forEach((candidate) => {
+              const onTargetLine = dx !== 0 ? candidate.x === x + dx : candidate.y === y + dy;
+              if (onTargetLine) {
+                const dist = dx !== 0 ? Math.abs(candidate.y - y) : Math.abs(candidate.x - x);
+                if (dist < minDistance) {
+                  minDistance = dist;
+                  nearest = candidate;
+                }
+              }
+            });
+          });
+
+          if (nearest) {
+            nearest.el.focus();
+          }
+        }
+
+        handleClick(ev) {
+          if (![Board.NEW, Board.PLAYING].includes(this.gameState) || !ev.target.classList.contains("cell")) {
+            return;
+          }
+
+          if (this.gameState === Board.NEW) {
+            this.gameState = Board.PLAYING;
+            this.stateEl.textContent = "😼 Game on";
+            this.timer = Date.now();
+            this.updateTimer();
+          }
+
+          const cell = this.cells[ev.target.dataset.x][ev.target.dataset.y];
+
+          if (cell === this.selectedPeg) {
+            this.deselectPeg(cell);
+          } else if (cell.type === Cell.PEG) {
+            this.selectPeg(cell);
+          } else if (cell.type === Cell.HOLE && this.selectedPeg !== null) {
+            this.jumpPeg(cell);
+            this.checkEndgame();
+          }
+        }
+
+        jumpPossible(cell, xdir, ydir) {
+          return Boolean(
+            this.cells[cell.x + 1 * xdir]?.[cell.y + 1 * ydir]?.type === Cell.PEG &&
+            this.cells[cell.x + 2 * xdir]?.[cell.y + 2 * ydir]?.type === Cell.HOLE,
+          );
+        }
+
+        clearValidMoves() {
+          this.cells.forEach((row) => {
+            row.forEach((cell) => {
+              if (cell.el.classList.contains("valid")) {
+                cell.el.classList.remove("valid");
+                cell.updateAria();
+              }
+            });
+          });
+        }
+
+        renderTextBoard(pegEmoji) {
+          const rows = [];
+          for (let y = 0; y < 7; y++) {
+            let row = "";
+            for (let x = 0; x < 7; x++) {
+              const cell = this.cells[x]?.[y];
+              if (cell) {
+                row += cell.type === Cell.PEG ? pegEmoji : "🔹";
+              } else if (x < 2) {
+                row += "\u3000\u2005";
+              }
+            }
+            rows.push(row);
+          }
+          return rows.join("\n");
+        }
+
+        getShareText() {
+          const isWin = this.gameState === Board.WIN;
+          const pegEmoji = isWin ? "😻" : "😿";
+          const cta = isWin ? "Can you beat my time?" : "Can you do better?";
+          return `${this.shareHeader}\n\n${this.renderTextBoard(pegEmoji)}\n\n${cta}\nhttps://rowan.fyi/made/peg-solo`;
+        }
+
+        showEndgameDialog(headline, pegEmoji) {
+          if (!this.endgameDialog) {
+            return;
+          }
+          this.endgameDialog.querySelector(".endgame-title").textContent = headline;
+          this.endgameDialog.querySelector(".endgame-board").textContent = this.renderTextBoard(pegEmoji);
+          const delay = reducedMotionQuery.matches ? 0 : 750;
+          clearTimeout(this.endgameTimeout);
+          this.endgameTimeout = setTimeout(() => {
+            this.endgameTimeout = null;
+            this.endgameDialog.showModal();
+          }, delay);
+        }
+
+        checkEndgame() {
+          let remaining = 0;
+          let hasMoves = false;
+          this.cells.forEach((row) => {
+            row.forEach((cell) => {
+              if (cell.type === Cell.PEG) {
+                remaining++;
+                if (!hasMoves && Board.DIRECTIONS.some(([dx, dy]) => this.jumpPossible(cell, dx, dy))) {
+                  hasMoves = true;
+                }
+              }
+            });
+          });
+
+          if (hasMoves) {
+            return;
+          }
+
+          clearTimeout(this.timerTimeout);
+          this.timerTimeout = null;
+          const time = this.formatElapsed();
+          this.timerEl.textContent = time;
+
+          if (remaining === 1 && this.cells[3][3].type === Cell.PEG) {
+            this.gameState = Board.WIN;
+            this.stateEl.textContent = "😻 Win!";
+            this.el.classList.add("win");
+            this.shareHeader = `😻 Win! (${time})`;
+            this.showEndgameDialog(this.shareHeader, "😻");
+          } else {
+            this.gameState = Board.LOSE;
+            this.el.classList.add("lose");
+            let tier;
+            if (remaining === 1) {
+              this.stateEl.textContent = "😸 1 left";
+              tier = "😸 So close — 1 left";
+            } else if (remaining <= 3) {
+              this.stateEl.textContent = `😼 ${remaining} left`;
+              tier = `😼 Almost — ${remaining} left`;
+            } else if (remaining <= 6) {
+              this.stateEl.textContent = `😿 ${remaining} left`;
+              tier = `😿 Lose — ${remaining} left`;
+            } else {
+              this.stateEl.textContent = `🙀 ${remaining} left`;
+              tier = `🙀 Cat-astrophe — ${remaining} left`;
+            }
+            this.shareHeader = `${tier} (${time})`;
+            this.showEndgameDialog(this.shareHeader, "😿");
+          }
+        }
+
+        selectPeg(cell) {
+          if (this.selectedPeg) {
+            this.selectedPeg.deselect();
+          }
+          this.clearValidMoves();
+
+          cell.select();
+          this.selectedPeg = cell;
+
+          Board.DIRECTIONS.forEach(([dx, dy]) => {
+            if (this.jumpPossible(cell, dx, dy)) {
+              const target = this.cells[cell.x + 2 * dx][cell.y + 2 * dy];
+              target.el.classList.add("valid");
+              target.updateAria();
+            }
+          });
+        }
+
+        deselectPeg(cell) {
+          cell.deselect();
+          this.selectedPeg = null;
+          this.clearValidMoves();
+        }
+
+        jumpPeg(cell) {
+          const dx = cell.x - this.selectedPeg.x;
+          const dy = cell.y - this.selectedPeg.y;
+          if ((Math.abs(dx) === 2 && dy === 0) || (dx === 0 && Math.abs(dy) === 2)) {
+            const midCell = this.cells[this.selectedPeg.x + dx / 2][this.selectedPeg.y + dy / 2];
+            if (midCell.type === Cell.PEG) {
+              const fromCell = this.selectedPeg;
+              this.clearValidMoves();
+              this.jump(fromCell, dx, dy);
+              cell.add();
+              fromCell.remove();
+              this.selectedPeg = null;
+              midCell.remove();
+              this.remove(midCell, dx > 0 || dy > 0 ? -0.5 : 0.5, -2);
+              this.history.push({ from: fromCell, mid: midCell, to: cell });
+              if (this.undoEl) {
+                this.undoEl.disabled = false;
+              }
+            }
+          }
+        }
+
+        undo() {
+          if (this.history.length === 0) {
+            return;
+          }
+
+          clearTimeout(this.endgameTimeout);
+          this.endgameTimeout = null;
+
+          if (this.selectedPeg) {
+            this.deselectPeg(this.selectedPeg);
+          }
+
+          const { from, mid, to } = this.history.pop();
+          const dx = from.x - to.x;
+          const dy = from.y - to.y;
+          this.jump(to, dx, dy);
+          to.remove();
+          from.add();
+          this.restore(mid);
+          mid.add();
+
+          if (this.gameState === Board.WIN || this.gameState === Board.LOSE) {
+            this.gameState = Board.PLAYING;
+            this.stateEl.textContent = "😼 Game on";
+            this.el.classList.remove("win", "lose");
+            clearTimeout(this.timerTimeout);
+            this.updateTimer();
+          }
+
+          if (this.undoEl) {
+            this.undoEl.disabled = this.history.length === 0;
+          }
+        }
+
+        jump(cell, x, y) {
+          if (reducedMotionQuery.matches) {
+            return;
+          }
+
+          const el = document.createElement("div");
+          el.classList.add("cell", "jump");
+          el.setAttribute("aria-hidden", "true");
+          el.style.gridColumn = cell.x + 1;
+          el.style.gridRow = cell.y + 1;
+          this.el.appendChild(el);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              el.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
+            });
+          });
+          setTimeout(() => {
+            el.remove();
+          }, 500);
+        }
+
+        remove(cell, x, y) {
+          if (reducedMotionQuery.matches) {
+            return;
+          }
+
+          const el = document.createElement("div");
+          el.classList.add("cell", "remove");
+          el.setAttribute("aria-hidden", "true");
+          el.style.gridColumn = cell.x + 1;
+          el.style.gridRow = cell.y + 1;
+          this.el.appendChild(el);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              el.style.transform = `translate(${x * 100}%, ${y * 100}%) scale(1.5)`;
+              el.style.opacity = 0;
+            });
+          });
+          setTimeout(() => {
+            el.remove();
+          }, 750);
+        }
+
+        restore(cell) {
+          if (reducedMotionQuery.matches) {
+            return;
+          }
+
+          const el = document.createElement("div");
+          el.classList.add("cell", "restore");
+          el.setAttribute("aria-hidden", "true");
+          el.style.gridColumn = cell.x + 1;
+          el.style.gridRow = cell.y + 1;
+          el.style.transform = "translateY(20%) scale(0.8)";
+          el.style.opacity = 0;
+          this.el.appendChild(el);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              el.style.transform = "translateY(0) scale(1)";
+              el.style.opacity = 1;
+            });
+          });
+          setTimeout(() => {
+            el.remove();
+          }, 500);
+        }
+      }
+
+      class Cell {
+        static get BOARD() {
+          return 0;
+        }
+        static get HOLE() {
+          return 1;
+        }
+        static get PEG() {
+          return 2;
+        }
+        static get KEY() {
+          return ["board", "hole", "peg"];
+        }
+        x;
+        y;
+        type;
+        el;
+        addTimeout;
+        actionTimeout;
+
+        constructor(x, y, type) {
+          this.x = x;
+          this.y = y;
+          this.type = type;
+          this.addTimeout = null;
+          this.actionTimeout = null;
+        }
+
+        updateAria(selected = false) {
+          const pos = `row ${this.y + 1}, column ${this.x + 1}`;
+          if (this.type === Cell.PEG) {
+            this.el.setAttribute("aria-label", `Cat, ${pos}`);
+            this.el.setAttribute("aria-pressed", String(selected));
+          } else {
+            const prefix = this.el.classList.contains("valid") ? "Valid move, empty hole" : "Empty hole";
+            this.el.setAttribute("aria-label", `${prefix}, ${pos}`);
+            this.el.removeAttribute("aria-pressed");
+          }
+        }
+
+        addToBoard(board) {
+          const el = document.createElement("button");
+          el.type = "button";
+
+          el.style.gridColumn = this.x + 1;
+          el.style.gridRow = this.y + 1;
+          el.dataset.x = this.x;
+          el.dataset.y = this.y;
+          el.classList.add("cell");
+          el.classList.add(Cell.KEY[this.type]);
+          this.el = el;
+          this.updateAria();
+          board.appendChild(el);
+          this.randomAction = this.randomAction.bind(this);
+          if (this.type === Cell.PEG && !reducedMotionQuery.matches) {
+            this.actionTimeout = setTimeout(this.randomAction, 500 + Math.random() * 5000);
+          }
+        }
+
+        randomAction() {
+          if (this.type === Cell.HOLE || reducedMotionQuery.matches) {
+            this.el.classList.remove("happy", "happier", "sly");
+            this.actionTimeout = null;
+            return;
+          }
+
+          let next = 700 + Math.random() * 500;
+          const action = Math.random() * 10;
+          if (action <= 7) {
+            this.el.classList.remove("happy", "happier", "sly");
+            next = 10000 + Math.random() * 10000;
+          } else if (action <= 8) {
+            this.el.classList.add("happy");
+            this.el.classList.remove("happier", "sly");
+          } else if (action <= 9) {
+            this.el.classList.add("sly");
+            this.el.classList.remove("happy", "happier");
+          } else {
+            this.el.classList.remove("happy", "sly");
+            this.el.classList.add("happier");
+          }
+
+          this.actionTimeout = setTimeout(this.randomAction, next);
+        }
+
+        select() {
+          clearTimeout(this.addTimeout);
+          this.addTimeout = null;
+          this.el.classList.add("selected");
+          this.el.classList.remove("peg", "hole");
+          this.updateAria(true);
+        }
+
+        deselect() {
+          this.el.classList.add("peg");
+          this.el.classList.remove("selected");
+          this.updateAria(false);
+        }
+
+        add() {
+          this.type = Cell.PEG;
+          this.updateAria(false);
+          clearTimeout(this.addTimeout);
+          clearTimeout(this.actionTimeout);
+          if (reducedMotionQuery.matches) {
+            this.addTimeout = null;
+            this.actionTimeout = null;
+            this.el.classList.add("peg");
+            this.el.classList.remove("hole");
+            return;
+          }
+          this.addTimeout = setTimeout(() => {
+            this.addTimeout = null;
+            if (this.type === Cell.PEG) {
+              this.el.classList.add("peg");
+              this.el.classList.remove("hole");
+            }
+          }, 500);
+          this.actionTimeout = setTimeout(this.randomAction, 500 + Math.random() * 5000);
+        }
+
+        remove() {
+          clearTimeout(this.addTimeout);
+          clearTimeout(this.actionTimeout);
+          this.addTimeout = null;
+          this.actionTimeout = null;
+          this.type = Cell.HOLE;
+          this.el.style.transform = "";
+          this.el.classList.add("hole");
+          this.el.classList.remove("peg", "selected", "happy", "happier", "sly");
+          this.updateAria(false);
+        }
+
+        destroy() {
+          clearTimeout(this.addTimeout);
+          clearTimeout(this.actionTimeout);
+          this.addTimeout = null;
+          this.actionTimeout = null;
+          this.el.remove();
+        }
+      }
+
+      const endgameDialog = document.querySelector("dialog.endgame");
+      const board = new Board();
+      board.el = document.querySelector(".board");
+      board.timerEl = document.querySelector(".time");
+      board.stateEl = document.querySelector(".status");
+      board.undoEl = document.querySelector("button.undo");
+      board.endgameDialog = endgameDialog;
+      board.setBoard(DEFAULT_BOARD);
+      board.addListener();
+
+      document.querySelector("button.reset").addEventListener("click", () => {
+        board.reset();
+        board.setBoard(DEFAULT_BOARD);
+      });
+
+      board.undoEl.addEventListener("click", () => {
+        board.undo();
+      });
+
+      const docsDialog = document.querySelector("dialog.docs");
+      document.querySelector("button.docs").addEventListener("click", () => {
+        docsDialog.showModal();
+      });
+      docsDialog.addEventListener("click", (e) => {
+        if (docsDialog === e.target) {
+          docsDialog.close();
+        }
+      });
+
+      endgameDialog.addEventListener("click", (e) => {
+        if (endgameDialog === e.target) {
+          endgameDialog.close();
+        }
+      });
+
+      endgameDialog.querySelector("button.endgame-undo").addEventListener("click", () => {
+        endgameDialog.close();
+        board.undo();
+      });
+
+      endgameDialog.querySelector("button.endgame-reset").addEventListener("click", () => {
+        endgameDialog.close();
+        board.reset();
+        board.setBoard(DEFAULT_BOARD);
+      });
+
+      const shareBtn = endgameDialog.querySelector("button.share");
+      let shareTimeout = null;
+      shareBtn.addEventListener("click", async () => {
+        const text = board.getShareText();
+        if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+          try {
+            await navigator.share({ text });
+            return;
+          } catch (err) {
+            if (err.name === "AbortError") {
+              return;
+            }
+          }
+        }
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          clearTimeout(shareTimeout);
+          shareBtn.textContent = "📋 Copied!";
+          shareTimeout = setTimeout(() => {
+            shareBtn.textContent = "📤 Share";
+          }, 2000);
+        }
+      });
+    </script>
+  </body>
+</html>
