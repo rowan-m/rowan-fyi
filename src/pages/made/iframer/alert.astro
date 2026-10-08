@@ -1,0 +1,42 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout title="alert() x-origin iframe" description="Deprecation of window.alert() in cross-origin iframes.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <style is:inline>
+    iframe {
+      width: 100%;
+      height: 20rem;
+    }
+  </style>
+  <h1>alert() x-origin iframe</h1>
+  <p>Use of <code>window.alert()</code> is deprecated in a cross-origin context such as an <code>iframe</code>.</p>
+  <h2>Top-level test</h2>
+  <button type="button" name="alert">window.alert()</button>
+  <button type="button" name="confirm">window.confirm()</button>
+  <button type="button" name="prompt">window.prompt()</button>
+  <h2>Cross-origin test</h2>
+  <iframe title="Cross-origin alert test" src="https://rowan.fyi/made/x-origin-src/alert/"></iframe>
+  <script is:inline>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    const observer = new ReportingObserver(
+      (reports) => {
+        console.log(reports);
+      },
+      { types: ["deprecation"], buffered: false },
+    );
+    observer.observe();
+
+    document.querySelector('button[name="alert"]').addEventListener("click", () => window.alert("Top-level alert"));
+    document
+      .querySelector('button[name="confirm"]')
+      .addEventListener("click", () => window.confirm("Top-level confirm"));
+    document.querySelector('button[name="prompt"]').addEventListener("click", () => window.prompt("Top-level prompt"));
+  </script></MetaOnlyLayout>

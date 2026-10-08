@@ -1,0 +1,27 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout title="TODO" description="Cross-origin localStorage test.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <h1>TODO</h1>
+  <script is:inline>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    const ls = window.localStorage;
+    const key = document.referrer;
+    const val = Number.parseInt(ls.getItem(key), 10);
+
+    if (val < 1 || Number.isNaN(val)) {
+      ls.setItem(key, 1);
+    } else {
+      ls.setItem(key, val + 1);
+    }
+
+    console.log(ls);
+  </script></MetaOnlyLayout>

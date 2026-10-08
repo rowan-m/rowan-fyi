@@ -6,19 +6,6 @@ import path from "node:path";
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
 
-// Read static directories inside public/made/
-let staticDirs: string[] = [];
-try {
-  const staticPath = path.resolve("public/made");
-  staticDirs = fs
-    .readdirSync(staticPath, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
-} catch (e) {
-  console.warn("Could not read public/made directory", e);
-}
-
-// Read Astro directories inside src/pages/made/
 let astroDirs: string[] = [];
 try {
   const astroPath = path.resolve("src/pages/made");
@@ -30,26 +17,12 @@ try {
   console.warn("Could not read src/pages/made directory", e);
 }
 
-// Map both lists to a common structure
-const staticList = staticDirs.map((slug) => ({
-  name: slug,
-  href: `/made/${slug}/`,
-}));
-
-const astroList = astroDirs.map((slug) => ({
-  name: slug,
-  href: `/made/${slug}/`,
-}));
-
-// Merge both static and Astro-based lists, deduplicating by folder name (slug)
-const mergedMap = new Map();
-for (const item of [...astroList, ...staticList]) {
-  mergedMap.set(item.name, item);
-}
-const mergedList = Array.from(mergedMap.values());
-
-// Sort alphabetically by name
-mergedList.sort((a, b) => a.name.localeCompare(b.name));
+const madeList = astroDirs
+  .map((slug) => ({
+    name: slug,
+    href: `/made/${slug}/`,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 ---
 
 <!doctype html>
@@ -64,7 +37,7 @@ mergedList.sort((a, b) => a.name.localeCompare(b.name));
         social network if you find something that's broken.
       </p>
       <ul>
-        {mergedList.map((item) => <li>
+        {madeList.map((item) => <li>
           <a href={item.href}>{item.name}</a>
         </li>)}
       </ul>

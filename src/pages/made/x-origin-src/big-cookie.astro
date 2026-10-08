@@ -1,0 +1,18 @@
+---
+export const prerender = false;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import { BLOATED_COOKIE_VALUE } from "./_x-origin";
+
+Astro.response.headers.set("Set-Cookie", `big-value=${encodeURIComponent(BLOATED_COOKIE_VALUE)}; Path=/; SameSite=Lax`);
+---
+
+<MetaOnlyLayout title="Trying to set a huge cookie" description="Large cookie test.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <h1>Trying to set a huge cookie</h1>
+  <script is:inline>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+  </script></MetaOnlyLayout>

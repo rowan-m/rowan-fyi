@@ -1,0 +1,43 @@
+---
+export const prerender = false;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+
+const endpoint = {
+  max_age: 10886400,
+  endpoints: [
+    {
+      url: "https://rowan.fyi/made/x-origin-src/report",
+    },
+  ],
+};
+Astro.response.headers.set("Report-To", JSON.stringify(endpoint));
+---
+
+<MetaOnlyLayout title="alert()" description="Cross-origin alert() deprecation test.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <button type="button" name="alert">window.alert()</button>
+  <button type="button" name="confirm">window.confirm()</button>
+  <button type="button" name="prompt">window.prompt()</button>
+  <script is:inline>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    const observer = new ReportingObserver(
+      (reports) => {
+        console.log(JSON.stringify(reports));
+      },
+      { types: ["deprecation"], buffered: false },
+    );
+    observer.observe();
+
+    document.querySelector('button[name="alert"]').addEventListener("click", () => window.alert("Cross-origin alert"));
+    document
+      .querySelector('button[name="confirm"]')
+      .addEventListener("click", () => window.confirm("Cross-origin confirm"));
+    document
+      .querySelector('button[name="prompt"]')
+      .addEventListener("click", () => window.prompt("Cross-origin prompt"));
+  </script></MetaOnlyLayout>

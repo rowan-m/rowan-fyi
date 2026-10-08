@@ -1,0 +1,46 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import eyesIcon from "./assets/eyes_1f440.png";
+---
+
+<MetaOnlyLayout title="User-Agent 👀 Client Hints" description="User-Agent 👀 Client Hints">
+  <link id="favicon" rel="icon" href={eyesIcon.src} type="image/x-icon" />
+
+  <style is:inline>
+    body {
+      font-family: sans-serif;
+    }
+    table {
+      border: 1px solid silver;
+    }
+  </style>
+  <header>
+    <h1>User-Agent 👀 Client Hints</h1>
+    <nav></nav>
+  </header>
+  <main>
+    <table>
+      <tr>
+        <th scope="col">Header <code>Sec-CH-UA*</code></th>
+        <th scope="col">JavaScript <code>navigator.userAgentData.*</code></th>
+        <th scope="col">From</th>
+        <th scope="col">Default</th>
+        <th scope="col">This browser</th>
+        <th scope="col">Notes</th>
+      </tr>
+      <tr>
+        <td><code>Sec-CH-UA</code></td>
+        <td><code>navigator.userAgentData.brands</code></td>
+        <td>Chromium 84</td>
+        <td>Yes</td>
+        <td><code>blah blah</code></td>
+        <td>Structured list of browser brands and significant versions.</td>
+      </tr>
+    </table>
+  </main>
+  <footer></footer>
+  <script is:inline>
+    "use strict";
+  </script></MetaOnlyLayout>

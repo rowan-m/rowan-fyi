@@ -1,0 +1,19 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout title="iframer 🖼" description="Cross-origin iframe restrictions demos.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <h1>iframer 🖼</h1>
+  <p>
+    Cross-origin <code>iframe</code> elements have a number of restrictions. This is a collection of demos to illustrate
+    them.
+  </p>
+  <script is:inline>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+  </script></MetaOnlyLayout>
