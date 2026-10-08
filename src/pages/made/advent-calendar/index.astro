@@ -1,0 +1,113 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import fontUrl from "./assets/mountains-of-christmas-v10-latin-regular.woff?url";
+
+const fontFaceCss = `@font-face { font-family: "Mountains of Christmas"; font-display: swap; src: url("${fontUrl}") format("woff2"); }`;
+---
+
+<MetaOnlyLayout title="Advent Calendar" description="Interactive CSS 3D Advent Calendar.">
+  <meta name="theme-color" content="#1f3b08" />
+
+  <style is:inline set:html={fontFaceCss}></style>
+  <style is:inline>
+    body {
+      font-family: "Mountains of Christmas", cursive;
+      color: darkred;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    p {
+      font-family: sans-serif;
+      color: grey;
+    }
+
+    #calendar {
+      width: 300px;
+      margin: 0px auto 0px auto;
+      color: darkred;
+      text-align: center;
+    }
+
+    #scene {
+      position: relative;
+      background: linear-gradient(to bottom, #fcfff4 0%, #e9e9ce 100%);
+      border: 1px solid lightgrey;
+      width: 100px;
+      height: 100px;
+      padding: 14px;
+      margin: 0px auto 0px auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #scene span {
+      font-size: 50px;
+    }
+
+    #door {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: linear-gradient(to bottom, #627d4d 0%, #1f3b08 100%);
+      border: darkgoldenrod dashed 3px;
+      color: goldenrod;
+      width: 100px;
+      height: 100px;
+      transition: transform 0.7s ease-in-out;
+      transform-style: preserve-3d;
+      transform-origin: left center;
+      perspective: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 40px;
+    }
+
+    #door:hover {
+      transform: perspective(500px) translateZ(0px) translateX(0px) translateY(0px) rotateY(-20deg);
+    }
+
+    #door.open {
+      transform: perspective(500px) translateZ(0px) translateX(0px) translateY(0px) rotateY(-120deg);
+    }
+  </style>
+
+  <div id="calendar">
+    <h1>Advent Calendar</h1>
+    <div id="scene">
+      <span></span>
+      <div id="door">
+        <span id="date"></span>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const updateDate = function () {
+      const date = document.getElementById("date");
+      const today = new Date();
+      if (date.textContent !== String(today.getDate())) {
+        date.textContent = String(today.getDate());
+      }
+    };
+
+    updateDate();
+    setInterval(updateDate, 60000);
+    const door = document.getElementById("door");
+    const scene = document.querySelector("#scene>span");
+    const scenes = ["🎁", "🎄", "⛄", "☃️", "❄️", "🌟", "🍷", "🍪", "🦌", "🤶", "🎅", "🍾", "💞", "🎉"];
+    document.getElementById("scene").addEventListener("click", function () {
+      if (door.className === "open") {
+        door.className = "";
+      } else {
+        scene.textContent = scenes[Math.floor(Math.random() * scenes.length)];
+        door.className = "open";
+      }
+    });
+  </script></MetaOnlyLayout>
