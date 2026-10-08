@@ -2,18 +2,16 @@
 export const prerender = true;
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import fontUrl from "./assets/mountains-of-christmas-v10-latin-regular.woff?url";
+
+const fontFaceCss = `@font-face { font-family: "Mountains of Christmas"; font-display: swap; src: url("${fontUrl}") format("woff2"); }`;
 ---
 
 <MetaOnlyLayout title="Advent Calendar" description="Interactive CSS 3D Advent Calendar.">
   <meta name="theme-color" content="#1f3b08" />
 
-  <style>
-    @font-face {
-      font-family: "Mountains of Christmas";
-      font-display: swap;
-      src: url("./assets/mountains-of-christmas-v10-latin-regular.woff") format("woff2");
-    }
-
+  <style is:inline set:html={fontFaceCss}></style>
+  <style is:inline>
     body {
       font-family: "Mountains of Christmas", cursive;
       color: darkred;
