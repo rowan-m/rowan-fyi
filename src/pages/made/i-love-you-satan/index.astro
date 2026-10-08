@@ -1,0 +1,68 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import "@/styles/water.css";
+---
+
+<MetaOnlyLayout title="👁❤😈" description="I love you / Satan emoji toggle.">
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖤</text></svg>"
+  />
+  <style>
+    .toggle {
+      width: 50vmin;
+      margin: auto;
+      text-align: center;
+      font-family: system-ui, sans-serif;
+    }
+
+    .emoji {
+      font-size: 50vmin;
+      transition: transform 0.3s cubic-bezier(0, 2, 0.2, 0.4);
+      margin-top: 5vmin;
+    }
+
+    .subtitle {
+      font-size: 10vmin;
+      margin-top: 10vmin;
+    }
+
+    .love > .emoji {
+      transform: rotate(-5deg) translateX(-10vmin);
+    }
+
+    .love > .emoji::before {
+      content: "🤟";
+    }
+
+    .satan > .emoji {
+      transform: rotate(5deg);
+    }
+
+    .satan > .emoji::before {
+      content: "🤘";
+    }
+
+    .love > .subtitle::before {
+      content: "❤";
+    }
+
+    .satan > .subtitle::before {
+      content: "😈";
+    }
+  </style>
+  <div class="toggle love">
+    <div class="emoji"></div>
+    <div class="subtitle"></div>
+  </div>
+  <script is:inline>
+    "use strict";
+
+    const toggle = document.querySelector(".toggle");
+    toggle.addEventListener("click", () => {
+      toggle.classList.toggle("love");
+      toggle.classList.toggle("satan");
+    });
+  </script></MetaOnlyLayout>

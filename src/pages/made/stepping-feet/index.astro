@@ -1,0 +1,102 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import footprintsImg from "./assets/footprints_1f463.png";
+---
+
+<MetaOnlyLayout
+  title="Stepping Feet 👣 optical illusion"
+  description="CSS version of the Stepping Feet illusion. Both rectangles are moving steadily together, but they appear out of sync."
+>
+  <meta name="theme-color" content="slategray" />
+  <link rel="shortcut icon" href={footprintsImg.src} />
+  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Stepping Feet 👣 optical illusion" />
+  <meta
+    property="og:description"
+    content="CSS version of the Stepping Feet illusion. Both rectangles are moving steadily together, but they appear out of sync."
+  />
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0 2vw 0 2vw;
+      padding: 0;
+    }
+    p {
+      max-width: 80vw;
+    }
+    .bars {
+      position: relative;
+      width: 95vw;
+      height: 60vh;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 1) 0vw,
+        rgba(0, 0, 0, 1) 2vw,
+        rgba(0, 0, 0, 0) 2vw,
+        rgba(0, 0, 0, 0) 4vw
+      );
+    }
+    .flat {
+      width: 100%;
+      height: 100%;
+      background: grey;
+      animation: 8s infinite ease fade;
+    }
+    .stepper {
+      position: absolute;
+      width: 8vw;
+      height: 6vh;
+      animation: 7s infinite alternate linear slide;
+    }
+    .alpha {
+      top: 17vh;
+      background: blue;
+    }
+    .beta {
+      top: 27vh;
+      background: yellow;
+    }
+    @keyframes slide {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(87.2vw);
+      }
+    }
+    @keyframes fade {
+      0% {
+        opacity: 0.01;
+      }
+      60% {
+        opacity: 0.01;
+      }
+      70% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.01;
+      }
+    }
+  </style>
+  <p>
+    CSS version of the Stepping Feet 👣 illusion. Both rectangles are moving steadily together, but they appear out of
+    sync and in a stepping motion. Fade in a solid background and their steady movement can be seen.
+    <a href="https://github.com/rowan-m/rowan-fyi/blob/main/src/pages/made/stepping-feet/index.astro"
+      >View the code on GitHub</a
+    >.
+  </p>
+
+  <div class="bars">
+    <div class="flat"></div>
+    <div class="stepper alpha"></div>
+    <div class="stepper beta"></div>
+  </div>
+</MetaOnlyLayout>

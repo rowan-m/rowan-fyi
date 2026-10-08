@@ -1,0 +1,324 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout
+  title="Barnsley ferns"
+  description="Quick version of the classic Barnsley Fern fractal with tweakable parameters."
+>
+  <link
+    rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>"
+  />
+  <style>
+    :root {
+      --bg: #030903;
+      --txt: #3a9d23;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: monospace;
+      background: var(--bg);
+      color: var(--txt);
+      display: grid;
+      grid-template-rows: 2rem auto 2rem;
+      justify-items: stretch;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    header,
+    main,
+    footer {
+      padding: 0.5rem;
+    }
+
+    h1 {
+      font-size: 1rem;
+      font-weight: 100;
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-around;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    canvas {
+      border: 1px dashed var(--txt);
+      max-height: calc(100vh - 5rem);
+      max-width: 90vw;
+      min-height: 50vh;
+      aspect-ratio: 1/1;
+    }
+
+    table {
+      text-align: right;
+    }
+
+    input {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: monospace;
+      max-width: 7ch;
+    }
+
+    input[readonly] {
+      border: 0;
+    }
+
+    nav {
+      margin-block: 1rem;
+      display: flex;
+      justify-content: space-evenly;
+    }
+
+    button {
+      background: var(--txt);
+      color: var(--bg);
+      font-weight: bolder;
+      padding-block: 0.5rem;
+      padding-inline: 1rem;
+      border-radius: 5%;
+    }
+
+    footer {
+      font-size: 0.8rem;
+      font-weight: 100;
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+    }
+
+    a,
+    a:visited,
+    a:focus,
+    a:active {
+      color: var(--txt);
+    }
+  </style>
+  <header>
+    <h1>Barnsley ferns</h1>
+  </header>
+  <main>
+    <canvas width="2000" height="2000"></canvas>
+    <form>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>a</th>
+            <th>b</th>
+            <th>c</th>
+            <th>d</th>
+            <th>e</th>
+            <th>f</th>
+            <th>p</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>ƒ<sub>1</sub></th>
+            <td><input name="f1a" type="number" min="-2.0" max="2.0" step=".01" value="0" /></td>
+            <td><input name="f1b" type="number" min="-2.0" max="2.0" step=".01" value="0" /></td>
+            <td><input name="f1c" type="number" min="-2.0" max="2.0" step=".01" value="0" /></td>
+            <td><input name="f1d" type="number" min="-2.0" max="2.0" step=".01" value=".16" /></td>
+            <td><input name="f1e" type="number" min="-2.0" max="2.0" step=".01" value="0" readonly /></td>
+            <td><input name="f1f" type="number" min="-2.0" max="2.0" step=".01" value="0" /></td>
+            <td><input name="f1p" type="number" min="0" max="1" step=".01" value=".01" readonly /></td>
+          </tr>
+          <tr>
+            <th>ƒ<sub>2</sub></th>
+            <td><input name="f2a" type="number" min="-2.0" max="2.0" step=".01" value=".85" /></td>
+            <td><input name="f2b" type="number" min="-2.0" max="2.0" step=".01" value=".04" /></td>
+            <td><input name="f2c" type="number" min="-2.0" max="2.0" step=".01" value="-.04" /></td>
+            <td><input name="f2d" type="number" min="-2.0" max="2.0" step=".01" value=".85" /></td>
+            <td><input name="f2e" type="number" min="-2.0" max="2.0" step=".01" value="0" readonly /></td>
+            <td><input name="f2f" type="number" min="-2.0" max="2.0" step=".01" value="1.6" /></td>
+            <td><input name="f2p" type="number" min="0" max="1" step=".01" value=".85" readonly /></td>
+          </tr>
+          <tr>
+            <th>ƒ<sub>3</sub></th>
+            <td><input name="f3a" type="number" min="-2.0" max="2.0" step=".01" value=".2" /></td>
+            <td><input name="f3b" type="number" min="-2.0" max="2.0" step=".01" value="-.26" /></td>
+            <td><input name="f3c" type="number" min="-2.0" max="2.0" step=".01" value=".23" /></td>
+            <td><input name="f3d" type="number" min="-2.0" max="2.0" step=".01" value=".22" /></td>
+            <td><input name="f3e" type="number" min="-2.0" max="2.0" step=".01" value="0" readonly /></td>
+            <td><input name="f3f" type="number" min="-2.0" max="2.0" step=".01" value="1.6" /></td>
+            <td><input name="f3p" type="number" min="0" max="1" step=".01" value=".07" readonly /></td>
+          </tr>
+          <tr>
+            <th>ƒ<sub>4</sub></th>
+            <td><input name="f4a" type="number" min="-2.0" max="2.0" step=".01" value="-.15" /></td>
+            <td><input name="f4b" type="number" min="-2.0" max="2.0" step=".01" value=".28" /></td>
+            <td><input name="f4c" type="number" min="-2.0" max="2.0" step=".01" value=".26" /></td>
+            <td><input name="f4d" type="number" min="-2.0" max="2.0" step=".01" value=".24" /></td>
+            <td><input name="f4e" type="number" min="-2.0" max="2.0" step=".01" value="0" readonly /></td>
+            <td><input name="f4f" type="number" min="-2.0" max="2.0" step=".01" value=".44" /></td>
+            <td><input name="f4p" type="number" min="0" max="1" step=".01" value=".07" readonly /></td>
+          </tr>
+        </tbody>
+      </table>
+      <nav>
+        <button type="button" name="barnsley">Barnsley</button>
+        <button type="button" name="cyclosorus">Cyclosorus</button>
+        <button type="button" name="fishbone">Fishbone</button>
+        <button type="button" name="leptosporangiate">Leptosporangiate</button>
+      </nav>
+    </form>
+  </main>
+  <footer>
+    <a href="https://twitter.com/rowan_m">🐦 @rowan_m</a>
+    <a href="https://mastodon.social/@rowan_m">🦣 @rowan_m</a>
+    <a href="https://github.com/rowan-m/rowan-fyi/blob/main/src/pages/made/barnsley-ferns/index.astro">💻 code</a>
+  </footer>
+  <script is:inline>
+    "use strict";
+
+    class Fern {
+      f1 = { a: 0, b: 0, c: 0, d: 0.16, e: 0, f: 0, p: 0.01 };
+      f2 = { a: 0.85, b: 0.04, c: -0.04, d: 0.85, e: 0, f: 1.6, p: 0.85 };
+      f3 = { a: 0.2, b: -0.26, c: 0.23, d: 0.22, e: 0, f: 1.6, p: 0.07 };
+      f4 = { a: -0.15, b: 0.28, c: 0.26, d: 0.24, e: 0, f: 0.44, p: 0.07 };
+
+      presets = {
+        barnsley: {
+          f1: { a: 0, b: 0, c: 0, d: 0.16, e: 0, f: 0, p: 0.01 },
+          f2: { a: 0.85, b: 0.04, c: -0.04, d: 0.85, e: 0, f: 1.6, p: 0.85 },
+          f3: { a: 0.2, b: -0.26, c: 0.23, d: 0.22, e: 0, f: 1.6, p: 0.07 },
+          f4: { a: -0.15, b: 0.28, c: 0.26, d: 0.24, e: 0, f: 0.44, p: 0.07 },
+        },
+        cyclosorus: {
+          f1: { a: 0, b: 0, c: 0, d: 0.25, e: 0, f: -0.4, p: 0.02 },
+          f2: { a: 0.95, b: 0.005, c: -0.005, d: 0.93, e: -0.002, f: 0.5, p: 0.84 },
+          f3: { a: 0.035, b: -0.2, c: 0.16, d: 0.04, e: -0.09, f: 0.02, p: 0.07 },
+          f4: { a: -0.04, b: 0.2, c: 0.16, d: 0.04, e: 0.083, f: 0.12, p: 0.07 },
+        },
+        leptosporangiate: {
+          f1: { a: 0, b: 0, c: 0, d: 0.25, e: 0, f: -0.14, p: 0.02 },
+          f2: { a: 0.85, b: 0.02, c: -0.02, d: 0.83, e: 0, f: 1, p: 0.84 },
+          f3: { a: 0.09, b: -0.28, c: 0.3, d: 0.11, e: 0, f: 0.6, p: 0.07 },
+          f4: { a: -0.09, b: 0.28, c: 0.3, d: 0.09, e: 0, f: 0.7, p: 0.07 },
+        },
+        fishbone: {
+          f1: { a: 0, b: 0, c: 0, d: 0.25, e: 0, f: -0.4, p: 0.02 },
+          f2: { a: 0.95, b: 0.002, c: -0.002, d: 0.93, e: -0.002, f: 0.5, p: 0.84 },
+          f3: { a: 0.035, b: -0.11, c: 0.27, d: 0.01, e: -0.05, f: 0.005, p: 0.07 },
+          f4: { a: -0.04, b: 0.11, c: 0.27, d: 0.01, e: 0.047, f: 0.06, p: 0.07 },
+        },
+      };
+
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = this.canvas.getContext("2d");
+
+        this.ctx.fillStyle = "hsl(109, 63%, 38%)";
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = "hsla(109, 63%, 38%, .2)";
+
+        this.plotCount = 0;
+        this.x = 0;
+        this.y = 0;
+        this.state = "playing";
+
+        this.tick = this.tick.bind(this);
+      }
+
+      loadPreset(fernType) {
+        this.f1 = structuredClone(this.presets[fernType].f1);
+        this.f2 = structuredClone(this.presets[fernType].f2);
+        this.f3 = structuredClone(this.presets[fernType].f3);
+        this.f4 = structuredClone(this.presets[fernType].f4);
+      }
+
+      clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.plotCount = 0;
+        this.x = 0;
+        this.y = 0;
+      }
+
+      nextPoint() {
+        let nextX, nextY;
+        const r = Math.random();
+        if (r < this.f1.p) {
+          nextX = this.f1.a * this.x + this.f1.b * this.y + this.f1.e;
+          nextY = this.f1.c * this.x + this.f1.d * this.y + this.f1.f;
+        } else if (r < this.f1.p + this.f2.p) {
+          nextX = this.f2.a * this.x + this.f2.b * this.y + this.f2.e;
+          nextY = this.f2.c * this.x + this.f2.d * this.y + this.f2.f;
+        } else if (r < this.f1.p + this.f2.p + this.f3.p) {
+          nextX = this.f3.a * this.x + this.f3.b * this.y + this.f3.e;
+          nextY = this.f3.c * this.x + this.f3.d * this.y + this.f3.f;
+        } else {
+          nextX = this.f4.a * this.x + this.f4.b * this.y + this.f4.e;
+          nextY = this.f4.c * this.x + this.f4.d * this.y + this.f4.f;
+        }
+        this.x = nextX;
+        this.y = nextY;
+      }
+
+      tick() {
+        for (let i = 0; i < 500; i++) {
+          this.render();
+          this.nextPoint();
+          this.plotCount++;
+        }
+
+        if (this.state === "playing" && this.plotCount < 200000) {
+          window.requestAnimationFrame(this.tick);
+        }
+      }
+
+      render() {
+        // Need −2.1820 < x < 2.6558 and 0 ≤ y < 9.9983.
+        const plotX = this.canvas.width * ((this.x + 3) / 6);
+        const plotY = this.canvas.height - this.canvas.height * ((this.y + 0.5) / 11);
+        this.ctx.fillRect(plotX, plotY, 1, 1);
+      }
+    }
+
+    const baseCanvas = document.querySelector("canvas");
+    const fern = new Fern(baseCanvas);
+    window.requestAnimationFrame(fern.tick);
+    const form = document.querySelector("form");
+    const inputs = form.querySelectorAll("input");
+
+    function updateForm(fern) {
+      inputs.forEach((input) => {
+        const fn = input.name.slice(0, 2);
+        const param = input.name.slice(2, 3);
+        input.value = fern[fn][param];
+      });
+    }
+
+    form.addEventListener("input", (event) => {
+      const fn = event.target.name.slice(0, 2);
+      const param = event.target.name.slice(2, 3);
+      fern[fn][param] = parseFloat(event.target.value);
+      fern.clear();
+      window.requestAnimationFrame(fern.tick);
+    });
+
+    const buttons = document.querySelectorAll("nav button");
+    buttons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        fern.loadPreset(event.target.name);
+        updateForm(fern);
+        fern.clear();
+        window.requestAnimationFrame(fern.tick);
+      });
+    });
+  </script></MetaOnlyLayout>
