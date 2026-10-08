@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+
+Astro.response.headers.set(
+  "Permissions-Policy",
+  'ch-width=(self "https://rowan.fyi/made/cdn"), ch-dpr=(self "https://rowan.fyi/made/cdn")',
+);
+Astro.response.headers.set("Accept-CH", "Sec-CH-Width, Sec-CH-DPR");
+---
+
+<MetaOnlyLayout title="Client Hints" description="👀 Client Hints">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <img
+    sizes="100vw"
+    srcset="https://rowan.fyi/made/cdn/195b7e72-ff57-4304-8ade-ebbb1cf2022d%2Feyes_1f440.png 100vw"
+    src="https://rowan.fyi/made/cdn/195b7e72-ff57-4304-8ade-ebbb1cf2022d%2Feyes_1f440.png"
+    alt="Eyes"
+  />
+</MetaOnlyLayout>

@@ -1,0 +1,15 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout title="TODO" description="Cross-origin test helper.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <h1>TODO</h1>
+  <script is:inline>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+  </script></MetaOnlyLayout>

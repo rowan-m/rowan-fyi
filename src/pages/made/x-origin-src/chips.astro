@@ -1,0 +1,28 @@
+---
+export const prerender = false;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import { CHIPS_ORIGIN_TRIAL, computeChipsCount } from "./_x-origin";
+
+const count = computeChipsCount(Astro.request.headers.get("cookie"));
+
+Astro.response.headers.set("Accept-CH", "Sec-CH-Partitioned-Cookies");
+Astro.response.headers.set("Set-Cookie", `__Host-count=${count}; Secure; Path=/; SameSite=None; Partitioned;`);
+Astro.response.headers.set("Origin-Trial", CHIPS_ORIGIN_TRIAL);
+---
+
+<MetaOnlyLayout title="CHIPS" description="Cookies Having Independent Partitioned State (CHIPS) test.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <code>Set-Cookie: __Host-count={count}; Secure; Path=/; SameSite=None; Partitioned</code>
+  <form method="get" action="/made/x-origin-src/chips/">
+    <input type="hidden" name="v" value="" />
+    <button>Bump</button>
+  </form>
+  <script is:inline>
+    "use strict";
+    if (location.protocol !== "https:" && location.hostname !== "localhost") {
+      location.protocol = "https:";
+    }
+
+    document.querySelector('input[name="v"]').setAttribute("value", Date.now());
+  </script></MetaOnlyLayout>

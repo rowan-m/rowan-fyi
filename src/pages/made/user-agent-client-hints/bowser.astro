@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout title="User-Agent Client Hints" description="User-Agent Client Hints with Bowser.">
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+  <script is:inline type="module">
+    import Bowser from "https://unpkg.com/bowser?module";
+    console.log(Bowser.parse(window.navigator.userAgent));
+  </script></MetaOnlyLayout>

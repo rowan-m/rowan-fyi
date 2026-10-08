@@ -1,0 +1,23 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+---
+
+<MetaOnlyLayout title="Cross-site 🍪 sandbox" description="Testing cross-site cookies.">
+  <p>Testing cross-site cookies</p>
+  <script is:inline>
+    function fetchCookies(requestMethod) {
+      const req = new XMLHttpRequest();
+      req.withCredentials = true;
+      req.responseType = "json";
+      req.open(requestMethod, "https://rowan.fyi/made/samesite-sandbox/cookies.json", true);
+      req.onload = function () {
+        const jsonResponse = { method: requestMethod, cookies: req.response };
+        window.parent.postMessage(jsonResponse, "https://rowan.fyi/made/samesite-sandbox");
+      };
+      req.send(null);
+    }
+
+    fetchCookies("GET");
+  </script></MetaOnlyLayout>

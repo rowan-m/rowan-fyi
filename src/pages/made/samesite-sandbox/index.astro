@@ -1,0 +1,334 @@
+---
+export const prerender = false;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import cookieIcon from "./assets/cookie.png";
+import { SAMESITE_SANDBOX_COOKIES } from "./_cookies";
+
+Astro.response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+for (const cookieHeader of SAMESITE_SANDBOX_COOKIES) {
+  Astro.response.headers.append("Set-Cookie", cookieHeader);
+}
+---
+
+<MetaOnlyLayout title="SameSite 🍪 sandbox" description="Test SameSite cookie compatibility.">
+  <meta name="theme-color" content="honeydew" />
+  <link rel="shortcut icon" href={cookieIcon.src} />
+
+  <meta property="og:url" content="https://rowan.fyi/made/samesite-sandbox/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SameSite 🍪 sandbox" />
+  <meta property="og:description" content="Test SameSite cookie compatibility" />
+
+  <style is:inline>
+    body {
+      font-family: sans-serif;
+    }
+
+    h1 {
+      font-size: 100%;
+      color: maroon;
+    }
+
+    .ua,
+    .summary > td {
+      background: ghostwhite;
+      color: darkslategray;
+      font-weight: bold;
+    }
+
+    .ua,
+    .setwith {
+      font-size: 80%;
+    }
+
+    th {
+      width: 30vw;
+      min-width: 80px;
+      max-width: 300px;
+    }
+
+    td,
+    .valid {
+      background: honeydew;
+      color: darkgreen;
+    }
+
+    .warning {
+      background: moccasin;
+      color: orangered;
+    }
+
+    .error {
+      background: firebrick;
+      color: lightsalmon;
+    }
+
+    .ck > td {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .progress {
+      animation: fadeOut 0.5s ease-in-out 1s infinite alternate;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes fadeOut {
+      0% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0.1;
+      }
+    }
+    iframe {
+      border: 0;
+      height: 0;
+      width: 0;
+    }
+
+    abbr {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
+  <h1>SameSite 🍪 sandbox</h1>
+  <p>
+    ⚠ Note: This site is out of date as
+    <a href="https://developer.google.com/privacy-sandbox/3pcd"
+      >Chrome moves towards restricting third-party cookies by default.</a
+    >
+  </p>
+  <details>
+    <summary><b>Test your browser's SameSite cookie behaviour</b><br /> ↕️ Tap for more info</summary>
+    <p>
+      This page attempts to set a number of cookies and then tests if they are available for use in a cross-site /
+      third-party context in your browser. The results are compared with the expected behaviour defined in the IETF
+      draft
+      <a href="https://tools.ietf.org/html/draft-west-cookie-incrementalism-00">"Incrementally Better Cookies"</a>
+      (IBC).
+    </p>
+    <p>For more context, see <a href="https://web.dev/samesite-cookies-explained">"SameSite cookies explained"</a>.</p>
+    <p>
+      Ping <a href="https://twitter.com/rowan_m">@rowan_m</a> for issues / questions with these tests. You can
+      <a href="https://glitch.com/edit/#!/samesite-sandbox">💻 access the code on Glitch.</a>
+    </p>
+  </details>
+  <details>
+    <summary><b>Legend / Key</b><br /> ↕️ Tap for details</summary>
+    <p>
+      Each row shows the method used to set the cookie, if that cookie was successfully set, if it's available in a
+      cross-site / third-party context, and if that behaviour matches the new
+      <abbr title="Incrementally Better Cookies">IBC</abbr> defaults.
+    </p>
+    <ul>
+      <li><strong>🍪 set</strong>: The cookie was set or included in this request</li>
+      <li><strong>🚫 not set</strong>: The cookie was not set or not included in this request</li>
+      <li>
+        <strong class="valid">✔</strong>: A correct result according to
+        <abbr title="Incrementally Better Cookies">IBC</abbr>
+      </li>
+      <li>
+        <strong class="warning">✘</strong>: A incorrect result according to
+        <abbr title="Incrementally Better Cookies">IBC</abbr>
+      </li>
+      <li>
+        <strong class="warning">Careful 🚩</strong>: This cookie will affected by
+        <abbr title="Incrementally Better Cookies">IBC</abbr>, mostly restricted to first-party only.
+      </li>
+      <li>
+        <strong class="error"><abbr title="This will explain why you may be seeing the error.">ℹ️</abbr></strong>: Tap
+        the icon for more information about the status.
+      </li>
+      <li>
+        <strong class="error">Invalid ✘</strong>: This cookie is just doing the wrong thing and probably shouldn't be
+        working currently.
+      </li>
+      <li>
+        <strong class="valid">Compliant ✔</strong>: Cookie behaviour inline with
+        <abbr title="Incrementally Better Cookies">IBC</abbr>.
+      </li>
+    </ul>
+  </details>
+  <p>
+    <b>If all rows show a <span class="valid">green ✔</span> then your browser is implementing the new behaviour.</b
+    ><br /> User-Agent: <tt class="ua"></tt>
+  </p>
+  <table class="results">
+    <thead>
+      <tr>
+        <th>Cookie set?</th>
+        <th>Cross-site?</th>
+        <th><abbr title="Incrementally Better Cookies">IBC</abbr> compliant?</th>
+      </tr>
+    </thead>
+    <tr>
+      <td class="progress" colspan="3">Baking cookies… 🍪 results will display here…</td>
+    </tr>
+  </table>
+
+  <template id="resultTemplate">
+    <tr class="summary">
+      <td colspan="3">
+        <tt class="setWith"></tt>
+      </td>
+    </tr>
+    <tr class="ck">
+      <td class="set"></td>
+      <td class="cs"></td>
+      <td class="ibc"></td>
+    </tr>
+  </template>
+
+  <script is:inline>
+    const cookieMap = {
+      GET: {
+        ck00: {
+          setWith: "Set-Cookie: ck00=vl00;",
+          set: true,
+          crosssite: false,
+        },
+        ck01: {
+          setWith: "Set-Cookie: ck01=vl01; SameSite=None; Secure",
+          set: true,
+          crosssite: true,
+        },
+        ck02: {
+          setWith: "Set-Cookie: ck02=vl02; SameSite=None",
+          set: false,
+          crosssite: false,
+        },
+        ck03: {
+          setWith: "Set-Cookie: ck03=vl03; SameSite=InvalidValue",
+          set: true,
+          crosssite: false,
+        },
+        ck04: {
+          setWith: "Set-Cookie: ck04=vl04; SameSite=Lax",
+          set: true,
+          crosssite: false,
+        },
+        ck05: {
+          setWith: "Set-Cookie: ck05=vl05; SameSite=Strict",
+          set: true,
+          crosssite: false,
+        },
+      },
+    };
+
+    document.querySelector(".ua").textContent = navigator.userAgent;
+
+    const results = document.querySelector(".results");
+    const rowTemplate = document.querySelector("#resultTemplate");
+    const progress = document.querySelector(".progress");
+    let showingResults = false;
+
+    function populateIbcCell(ibcCompliantCell, ibcCompliant, ibcSeverity, cookie) {
+      if (ibcCompliant) {
+        ibcCompliantCell.textContent = "Compliant ✔";
+        return;
+      }
+      ibcCompliantCell.classList.add(ibcSeverity);
+      if (ibcSeverity === "warning") {
+        ibcCompliantCell.textContent = "Careful 🚩";
+        return;
+      }
+      ibcCompliantCell.textContent = "Invalid ✘";
+      if (cookie === "ck02") {
+        ibcCompliantCell.insertAdjacentHTML(
+          "beforeend",
+          ' <abbr title="SameSite=None without Secure should be rejected.">ℹ️</abbr>',
+        );
+      }
+    }
+
+    function appendResultRow(cookie, expectedCookie, csCookies) {
+      const resultRow = document.importNode(rowTemplate.content, true);
+      resultRow.querySelector(".setWith").textContent = expectedCookie.setWith;
+
+      const cookieSet = document.cookie.indexOf(cookie) !== -1;
+      const crossSite = Object.prototype.hasOwnProperty.call(csCookies, cookie);
+      let ibcCompliant = true;
+      let ibcSeverity = "warning";
+
+      const cookieSetCell = resultRow.querySelector(".set");
+      const crossSiteCell = resultRow.querySelector(".cs");
+      const ibcCompliantCell = resultRow.querySelector(".ibc");
+
+      cookieSetCell.textContent = cookieSet ? "🍪 set" : "🚫 not set";
+      crossSiteCell.textContent = crossSite ? "🍪 set" : "🚫 not set";
+
+      if (cookieSet !== expectedCookie.set) {
+        const severity = !cookieSet ? "error" : "warning";
+        if (severity === "error") {
+          ibcSeverity = "error";
+        }
+        cookieSetCell.classList.add(severity);
+        cookieSetCell.textContent += " ✘";
+        ibcCompliant = false;
+      } else {
+        cookieSetCell.textContent += " ✔";
+      }
+
+      if (crossSite !== expectedCookie.crosssite) {
+        const severity = !crossSite ? "error" : "warning";
+        if (severity === "error" || !ibcCompliant) {
+          ibcSeverity = "error";
+        }
+        crossSiteCell.classList.add(severity);
+        crossSiteCell.textContent += " ✘";
+        if (cookie === "ck01") {
+          crossSiteCell.insertAdjacentHTML(
+            "beforeend",
+            ' <abbr title="Third-party cookies may be blocked. Check your browser and extension settings.">ℹ️</abbr>',
+          );
+        }
+        ibcCompliant = false;
+      } else {
+        crossSiteCell.textContent += " ✔";
+      }
+
+      populateIbcCell(ibcCompliantCell, ibcCompliant, ibcSeverity, cookie);
+      results.appendChild(resultRow);
+    }
+
+    function receiveMessage(event) {
+      if (event.origin !== "https://rowan.fyi/made/x-origin-src") {
+        return;
+      }
+
+      const requestMethod = event.data.method;
+      const csCookies = event.data.cookies;
+      const expectedCookies = cookieMap[requestMethod];
+      const expectedCookieNames = Object.keys(expectedCookies);
+
+      if (!showingResults) {
+        showingResults = true;
+        progress.classList.add("hidden");
+      }
+
+      for (const cookie of expectedCookieNames) {
+        appendResultRow(cookie, expectedCookies[cookie], csCookies);
+      }
+
+      document.addEventListener("click", (e) => {
+        if (e.target.nodeName === "ABBR") {
+          alert(e.target.getAttribute("title"));
+        }
+      });
+    }
+
+    window.addEventListener("message", receiveMessage, false);
+
+    const crossSiteFrame = document.createElement("iframe");
+    crossSiteFrame.setAttribute("src", "https://rowan.fyi/made/x-origin-src/samesite-sandbox-embed/");
+    document.body.appendChild(crossSiteFrame);
+  </script></MetaOnlyLayout>

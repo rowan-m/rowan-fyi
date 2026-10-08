@@ -1,0 +1,123 @@
+---
+export const prerender = true;
+
+import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import eyesIcon from "./assets/eyes_1f440.png";
+---
+
+<MetaOnlyLayout title="User-Agent 👀 Client Hints" description="User-Agent 👀 Client Hints">
+  <link id="favicon" rel="icon" href={eyesIcon.src} type="image/x-icon" />
+  <meta http-equiv="Accept-CH" content="Width, Viewport-Width, Downlink, Sec-CH-UA-Full-Version" />
+
+  <style is:inline>
+    body {
+      font-family: sans-serif;
+      font-weight: 300;
+      margin: 0;
+      padding: 0;
+      color: hsl(300, 24%, 30%);
+    }
+
+    h1,
+    h2,
+    nav {
+      font-size: 1.1rem;
+      font-weight: 400;
+      padding: 0.5rem;
+      margin: 0;
+      background: hsl(300, 24%, 95%);
+    }
+
+    h2 {
+      border-top: 1px hsl(300, 24%, 55%) solid;
+    }
+
+    details {
+      font-style: italic;
+      font-size: 0.8rem;
+      font-weight: 200;
+    }
+
+    pre,
+    code {
+      font-family: monospace;
+      font-weight: 700;
+      color: #444;
+    }
+
+    pre {
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: keep-all;
+      padding: 0.8rem;
+      margin: 0;
+      background: oldlace;
+    }
+
+    label {
+      display: inline-block;
+      margin: 0.4rem;
+      padding: 0.4rem;
+      background: oldlace;
+    }
+
+    fieldset {
+      border: 2px hsl(300, 24%, 55%) ridge;
+    }
+
+    div {
+      display: inline-block;
+      margin: 0.3rem 0.15rem 0.3rem 0.15rem;
+      padding: 0.3rem 0.6rem 0.3rem 0.1rem;
+    }
+
+    button {
+      margin: 1rem;
+      padding: 0.5rem;
+      border: 1px hsl(300, 24%, 55%) solid;
+      border-radius: 2px;
+      background: linear-gradient(hsl(300, 24%, 95%), hsl(300, 24%, 90%));
+      color: hsl(300, 24%, 20%);
+    }
+
+    a {
+      color: hsl(300, 24%, 50%);
+      font-weight: 500;
+    }
+
+    footer {
+      padding-left: 1rem;
+    }
+  </style>
+  <header>
+    <h1>User-Agent 👀 Client Hints</h1>
+    <nav>
+      <a href="/made/user-agent-client-hints/headers/">[via headers]</a>
+      <a href="/made/user-agent-client-hints/">[via JavaScript]</a>
+      <a href="/made/user-agent-client-hints/meta/">[via meta tag]</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Meta tag contains:</h2>
+    <pre class="response" disabled>
+&lt;meta http-equiv="Accept-CH" content="Width, Viewport-Width, Downlink, Sec-CH-UA-Full-Version"&gt;</pre>
+    <h2>Subresources requests should look a bit like:</h2>
+    <pre class="request" disabled>
+downlink: 10
+sec-ch-ua: "Google Chrome";v="89", "Chromium";v="89", ";Not A Brand";v="99"
+sec-ch-ua-full-version: "89.0.4389.41"
+sec-ch-ua-mobile: ?0
+viewport-width: 861</pre>
+  </main>
+  <footer>
+    <p>
+      *️⃣ Requires Chrome 84 Beta or equivalent.<br /> 🚩 &nbsp;Enable the
+      <code>chrome://flags/#enable-experimental-web-platform-features</code>
+      flag.<br /> 💻
+      <a href="https://glitch.com/edit/#!/user-agent-client-hints?path=public%2Findex.html">See the code</a>.
+    </p>
+  </footer>
+  <script is:inline>
+    "use strict";
+    fetch("/made/user-agent-client-hints/show-headers.json" + document.location.search);
+  </script></MetaOnlyLayout>
