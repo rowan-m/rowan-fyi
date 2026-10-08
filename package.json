@@ -17,12 +17,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^7.3.1",
-    "@astrojs/node": "^11.1.6",
+    "@astrojs/markdown-remark": "^7.3.2",
+    "@astrojs/node": "^11.1.7",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
-    "@sd-jwt/core": "^0.21.1",
-    "astro": "^7.3.5",
+    "@sd-jwt/core": "^0.22.0",
+    "astro": "^7.3.8",
     "dompurify": "^3.4.16",
     "http-message-sig": "^0.3.0",
     "jose": "^6.2.12",
@@ -45,7 +45,7 @@
     "prettier": "^3.9.9",
     "prettier-plugin-astro": "^1.1.0",
     "prettier-plugin-packagejson": "^3.0.2",
-    "typescript-eslint": "^8.71.0",
+    "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"
   },
   "allowScripts": {
