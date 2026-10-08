@@ -9,7 +9,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐚</text></svg>"
   />
-  <style>
+  <style is:inline>
     body {
       margin: 0;
       padding: 0;
@@ -50,7 +50,7 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
   </style>
   <header>
     <h1>Strange attractions</h1>
-    <a href="/posts/lorenz-attractor/">👋 From rowan.fyi</a>
+    <a href="https://rowan.fyi/lorenz-attractor">👋 From rowan.fyi</a>
   </header>
   <main><canvas class="viz"></canvas></main>
   <script is:inline type="importmap">
