@@ -1,7 +1,7 @@
 ---
 import Logo from "@/assets/logo.svg";
 import SocialIcons from "@/components/SocialIcons.astro";
-import ShareIcon from "/public/img/share.svg";
+import AtIcon from "/public/img/at.svg";
 interface Props {
   useH1Header?: boolean;
 }
@@ -23,7 +23,7 @@ const { useH1Header } = Astro.props;
   <SocialIcons />
   <details class="mobile-socials">
     <summary aria-label="Social links" title="Social links">
-      <ShareIcon />
+      <AtIcon />
     </summary>
     <SocialIcons />
   </details>
