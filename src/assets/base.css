@@ -179,8 +179,7 @@ header a {
 }
 
 header .logo svg {
-  width: clamp(11rem, 52vw, 14rem);
-  height: auto;
+  width: 10rem;
 }
 
 footer a,
@@ -220,31 +219,66 @@ main a:hover {
   padding: 0.5rem;
 }
 
-header .socials {
-  padding-block: 0;
-}
-
 .socials svg {
   width: 1.5rem;
   height: 1.5rem;
 }
 
-@media (max-width: 34rem) {
-  header {
-    padding-inline: 1.25rem;
-    gap: 1rem;
+.mobile-socials {
+  display: none;
+  position: relative;
+}
+
+.mobile-socials summary {
+  list-style: none;
+  cursor: pointer;
+  line-height: 0;
+  padding: 0.5rem;
+  color: var(--sec-fg);
+  fill: var(--sec-fg);
+}
+
+.mobile-socials summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-socials summary:hover,
+.mobile-socials summary:active,
+.mobile-socials[open] summary {
+  color: var(--sec-highlight);
+  fill: var(--sec-highlight);
+}
+
+.mobile-socials summary:focus-visible {
+  outline: 2px solid var(--main-accent);
+  outline-offset: 2px;
+  border-radius: 0.1rem;
+}
+
+.mobile-socials summary svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.mobile-socials .socials {
+  position: absolute;
+  inset-block-start: calc(100% + 0.5rem);
+  inset-inline-end: 0;
+  z-index: 10;
+  background: linear-gradient(130deg, hsl(205, 66%, 15%), hsl(220, 36%, 45%));
+  border: 1px solid var(--sec-border);
+  border-radius: 0.25rem;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 30rem) {
+  header > .socials {
+    display: none;
   }
 
-  header .socials {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    gap: 0.3rem 0.6rem;
-    padding: 0;
-  }
-
-  header .socials svg {
-    width: 1.1rem;
-    height: 1.1rem;
+  .mobile-socials {
+    display: block;
   }
 }
 
