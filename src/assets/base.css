@@ -226,7 +226,6 @@ main a:hover {
 
 .mobile-socials {
   display: none;
-  position: relative;
 }
 
 .mobile-socials summary {
@@ -242,11 +241,16 @@ main a:hover {
   display: none;
 }
 
-.mobile-socials summary:hover,
-.mobile-socials summary:active,
-.mobile-socials[open] summary {
+.mobile-socials summary:active {
   color: var(--sec-highlight);
   fill: var(--sec-highlight);
+}
+
+@media (hover: hover) {
+  .mobile-socials summary:hover {
+    color: var(--sec-highlight);
+    fill: var(--sec-highlight);
+  }
 }
 
 .mobile-socials summary:focus-visible {
@@ -262,14 +266,23 @@ main a:hover {
 
 .mobile-socials .socials {
   position: absolute;
-  inset-block-start: calc(100% + 0.5rem);
-  inset-inline-end: 0;
+  inset-block-start: calc(100% + 2px);
+  inset-inline: 0;
   z-index: 10;
-  background: linear-gradient(130deg, hsl(205, 66%, 15%), hsl(220, 36%, 45%));
-  border: 1px solid var(--sec-border);
-  border-radius: 0.25rem;
-  padding: 0.75rem 1rem;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  padding-block: 1rem;
+  padding-inline: calc(max(2rem, calc((100vw - 75ch) / 2)) + 0.5rem);
+  border-block-end: var(--sec-border) solid 2px;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(130deg, hsl(205, 66%, 15%), hsl(220, 36%, 45%));
+    filter: url(/img/grain.svg#grain);
+    clip-path: inset(0);
+    content: "";
+  }
 }
 
 @media (max-width: 30rem) {
