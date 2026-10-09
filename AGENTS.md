@@ -37,9 +37,10 @@ The master command is `npm run check`. This command sequentially executes:
 2. `npm run lint` (Standard ESLint)
 3. `npm run lint:sonar` (SonarJS plugin for code smells, cognitive complexity, and maintainability)
 4. `npm run lint:security` (Security plugin for vulnerabilities like unsanitized HTML or unsafe regex)
-5. `npm run depcruise` (Dependency Cruiser to enforce structural boundaries)
-6. `npm run build` (Astro production build)
-7. `npm run test` (Vitest suite execution)
+5. `npm run typecheck` (Astro content sync and TypeScript compiler type-checking via `tsc --noEmit`)
+6. `npm run depcruise` (Dependency Cruiser to enforce structural boundaries)
+7. `npm run build` (Astro production build)
+8. `npm run test` (Vitest suite execution)
 
 **Agent Responsibility:** You must manually invoke `npm run check` after completing your modifications. If it fails, you are responsible for fixing the errors before completing your interaction.
 

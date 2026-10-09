@@ -5,7 +5,7 @@
   "scripts": {
     "astro": "astro",
     "build": "astro build",
-    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run depcruise && npm run test",
+    "check": "npm run format:check && npm run lint && npm run lint:sonar && npm run lint:security && npm run typecheck && npm run depcruise && npm run test",
     "depcruise": "depcruise src",
     "dev": "astro dev",
     "format": "prettier --write .",
@@ -14,7 +14,8 @@
     "lint:security": "eslint src -c eslint.security.config.js",
     "lint:sonar": "eslint src -c eslint.sonar.config.js",
     "preview": "astro preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "astro sync && tsc --noEmit"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.2",

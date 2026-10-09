@@ -114,8 +114,15 @@ function exemptEndpointsFromTrailingSlash() {
       "astro:server:setup": ({ server }) => {
         for (const layer of server.middlewares.stack) {
           if (typeof layer.handle === "function" && layer.handle.name === "devTrailingSlash") {
-            const original = layer.handle;
-            layer.handle = function devTrailingSlash(req, res, next) {
+            const original =
+              /** @type {(req: import("node:http").IncomingMessage, res: import("node:http").ServerResponse, next: (err?: unknown) => void) => void} */ (
+                layer.handle
+              );
+            layer.handle = function devTrailingSlash(
+              /** @type {import("node:http").IncomingMessage} */ req,
+              /** @type {import("node:http").ServerResponse} */ res,
+              /** @type {(err?: unknown) => void} */ next,
+            ) {
               const pathname = req.url?.split("?")[0];
               if (pathname && endpointPaths.has(pathname)) {
                 return next();
