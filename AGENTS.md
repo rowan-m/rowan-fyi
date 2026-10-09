@@ -20,11 +20,10 @@ You must respect the architectural boundaries of this repository:
 
 - `src/`: The core Astro application.
   - `src/pages/`: Astro routing.
-  - `src/pages/made/`: Astro-native, interactive/server experiments (uses strict TS, full unit/integration testing, and subject to standard quality gates).
+  - `src/pages/made/`: Astro-native interactive and server experiments (uses strict TS, full unit/integration testing, and subject to standard quality gates).
   - `src/components/`: Reusable, functional Astro UI components.
   - `src/layouts/`: Shared page structures.
   - `src/content/posts/`: Blog posts. **Always check `src/content.config.ts` for schema definitions before adding/editing content.**
-- `public/made/`: A collection of legacy, self-contained HTML/JS/CSS experiments imported from Glitch. **Treat these as immutable legacy systems.** Maintain their standalone nature. Do not inject modern build tools into them unless tasked with a full migration to Astro components.
 - `.github/workflows/`: CI/CD pipelines deploying to GCP. Note the distinct handling of PR Previews vs. Production (`deploy-preview.yml` and `deploy-prod.yml`).
 - `Dockerfile` / `.dockerignore`: The container configuration for Cloud Run deployments.
 
@@ -59,7 +58,6 @@ The master command is `npm run check`. This command sequentially executes:
 Before you output a final confirmation to the user, silently verify:
 
 - [ ] Did I write TypeScript?
-- [ ] Did I respect the separation of legacy `public/made/` and Astro-native `src/pages/made/`?
 - [ ] Did I write Vitest tests for new logic?
 - [ ] Did I use leading underscores (`_filename.test.ts`) for test files in the pages directory?
 - [ ] **Did I run `npm run check` and verify it passed?**

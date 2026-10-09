@@ -9,10 +9,6 @@ import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
     rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>"
   />
-  <meta
-    http-equiv="origin-trial"
-    content="Av3dk6PxjvxZ/k9wKbOs+/kUdN0mlFCqEtqj+p8N13bBgTvIglBp1Uv2UgdwiVBTDKJIf8sk6hG/Z3ClME6NNQ8AAABdeyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDB9"
-  />
   <style is:inline>
     :root {
       font-family: "Georgia", serif;
@@ -418,23 +414,23 @@ Your tune should be approximately 20 notes or fewer.`;
           sustain: 0,
           release: 0.8,
         },
-      }).toDestination();
+      });
 
       const eq = new Tone.EQ3({
         low: -12,
         mid: -2,
         high: 10,
-      }).toDestination();
+      });
 
-      const delay = new Tone.PingPongDelay("16n", 0.1).toDestination();
+      const delay = new Tone.PingPongDelay("16n", 0.1);
       delay.wet.value = 0.05;
 
       const reverb = new Tone.Reverb({
         decay: 0.6,
         wet: 0.15,
-      }).toDestination();
+      });
 
-      synth.chain(eq, delay, reverb);
+      synth.chain(eq, delay, reverb, Tone.getDestination());
 
       const urlParams = new URLSearchParams(window.location.search);
       const vibeParam = urlParams.get("vibe");

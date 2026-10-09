@@ -1084,14 +1084,14 @@ import previewImg from "./linkage-preview.jpg";
         return sprite;
       }
 
-      createEdgeLine(id, type) {
+      createEdgeLine(id, type, sourceId, targetId) {
         const material = new THREE.LineBasicMaterial({
           color: COLORS[type.toUpperCase()] || 0x444444,
           transparent: true,
           opacity: 0,
         });
         const line = new THREE.Line(new THREE.BufferGeometry(), material);
-        line.userData.type = type;
+        line.userData = { type, sourceId, targetId };
         this.scene.add(line);
         this.edgeLines.set(id, line);
         return line;
@@ -1132,13 +1132,13 @@ import previewImg from "./linkage-preview.jpg";
         // Ensure all edges between visible nodes are linked in the physics graph dynamically
         for (const edge of network.edges) {
           if (visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)) {
-            const edgeId = `${edge.source}-${edge.target}`;
+            const edgeId = `${edge.source}\0${edge.target}`;
             const sourceInPhysics = this.physicsGraph.getNode(edge.source);
             const targetInPhysics = this.physicsGraph.getNode(edge.target);
             if (!this.edgeLines.has(edgeId) && sourceInPhysics && targetInPhysics) {
               this.physicsGraph.addLink(edge.source, edge.target);
               const targetNode = network.nodes.get(edge.target);
-              this.createEdgeLine(edgeId, targetNode ? targetNode.type : "reply");
+              this.createEdgeLine(edgeId, targetNode ? targetNode.type : "reply", edge.source, edge.target);
               this.edgeDiscoveryTimes.set(edgeId, Date.now());
             }
           }
@@ -1277,7 +1277,7 @@ import previewImg from "./linkage-preview.jpg";
         const nodeMeshes = this.nodeMeshes;
 
         for (const [id, line] of edgeLines) {
-          const [sourceId, targetId] = id.split("-");
+          const { sourceId, targetId } = line.userData;
           const isVisible = visibleNodes.has(sourceId) && visibleNodes.has(targetId);
           let pulse = 0;
           if (isVisible && edgeDiscoveryTimes.has(id)) {
