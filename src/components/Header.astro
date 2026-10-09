@@ -1,5 +1,7 @@
 ---
 import Logo from "@/assets/logo.svg";
+import SocialIcons from "@/components/SocialIcons.astro";
+import AtIcon from "/public/img/at.svg";
 interface Props {
   useH1Header?: boolean;
 }
@@ -18,4 +20,29 @@ const { useH1Header } = Astro.props;
       <Logo />
     </a>
   )}
+  <SocialIcons />
+  <details class="mobile-socials">
+    <summary aria-label="Social links" title="Social links">
+      <AtIcon />
+    </summary>
+    <SocialIcons />
+  </details>
 </header>
+
+<script>
+  document.addEventListener("click", (event) => {
+    document.querySelectorAll<HTMLDetailsElement>("details.mobile-socials[open]").forEach((details) => {
+      if (event.target instanceof Node && !details.contains(event.target)) {
+        details.removeAttribute("open");
+      }
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      document.querySelectorAll<HTMLDetailsElement>("details.mobile-socials[open]").forEach((details) => {
+        details.removeAttribute("open");
+      });
+    }
+  });
+</script>
