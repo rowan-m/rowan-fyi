@@ -7,9 +7,9 @@ import { createSignature, verifySignature } from "http-message-sig";
 import { PRIVATE_KEY_JWK, PUBLIC_KEY_JWK } from "./_keys";
 
 async function signJwt(payload: Record<string, unknown>, header: jose.JWTHeaderParameters, keyInput: unknown) {
-  let key: jose.KeyLike | Uint8Array;
+  let key: jose.CryptoKey | jose.KeyObject | Uint8Array;
   if (typeof keyInput === "object" && keyInput !== null && "type" in keyInput) {
-    key = keyInput as jose.KeyLike;
+    key = keyInput as jose.CryptoKey | jose.KeyObject;
   } else {
     key = await jose.importJWK(keyInput as jose.JWK, header.alg);
   }
@@ -17,14 +17,14 @@ async function signJwt(payload: Record<string, unknown>, header: jose.JWTHeaderP
 }
 
 async function verifyJwt(token: string, keyInput: unknown) {
-  let key: jose.KeyLike | Uint8Array;
+  let key: jose.CryptoKey | jose.KeyObject | Uint8Array;
   if (typeof keyInput === "object" && keyInput !== null && "type" in keyInput) {
-    key = keyInput as jose.KeyLike;
+    key = keyInput as jose.CryptoKey | jose.KeyObject;
   } else {
     const decoded = jose.decodeProtectedHeader(token);
     key = await jose.importJWK(keyInput as jose.JWK, decoded.alg || "ES256");
   }
-  const { payload } = await jose.jwtVerify(token, key);
+  const { payload } = await jose.jwtVerify<{ email: string; email_verified?: boolean; cnf?: unknown }>(token, key);
   return { payload };
 }
 import { GET as getDiscovery } from "../../.well-known/email-verification";
@@ -311,7 +311,7 @@ describe("EVP Endpoint Unit Tests", () => {
     } as unknown as APIContext);
     expect(response.status).toBe(200);
     const data = (await response.json()) as {
-      keys: Array<{ kid: string; alg?: string }>;
+      keys: Array<{ kid: string; kty: string; crv: string; alg?: string }>;
     };
     expect(data.keys).toBeDefined();
     expect(data.keys[0].kid).toBe("demo-key-2026");
@@ -1036,11 +1036,15 @@ describe("EVP Endpoint Unit Tests", () => {
 
     const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
 
-    const hasher = (data: Uint8Array | string, alg: string) =>
-      crypto
-        .createHash(alg === "sha-256" ? "sha256" : alg)
-        .update(data)
-        .digest();
+    const hasher = (data: string | ArrayBuffer | Uint8Array, alg: string) => {
+      const input = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+      return new Uint8Array(
+        crypto
+          .createHash(alg === "sha-256" ? "sha256" : alg)
+          .update(input)
+          .digest(),
+      );
+    };
 
     // Helper to build and verify a token with custom payloads
     const buildAndVerify = async (
@@ -1094,8 +1098,8 @@ describe("EVP Endpoint Unit Tests", () => {
 
       // Verification logic from index.astro
       const decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
-      const evtAlg = decodedSdJwt.jwt.header.alg;
-      const kbAlg = decodedSdJwt.kbJwt?.header.alg;
+      const evtAlg = decodedSdJwt.jwt.header.alg as string | undefined;
+      const kbAlg = decodedSdJwt.kbJwt?.header.alg as string | undefined;
       const allowedAsymmetricAlgs = ["Ed25519", "EdDSA", "ES256"];
 
       if (!evtAlg || !allowedAsymmetricAlgs.includes(evtAlg)) {
@@ -1121,14 +1125,14 @@ describe("EVP Endpoint Unit Tests", () => {
         verifier: async (data, sig) => {
           const token = `${data}.${sig}`;
           const headerAlg = evtAlg;
-          const kid = decodedSdJwt.jwt.header.kid;
+          const kid = decodedSdJwt.jwt.header.kid as string | undefined;
           const jwksKeys = [PUBLIC_KEY_JWK];
           // Filter keys by kid if present. If kid is missing (e.g., GMail), trial-verify using all keys.
           const keysToTry = kid ? jwksKeys.filter((k: { kid?: string }) => k.kid === kid) : jwksKeys;
 
           for (const jwk of keysToTry) {
             try {
-              const pubKey = await jose.importJWK(jwk as jose.JWK, jwk.alg || headerAlg);
+              const pubKey = await jose.importJWK(jwk as jose.JWK, (jwk as { alg?: string }).alg || headerAlg);
               await jose.compactVerify(token, pubKey);
               return true;
             } catch {
@@ -1141,7 +1145,10 @@ describe("EVP Endpoint Unit Tests", () => {
           try {
             const browserJwkKey = (decodedSdJwt.jwt.payload as { cnf?: { jwk?: crypto.JsonWebKey } }).cnf?.jwk;
             if (!browserJwkKey) throw new Error("Missing browser ephemeral public key.");
-            const pubKey = await jose.importJWK(browserJwkKey as jose.JWK, decodedSdJwt.kbJwt.header.alg || "ES256");
+            const pubKey = await jose.importJWK(
+              browserJwkKey as jose.JWK,
+              (decodedSdJwt.kbJwt?.header.alg as string | undefined) || "ES256",
+            );
             await jose.compactVerify(`${data}.${sig}`, pubKey);
             return true;
           } catch {
@@ -1194,6 +1201,9 @@ describe("EVP Endpoint Unit Tests", () => {
         );
       }
 
+      if (!decodedSdJwt.kbJwt) {
+        throw new Error("Security Exception: Missing Key Binding JWT.");
+      }
       const kbJwtPayload = decodedSdJwt.kbJwt.payload;
       const kbIat = kbJwtPayload.iat as number | undefined;
       if (!kbIat) {

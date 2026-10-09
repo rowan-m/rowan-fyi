@@ -70,7 +70,7 @@ async function verifyRequestSignature(
     const [schemeToken, params] = sigEntry;
     const scheme =
       typeof schemeToken === "object" && schemeToken !== null && "value" in schemeToken
-        ? (schemeToken as { value: string }).value
+        ? (schemeToken as unknown as { value: string }).value
         : String(schemeToken);
 
     if (scheme !== "hwk" || !params.has("kty")) {

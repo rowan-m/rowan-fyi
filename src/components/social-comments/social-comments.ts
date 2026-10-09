@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, css, nothing, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import DOMPurify from "dompurify";
@@ -632,7 +632,7 @@ class SocialCommentsWidget extends LitElement {
     return DOMPurify.sanitize(htmlContent);
   }
 
-  renderComment(comment: Comment) {
+  renderComment(comment: Comment): TemplateResult {
     const avatar = this.isSafeUrl(comment.authorAvatar) ? comment.authorAvatar : "";
     const authorUrl = this.isSafeUrl(comment.authorUrl) ? comment.authorUrl : "#";
     const commentUrl = this.isSafeUrl(comment.url) ? comment.url : "#";

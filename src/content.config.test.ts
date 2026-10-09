@@ -1,10 +1,14 @@
 import { describe, expect, test } from "vitest";
 import { collections } from "./content.config";
-import { z } from "astro:content";
+import { z, type SchemaContext } from "astro:content";
 
 describe("collections.posts.schema", () => {
   const schema = collections.posts.schema;
-  const zodSchema = typeof schema === "function" ? schema({ image: () => z.any() }) : schema;
+  if (!schema) {
+    throw new Error("Expected collections.posts.schema to be defined");
+  }
+  const zodSchema =
+    typeof schema === "function" ? schema({ image: (() => z.any()) as unknown as SchemaContext["image"] }) : schema;
 
   const validPost = {
     title: "Test Post",
