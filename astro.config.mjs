@@ -75,9 +75,13 @@ function exemptEndpointsFromTrailingSlash() {
           }
         }
       },
-      "astro:config:setup": ({ updateConfig }) => {
+      "astro:config:setup": ({ command, updateConfig }) => {
         updateConfig({
           vite: {
+            ...(command === "sync" ? { cacheDir: "node_modules/.vite-sync" } : {}),
+            optimizeDeps: {
+              include: ["lit", "lit/decorators.js", "lit/directives/unsafe-html.js", "dompurify"],
+            },
             plugins: [
               {
                 name: "exempt-endpoints-from-trailing-slash-vite",
@@ -155,6 +159,26 @@ export default defineConfig({
     }),
   },
   integrations: [sitemap(), exemptEndpointsFromTrailingSlash()],
+  redirects: {
+    "/posts/anamorphosis/": "/made/anamorphosis/",
+    "/posts/atomatic/": "/made/atomatic/",
+    "/posts/barnsley-ferns/": "/made/barnsley-ferns/",
+    "/posts/bouncy-dvd-logo/": "/made/bouncy-dvd-logo/",
+    "/posts/click-4-cats/": "/made/overly-particular/",
+    "/posts/game-of-life/": "/made/viral-content/",
+    "/posts/lorenz-attractor/": "/made/lorenz-flow/",
+    "/posts/love-satan/": "/made/i-love-you-satan/",
+    "/posts/many-circles/": "/made/illusion-gonna/",
+    "/posts/muller-lyer-illusion/": "/made/spectacular-optical/",
+    "/posts/peg-solo/": "/made/peg-solo/",
+    "/posts/persistence/": "/made/persistence/",
+    "/posts/rolling-circles/": "/made/rolling-circle/",
+    "/posts/rotavo/": "https://rotavo-pwa.firebaseapp.com/",
+    "/posts/shadowy-depths/": "/made/shadowy-depths/",
+    "/posts/strange-attraction/": "/made/strange-attraction/",
+    "/posts/stranger-attraction/": "/made/strangely/",
+    "/posts/zine-machine/": "/made/zine-machine/",
+  },
   security: {
     checkOrigin: false,
     allowedDomains: [

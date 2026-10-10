@@ -4,6 +4,7 @@ import favicon32 from "./assets/favicon-32x32.png";
 import favicon16 from "./assets/favicon-16x16.png";
 import safariPinnedTab from "./assets/safari-pinned-tab.svg";
 import appleTouchIcon from "./assets/apple-touch-icon.png";
+import previewImg from "./preview.png";
 
 const favicon32Src = typeof favicon32 === "string" ? favicon32 : favicon32.src;
 const favicon16Src = typeof favicon16 === "string" ? favicon16 : favicon16.src;
@@ -22,6 +23,16 @@ const appleTouchIconSrc = typeof appleTouchIcon === "string" ? appleTouchIcon : 
       name="Description"
       content="Optical illusion where the wheels look like they change position, but they really only spin."
     />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site ?? "https://rowan.fyi")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Not wheely" />
+    <meta
+      property="og:description"
+      content="Optical illusion where the wheels look like they change position, but they really only spin."
+    />
+    <meta name="image" property="og:image" content={new URL(previewImg.src, Astro.site ?? "https://rowan.fyi")} />
+    <meta property="og:image:width" content={String(previewImg.width)} />
+    <meta property="og:image:height" content={String(previewImg.height)} />
 
     <link rel="icon" type="image/png" sizes="32x32" href={favicon32Src} />
     <link rel="icon" type="image/png" sizes="16x16" href={favicon16Src} />
@@ -246,6 +257,7 @@ const appleTouchIconSrc = typeof appleTouchIcon === "string" ? appleTouchIcon : 
         font-size: 3vmin;
       }
     </style>
+    <meta property="article:published_time" content="2020-11-27" />
   </head>
   <body>
     <main class="anim-on grid-off">
@@ -344,7 +356,7 @@ const appleTouchIconSrc = typeof appleTouchIcon === "string" ? appleTouchIcon : 
     <script is:inline>
       "use strict";
 
-      if (location.protocol !== "https:") {
+      if (location.protocol !== "https:" && location.hostname !== "localhost") {
         location.replace(`https:${location.href.substring(location.protocol.length)}`);
       }
 

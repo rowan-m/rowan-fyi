@@ -2,21 +2,13 @@
 export const prerender = true;
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
-import previewImg from "./linkage-preview.jpg";
 ---
 
 <MetaOnlyLayout
   title="LinkAge"
   description="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
+  pubDate="2026-06-08"
 >
-  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="LinkAge" />
-  <meta
-    property="og:description"
-    content="Pick a post, any Bluesky or Mastodon post! Then explore all the interactions: replies, quotes, likes, reposts in a delightful interactive 3D timeline."
-  />
-  <meta name="image" property="og:image" content={new URL(previewImg.src, Astro.site)} />
   <link
     rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>"

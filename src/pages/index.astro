@@ -1,21 +1,15 @@
 ---
 export const prerender = true;
 
+import type { ImageMetadata } from "astro";
+import CardView from "@/components/CardView.astro";
 import DefaultHead from "@/components/DefaultHead.astro";
 import DefaultBodyLayout from "@/layouts/DefaultBodyLayout.astro";
-import PostCardView from "@/components/PostCardView.astro";
 import { Image } from "astro:assets";
 import imgRowanMerewood from "@/assets/rowan-merewood.jpg";
+import { buildFeedList } from "./made/_projects";
 
 import { getCollection } from "astro:content";
-
-import Bluesky from "/public/img/socials/bluesky-fill.svg";
-import GitHub from "/public/img/socials/github-fill.svg";
-import Linkedin from "/public/img/socials/linkedin-box-fill.svg";
-import Mastodon from "/public/img/socials/mastodon-fill.svg";
-import Threads from "/public/img/socials/threads-line.svg";
-import LastFmTrack from "@/components/LastFmTrack.astro";
-import BlueskyPost from "@/components/BlueskyPost.astro";
 
 const title = "rowan.fyi";
 const description =
@@ -30,7 +24,7 @@ const profileData = {
     name: "Rowan Merewood",
     description:
       "Developer, Developer Relations, and manager - sometimes all at once. Projects and posts ranging over graphics, mathematics, optical illusions, and art. Works on Chrome at Google.",
-    image: new URL("/img/rowan-merewood.jpg", Astro.site),
+    image: new URL(imgRowanMerewood.src, Astro.site),
     sameAs: [
       "https://bsky.app/profile/rowan.fyi",
       "https://mastodon.social/@rowan_m",
@@ -43,59 +37,32 @@ const profileData = {
   },
 };
 
+const rawSources = import.meta.glob<string>("./made/*/index.astro", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+
+const localImages = import.meta.glob<{ default: ImageMetadata }>("./made/**/*.{png,jpg,jpeg,webp}", { eager: true });
+
 const posts = await getCollection("posts");
-posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const feedList = buildFeedList(rawSources, localImages, posts);
 ---
 
 <!doctype html>
 <html lang="en">
-  <DefaultHead title={title} description={description} />
-  <script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)}></script>
-  <meta property="og:url" content={new URL(Astro.site)} />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content={title} />
-  <meta property="og:description" content={description} />
-  <meta name="image" property="og:image" content={new URL("img/og-preview.png", Astro.site)} />
+  <head>
+    <DefaultHead title={title} description={description} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(profileData)}></script>
+    <meta property="og:url" content={new URL(Astro.site)} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="image" property="og:image" content={new URL("img/og-preview.png", Astro.site)} />
+  </head>
   <DefaultBodyLayout useH1Header={true}>
     <style>
-      .social-list,
-      .social-list li {
-        list-style-type: none;
-        padding-inline-start: 0;
-      }
-
-      .social-list svg {
-        vertical-align: text-bottom;
-      }
-
-      .social-list li::marker {
-        content: none;
-      }
-
-      .social-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0 1ch;
-        margin-block-start: 0;
-      }
-
-      .social-list svg {
-        width: 1rem;
-        height: 1rem;
-        margin-inline-end: 0.25ch;
-      }
-
-      .social-list > li > a {
-        white-space: nowrap;
-      }
-
       .posts > div {
-        display: flex;
-        flex-flow: row wrap;
-        gap: 1ch;
-      }
-
-      .widgets {
         display: flex;
         flex-flow: row wrap;
         gap: 1ch;
@@ -107,48 +74,24 @@ posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
       </a>
       <p>
         <span class="p-note">
-          Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a> is where I share
-          my{" "} <a href="/made/">various projects</a> and posts ranging over graphics, mathematics, optical illusions,
-          and arguably art. At work, I'm Developer Relations for <a href="https://developer.chrome.com/">Chrome</a> at
-          Google.
+          Hello there, I'm <span class="p-name">Rowan Merewood</span> and <a href="/">rowan.fyi</a> is where I share my
+          various projects and posts ranging over graphics, mathematics, optical illusions, and arguably art. At work,
+          I'm Developer Relations for <a href="https://developer.chrome.com/">Chrome</a> at Google.
         </span>
       </p>
-      <p>You can say hello back across these various networks:</p>
-      <ul class="social-list">
-        <li>
-          <a href="https://bsky.app/profile/rowan.fyi" title="rowan@fyi on Bluesky"> <Bluesky /> @rowan.fyi </a>
-        </li>
-        <li>
-          <a href="https://mastodon.social/@rowan_m" title="@rowan_m on Mastodon">
-            <Mastodon /> @rowan_m@mastodon.social
-          </a>
-        </li>
-        <li>
-          <a href="https://github.com/rowan-m/" title="rowan-m on GitHub"> <GitHub /> rowan-m </a>
-        </li>
-        <li>
-          <a href="https://www.threads.com/@rowan_m" title="@rowan_m on Threads"> <Threads /> rowan_m </a>
-        </li>
-        <li>
-          <a href="https://www.linkedin.com/in/rowanmerewood/" title="rowanmerewood on LinkedIn">
-            <Linkedin /> rowanmerewood
-          </a>
-        </li>
-      </ul>
       <section class="posts">
-        <h2>Posts</h2>
+        <h2>Posts &amp; Projects</h2>
         <div>
-          {posts.map((post) => (
-            <PostCardView post={post} />
+          {feedList.map((item) => (
+            <CardView
+              href={item.href}
+              title={item.title}
+              description={item.description}
+              image={item.image}
+              imageAlt={item.imageAlt}
+              pubDate={item.pubDate}
+            />
           ))}
-        </div>
-      </section>
-      <section>
-        <h2>Experimental widgets</h2>
-        <div class="widgets">
-          <p>Let me know if you scroll this far. I haven't really implemented these properly.</p>
-          <LastFmTrack />
-          <BlueskyPost />
         </div>
       </section>
     </main>

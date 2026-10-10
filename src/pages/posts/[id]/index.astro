@@ -45,19 +45,21 @@ const articleData = {
 
 <!doctype html>
 <html lang="en">
-  <DefaultHead title={post.data.title + " | rowan.fyi"} description={post.data.description} />
-  <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)}></script>
-  {post.data.standardSiteDoc && (
-    <link
-      rel="site.standard.document"
-      href={`at://did:plc:7dtviror2bcs32dnngqsf7ay/site.standard.document/${post.data.standardSiteDoc}`}
-    />
-  )}
-  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content={post.data.title} />
-  <meta property="og:description" content={post.data.description} />
-  <meta name="image" property="og:image" content={new URL(post?.data?.image?.src, Astro.site)} />
+  <head>
+    <DefaultHead title={post.data.title + " | rowan.fyi"} description={post.data.description} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(articleData)}></script>
+    {post.data.standardSiteDoc && (
+      <link
+        rel="site.standard.document"
+        href={`at://did:plc:7dtviror2bcs32dnngqsf7ay/site.standard.document/${post.data.standardSiteDoc}`}
+      />
+    )}
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={post.data.title} />
+    <meta property="og:description" content={post.data.description} />
+    <meta name="image" property="og:image" content={new URL(post?.data?.image?.src, Astro.site)} />
+  </head>
   <DefaultBodyLayout>
     <style>
       iframe {

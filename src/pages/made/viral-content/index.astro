@@ -3,7 +3,6 @@ export const prerender = true;
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import appleTouchIcon from "./assets/apple-touch-icon.png";
-import previewImg from "./assets/conways-game-of-life-preview.jpg";
 import faviconJpg from "./assets/conways-game-of-life.jpg";
 import favicon16 from "./assets/favicon-16x16.png";
 import favicon32 from "./assets/favicon-32x32.png";
@@ -13,6 +12,7 @@ import maskIcon from "./assets/safari-pinned-tab.svg";
 <MetaOnlyLayout
   title="Conway's Game of Life"
   description="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
+  pubDate="2020-03-15"
 >
   <link id="favicon" rel="icon" href={faviconJpg.src} type="image/x-icon" />
 
@@ -24,17 +24,6 @@ import maskIcon from "./assets/safari-pinned-tab.svg";
   <meta name="application-name" content="Life" />
   <meta name="msapplication-TileColor" content="#c0c0c0" />
   <meta name="theme-color" content="#c0c0c0" />
-
-  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Conway's Game of Life" />
-  <meta
-    property="og:description"
-    content="An emoji version of the classic cellular automata game. Tap the cells to create a pattern. Customize the emoji and then share it!"
-  />
-  <meta property="og:image" content={new URL(previewImg.src, Astro.site)} />
-  <meta property="og:image:width" content="1284" />
-  <meta property="og:image:height" content="1514" />
 
   <style is:inline>
     body {

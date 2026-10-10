@@ -3,20 +3,11 @@ export const prerender = true;
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import faviconUrl from "./assets/favicon.ico";
-import previewImg from "./assets/knob-preview.jpg";
 ---
 
-<MetaOnlyLayout title="<input-knob> goes to eleven" description="<input-knob> 🎛️ goes to eleven">
+<MetaOnlyLayout title="<input-knob> goes to eleven" description="<input-knob> 🎛️ goes to eleven" pubDate="2019-08-25">
   <link rel="shortcut icon" href={faviconUrl} />
   <meta name="theme-color" content="#D2B48C" />
-
-  <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="<input-knob> 🎛️ goes to eleven" />
-  <meta property="og:description" content="A web component that goes to eleven." />
-  <meta property="og:image" content={new URL(previewImg.src, Astro.site)} />
-  <meta property="og:image:width" content="1900" />
-  <meta property="og:image:height" content="1125" />
 
   <style is:inline>
     body {

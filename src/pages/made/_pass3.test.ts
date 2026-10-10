@@ -5,21 +5,8 @@ import { buildAcceptChHeader } from "./user-agent-client-hints/_uach";
 import { GET as getShowHeaders } from "./user-agent-client-hints/show-headers.json";
 import { parseCookieHeader, SAMESITE_SANDBOX_COOKIES } from "./samesite-sandbox/_cookies";
 import { ALL as getSameSiteCookies } from "./samesite-sandbox/cookies.json";
-import {
-  BLOATED_COOKIE_VALUE,
-  CHIPS_ORIGIN_TRIAL,
-  ORIGIN_TRIAL_1P,
-  ORIGIN_TRIAL_3P,
-  computeChipsCount,
-  isAllowedOrigin,
-} from "./x-origin-src/_x-origin";
-import { GET as set3pcJson } from "./x-origin-src/set-3pc.json";
-import { GET as get3pcJson } from "./x-origin-src/get-3pc.json";
-import { ALL as reportEndpoint } from "./x-origin-src/report";
-import { GET as getInjectedMetaJs } from "./x-origin-src/injected-meta.js";
 
 const ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
-const THIRD_PARTY_COOKIES_ORIGIN = "https://rowan.fyi/made/third-party-cookies";
 
 function makeContext(headersInit: Record<string, string> = {}): APIContext {
   return {
@@ -109,51 +96,6 @@ describe("Pass 3 helpers and endpoints", () => {
       expect(response.headers.get(ALLOW_ORIGIN_HEADER)).toBe("https://rowan.fyi/made/x-origin-src");
       expect(response.headers.get("Access-Control-Allow-Credentials")).toBe("true");
       expect(await response.json()).toEqual({ ck01: "vl01" });
-    });
-  });
-
-  describe("x-origin-src (_x-origin.ts and endpoints)", () => {
-    it("computes incremented CHIPS __Host-count cookie value", () => {
-      expect(computeChipsCount(null)).toBe(1);
-      expect(computeChipsCount("__Host-count=1")).toBe(2);
-      expect(computeChipsCount("__Host-count=4")).toBe(5);
-      expect(BLOATED_COOKIE_VALUE.length).toBeGreaterThan(100);
-      expect(ORIGIN_TRIAL_1P).toBeTruthy();
-      expect(ORIGIN_TRIAL_3P).toBeTruthy();
-      expect(CHIPS_ORIGIN_TRIAL).toBeTruthy();
-    });
-
-    it("validates allowed origins and handles set-3pc.json and get-3pc.json", async () => {
-      expect(isAllowedOrigin(THIRD_PARTY_COOKIES_ORIGIN)).toBe(true);
-      expect(isAllowedOrigin("https://example.com")).toBe(false);
-
-      const setRes = await set3pcJson(
-        makeContext({
-          origin: THIRD_PARTY_COOKIES_ORIGIN,
-          cookie: "3pc=123",
-        }),
-      );
-      expect(setRes.headers.get(ALLOW_ORIGIN_HEADER)).toBe(THIRD_PARTY_COOKIES_ORIGIN);
-      expect(setRes.headers.get("Set-Cookie")).toContain("SameSite=None");
-      expect(await setRes.json()).toEqual({ "3pc": "123" });
-
-      const getRes = await get3pcJson(
-        makeContext({
-          origin: THIRD_PARTY_COOKIES_ORIGIN,
-          cookie: "3pc=456",
-        }),
-      );
-      expect(getRes.headers.get(ALLOW_ORIGIN_HEADER)).toBe(THIRD_PARTY_COOKIES_ORIGIN);
-      expect(await getRes.json()).toEqual({ "3pc": "456" });
-    });
-
-    it("serves report and injected-meta.js endpoints", async () => {
-      const reportRes = await reportEndpoint(makeContext());
-      expect(reportRes.status).toBe(200);
-
-      const metaRes = await getInjectedMetaJs(makeContext());
-      expect(metaRes.headers.get("Content-Type")).toContain("application/javascript");
-      expect(await metaRes.text()).toContain("origin-trial");
     });
   });
 });

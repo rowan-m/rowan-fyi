@@ -4,7 +4,6 @@ export const prerender = true;
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
 import "./_style.css";
 import icon32 from "./assets/zine-machine-32.png";
-import previewImg from "./assets/zine-machine-preview.png";
 import zineLogo from "./assets/zine-machine.png";
 import fanzinesImg from "./assets/1970s_fanzines.jpg";
 import zineFoldImg from "./assets/zine-fold.png";
@@ -20,6 +19,7 @@ import fold07 from "./assets/zine-fold-07.png";
 <MetaOnlyLayout
   title="Zine machine!"
   description="Read 🌐 online or 📃 print out, ✂️ cut, and 🙏 fold to create a physical copy. 💜 Remix and write your own zine!"
+  pubDate="2019-06-06"
 >
   <Fragment slot="head">
     <link rel="icon" type="image/png" href={icon32.src} />
@@ -30,9 +30,6 @@ import fold07 from "./assets/zine-fold-07.png";
       crossorigin="anonymous"
     />
     <meta name="theme-color" content="#741b47" />
-    <meta property="og:image" content={new URL(previewImg.src, "https://rowan.fyi").href} />
-    <meta property="og:image:width" content="1232" />
-    <meta property="og:image:height" content="770" />
   </Fragment>
   <main class="zine">
     <header class="zine-page page-1">
