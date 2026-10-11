@@ -31,7 +31,7 @@
     "rehype-mathjax": "^7.1.0",
     "remark-math": "^6.0.0",
     "sharp": "0.35.5",
-    "structured-headers": "^2.1.0"
+    "structured-headers": "^2.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -43,8 +43,8 @@
     "eslint-plugin-security": "^4.2.0",
     "eslint-plugin-sonarjs": "^4.2.2",
     "globals": "^17.13.0",
-    "prettier": "^3.9.9",
-    "prettier-plugin-astro": "^1.1.0",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.1",
     "prettier-plugin-packagejson": "^3.0.2",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"
