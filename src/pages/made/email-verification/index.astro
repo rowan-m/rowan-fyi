@@ -3,7 +3,7 @@ export const prerender = false;
 
 Astro.response.headers.set(
   "Origin-Trial",
-  "AhXp8ak/QLxZjlTcDhudtMFPwVwV3MrqSIO/OODXG2IknnKycOuqn+z/h195Ob/0B4vF42nTcV8lQbESLVggNQQAAABceyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiRW1haWxWZXJpZmljYXRpb25Qcm90b2NvbCIsImV4cGlyeSI6MTc5NDg3MzYwMH0=",
+  "ArKu+PU5iTHo52lQPci1jMEe2+YG/sfFJNB6T5r+rCPLsNizTsha1N/Kmld6SE8XD3V2yTVsJLkHlvuH/K79EwIAAABceyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiRW1haWxWZXJpZmljYXRpb25Qcm90b2NvbCIsImV4cGlyeSI6MTgwMzk0NTYwMH0=",
 );
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
@@ -12,6 +12,7 @@ import { importJWK, compactVerify } from "jose";
 import type { JWK } from "jose";
 import { createHash, randomUUID } from "node:crypto";
 import dns from "node:dns/promises";
+import { isBareOrigin, isSafeIssuerUrl, isValidDnsIssuerDomain, readBoundedJson } from "./_verifier";
 
 interface VerificationResult {
   email: string;
@@ -157,9 +158,13 @@ if (Astro.request.method === "POST") {
 
       const evtJwtDecodedPayload = decodedSdJwt.jwt.payload as EvtPayload;
       const iss = evtJwtDecodedPayload.iss;
-      if (!iss) {
+      if (!iss || typeof iss !== "string") {
         traceSteps[0].status = "failed";
         throw new Error("EVT is missing the issuer ('iss') claim.");
+      }
+      if (!isBareOrigin(iss)) {
+        traceSteps[0].status = "failed";
+        throw new Error(`Security Exception: EVT 'iss' claim ('${iss}') must be a bare origin.`);
       }
 
       traceSteps[0].outputReceived = {
@@ -225,7 +230,10 @@ if (Astro.request.method === "POST") {
           const txt = record.join("");
           if (txt.startsWith("iss=")) {
             const delegatedValue = txt.substring(4).trim();
-            const expectedIssuer = delegatedValue.startsWith("https://") ? delegatedValue : `https://${delegatedValue}`;
+            if (!isValidDnsIssuerDomain(delegatedValue)) {
+              continue;
+            }
+            const expectedIssuer = `https://${delegatedValue}`;
             if (iss === expectedIssuer) {
               isAuthoritative = true;
               traceSteps[2].outputReceived = {
@@ -256,22 +264,6 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // STEP 4: ISSUER DISCOVERY & JWKS FETCHING (NETWORK)
       // ==============================================================================
-      const isSafeIssuerUrl = (urlStr: string) => {
-        try {
-          const parsed = new URL(urlStr);
-          const isLocalDev = parsed.hostname === "localhost" || parsed.hostname.startsWith("127.");
-          if (parsed.protocol !== "https:" && !(isLocalDev && parsed.protocol === "http:")) {
-            return false;
-          }
-          if (!isLocalDev && (parsed.hostname.endsWith(".internal") || parsed.hostname.endsWith(".local"))) {
-            return false;
-          }
-          return true;
-        } catch {
-          return false;
-        }
-      };
-
       const discoveryUrl = `${iss}/.well-known/email-verification`;
       traceSteps[3].serverCalled = discoveryUrl;
       traceSteps[3].inputSent = { url: discoveryUrl };
@@ -281,12 +273,15 @@ if (Astro.request.method === "POST") {
         throw new Error(`Security Exception: Unsafe or invalid discovery URL '${discoveryUrl}'.`);
       }
 
-      const metadataResponse = await fetch(discoveryUrl, { signal: AbortSignal.timeout(5000) });
+      const metadataResponse = await fetch(discoveryUrl, {
+        redirect: "error",
+        signal: AbortSignal.timeout(5000),
+      });
       if (!metadataResponse.ok) {
         traceSteps[3].status = "failed";
         throw new Error(`Failed to discover issuer metadata at ${discoveryUrl}: ${metadataResponse.statusText}`);
       }
-      const metadata = await metadataResponse.json();
+      const metadata = await readBoundedJson<{ issuer?: string; jwks_uri?: string }>(metadataResponse, discoveryUrl);
       traceSteps[3].outputReceived = { issuerMetadata: metadata };
 
       // Verify the metadata 'issuer' property matches the expected issuer identifier
@@ -306,12 +301,15 @@ if (Astro.request.method === "POST") {
       }
 
       traceSteps[3].serverCalled = `${discoveryUrl} & ${jwksUri}`;
-      const jwksResponse = await fetch(jwksUri, { signal: AbortSignal.timeout(5000) });
+      const jwksResponse = await fetch(jwksUri, {
+        redirect: "error",
+        signal: AbortSignal.timeout(5000),
+      });
       if (!jwksResponse.ok) {
         traceSteps[3].status = "failed";
         throw new Error(`Failed to fetch JWKS from ${jwksUri}`);
       }
-      const jwksData = await jwksResponse.json();
+      const jwksData = await readBoundedJson<{ keys: Array<{ kid?: string; alg?: string }> }>(jwksResponse, jwksUri);
       traceSteps[3].outputReceived = { issuerMetadata: metadata, issuerJWKS: jwksData };
       traceSteps[3].status = "success";
 
@@ -333,8 +331,7 @@ if (Astro.request.method === "POST") {
       }
 
       const cnfJwkAlg = (evtJwtDecodedPayload.cnf?.jwk as { alg?: string } | undefined)?.alg;
-      const normalizeAlg = (alg: string) => (alg === "Ed25519" ? "EdDSA" : alg);
-      if (cnfJwkAlg && normalizeAlg(kbAlg) !== normalizeAlg(cnfJwkAlg)) {
+      if (cnfJwkAlg && kbAlg !== cnfJwkAlg) {
         traceSteps[5].status = "failed";
         throw new Error(
           `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwkAlg}').`,
@@ -456,7 +453,7 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
 >
   <meta
     http-equiv="origin-trial"
-    content="AhXp8ak/QLxZjlTcDhudtMFPwVwV3MrqSIO/OODXG2IknnKycOuqn+z/h195Ob/0B4vF42nTcV8lQbESLVggNQQAAABceyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiRW1haWxWZXJpZmljYXRpb25Qcm90b2NvbCIsImV4cGlyeSI6MTc5NDg3MzYwMH0="
+    content="ArKu+PU5iTHo52lQPci1jMEe2+YG/sfFJNB6T5r+rCPLsNizTsha1N/Kmld6SE8XD3V2yTVsJLkHlvuH/K79EwIAAABceyJvcmlnaW4iOiJodHRwczovL3Jvd2FuLmZ5aTo0NDMiLCJmZWF0dXJlIjoiRW1haWxWZXJpZmljYXRpb25Qcm90b2NvbCIsImV4cGlyeSI6MTgwMzk0NTYwMH0="
   />
   <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
   <meta property="og:type" content="website" />
@@ -763,10 +760,9 @@ Astro.cookies.set(nonceCookieName, activeNonce, {
       <a href="https://github.com/dickhardt/email-verification">protocol</a> let the browser and your email provider
       talk directly to verify an address, so you can skip the magic link or OTP entirely. This page plays the relying
       party: the site asking you to prove the address. Read the{" "}
-      <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial">
-        announcement and implementation guide
-      </a
-      >{" "} for the full picture.
+      <a href="https://developer.chrome.com/docs/identity/email-verification">Email Verification documentation</a>{" "}
+      and <a href="https://developer.chrome.com/docs/identity/email-verification/verifier">verifier guide</a> for the
+      full picture.
     </p>
     <p class="evp-setup-notice">
       Requires Chrome 150+, you're on <span id="ua-browser">[...]</span>&nbsp; <span id="ua-version">[...]</span>: the
