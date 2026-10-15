@@ -33,6 +33,7 @@ if (Astro.request.method === "POST") {
       // requests are cross-site, so a Lax cookie would never be sent and this issuer
       // would always look logged out. It only appears to work with Lax when the
       // relying party happens to share this site, as the sibling verifier demo does.
+      httpOnly: true,
       sameSite: "none",
       secure: true,
       maxAge: 3600, // 1 hour
@@ -171,10 +172,9 @@ if (Astro.request.method === "POST") {
       <a href="https://github.com/dickhardt/email-verification">protocol</a>. It plays the issuer: the party that
       already knows the address is yours and will vouch for it. Once you've signed in, use the{" "}
       <a href="/made/email-verification/">relying party demo</a> to verify the address. Read the{" "}
-      <a href="https://developer.chrome.com/blog/email-verification-protocol-origin-trial">
-        announcement and implementation guide
-      </a
-      >{" "} for the full picture.
+      <a href="https://developer.chrome.com/docs/identity/email-verification">Email Verification documentation</a>{" "}
+      and <a href="https://developer.chrome.com/docs/identity/email-verification/issuer">issuer guide</a> for the full
+      picture.
     </p>
 
     {isLoggedIn ? (

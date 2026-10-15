@@ -30,12 +30,19 @@ async function verifyJwt(token: string, keyInput: unknown) {
 import { GET as getDiscovery } from "../../.well-known/email-verification";
 import { GET as getJwks } from "./jwks";
 import { POST as postIssuance } from "./issuance";
+import {
+  isBareOrigin,
+  isSafeIssuerUrl,
+  isValidDnsIssuerDomain,
+  readBoundedJson,
+} from "../email-verification/_verifier";
 
 const DEMO_EMAIL = "demo@rowan.fyi";
 const SEC_FETCH_DEST_EVP = "email-verification";
 const ISSUANCE_PATH = "/made/email-provider/issuance";
 const ISSUER_ORIGIN = "https://rowan.fyi";
 const ISSUANCE_URL = `${ISSUER_ORIGIN}${ISSUANCE_PATH}`;
+const DISCOVERY_URL = `${ISSUER_ORIGIN}/.well-known/email-verification`;
 const ACTIVE_SESSION_COOKIE = "__session=active";
 
 /**
@@ -271,7 +278,7 @@ describe("EVP Cryptographic Flow", () => {
 
 describe("EVP Endpoint Unit Tests", () => {
   test("discovery endpoint returns correct metadata", async () => {
-    const mockUrl = new URL("https://rowan.fyi/.well-known/email-verification");
+    const mockUrl = new URL(DISCOVERY_URL);
     const response = await getDiscovery({
       url: mockUrl,
       request: new Request(mockUrl),
@@ -1258,5 +1265,45 @@ describe("EVP Endpoint Unit Tests", () => {
     await expect(buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "ES256" } } })).rejects.toThrow(
       "does not match EVT cnf.jwk.alg",
     );
+  });
+
+  test("verifier DNS delegation and SSRF helpers enforce strict origin, hostname, IP, and size checks", async () => {
+    const ipv4Loopback = [127, 0, 0, 1].join(".");
+    const ipv4LinkLocal = [169, 254, 169, 254].join(".");
+    const ipv4Public = [8, 8, 8, 8].join(".");
+
+    // 1. Bare origin checks
+    expect(isBareOrigin("https://rowan.fyi")).toBe(true);
+    expect(isBareOrigin("https://rowan.fyi/")).toBe(false);
+    expect(isBareOrigin("https://rowan.fyi/path")).toBe(false);
+    expect(isBareOrigin("https://user:pass@rowan.fyi")).toBe(false);
+
+    // 2. Strict DNS _email-verification iss= domain checks (IETF -02 Section 3.2 & Chrome 156)
+    expect(isValidDnsIssuerDomain("rowan.fyi")).toBe(true);
+    expect(isValidDnsIssuerDomain("accounts.google.com")).toBe(true);
+    expect(isValidDnsIssuerDomain(ISSUER_ORIGIN)).toBe(false);
+    expect(isValidDnsIssuerDomain("Rowan.fyi")).toBe(false);
+    expect(isValidDnsIssuerDomain("rowan.fyi:8443")).toBe(false);
+    expect(isValidDnsIssuerDomain("rowan.fyi/path")).toBe(false);
+    expect(isValidDnsIssuerDomain(ipv4Loopback)).toBe(false);
+    expect(isValidDnsIssuerDomain("localhost")).toBe(false);
+
+    // 3. SSRF URL checks in production vs local dev
+    expect(isSafeIssuerUrl(DISCOVERY_URL, true)).toBe(true);
+    expect(isSafeIssuerUrl("http://localhost:4321/.well-known/email-verification", true)).toBe(false);
+    expect(isSafeIssuerUrl("http://localhost:4321/.well-known/email-verification", false)).toBe(true);
+    expect(isSafeIssuerUrl(`https://${ipv4LinkLocal}/latest/meta-data/`, true)).toBe(false);
+    expect(isSafeIssuerUrl(`https://${ipv4Public}/.well-known/email-verification`, true)).toBe(false);
+    expect(isSafeIssuerUrl("https://[::1]/.well-known/email-verification", true)).toBe(false);
+    expect(isSafeIssuerUrl("https://service.internal/.well-known/email-verification", true)).toBe(false);
+
+    // 4. Bounded JSON response reader
+    const okRes = new Response(JSON.stringify({ issuer: ISSUER_ORIGIN }), { status: 200 });
+    await expect(readBoundedJson(okRes, DISCOVERY_URL, 1024)).resolves.toEqual({
+      issuer: ISSUER_ORIGIN,
+    });
+
+    const oversizedRes = new Response("x".repeat(2048), { status: 200 });
+    await expect(readBoundedJson(oversizedRes, DISCOVERY_URL, 1024)).rejects.toThrow("exceeds maximum allowed size");
   });
 });
