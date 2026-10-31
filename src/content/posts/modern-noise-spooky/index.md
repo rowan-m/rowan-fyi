@@ -4,7 +4,7 @@ location: https://modern-noise.web.app/?sound=spooky
 image: modern-noise-preview.jpg
 imageAlt: Modern noise machine interface in Spooky mode with a badge reading "Now with added spooky sounds!"
 description: A three-layer spooky soundscape update for the Modern noise machine.
-pubDate: 2026-11-01
+pubDate: 2026-10-31
 tags:
   - audio
   - webaudio
