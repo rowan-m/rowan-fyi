@@ -15,9 +15,7 @@ I built the original [Modern noise](/posts/modern-noise/) machine for April Fool
 
 ## Anxiety-inducing ambience
 
-The base layer is a set of eight longer atmospheric tracks - howling graveyard wind, eerie forest drones, creaking strings, and a dramatic organ. The engine runs this stream with `background: true`, scheduling the next random track to start one second before the current clip finishes (`Math.max(1, duration - 1)`) so the backing tracks crossfade continuously with no dead air.
-
-Thank you and credit to the Freesound creators behind the ambience tracks:
+Unlike the other modes that just pile clips on top of each other to create a wall of chaos, spooky mode layers three different streams of sounds from [freesound.org](https://freesound.org) (thank you and credit to all the creators linked below). The base layer is a continuous run of longer atmospheric tracks - howling wind, eerie drones, creaking strings, and the occasional dramatic organ - crossfading into one another to keep a constant, unsettling backdrop going.
 
 - [CadereSounds](https://freesound.org/people/CadereSounds/sounds/222547/)
 - [DWOBoyle](https://freesound.org/people/DWOBoyle/sounds/147303/)
@@ -30,9 +28,7 @@ Thank you and credit to the Freesound creators behind the ambience tracks:
 
 ## Sound effects
 
-The middle layer is a catalogue of 39 shorter foreground effects - creaking doors, footsteps on wooden floors, dragging pipes, ghostly moans, creepy whispers, witch cackles, church bells, owl hoots, crows, and the odd axe chopping wood. Instead of firing blindly every second, this stream waits for the current clip to finish (capped at 8 seconds for longer samples) and then pauses for a random 3 to 6 seconds before picking the next one. That gives each effect enough breathing room to stand out against the wind and drones.
-
-Credit to the Freesound users below for the foreground effects:
+On top of the background drone, the middle layer drops in shorter foreground effects - creaking doors, footsteps on floorboards, dragging metal, ghostly moans, whispers, witch cackles, church bells, owls, crows, and the odd axe chopping wood. Rather than overlapping everything at once, this layer waits for each clip to play out and leaves a few seconds of quiet before picking the next one so the sounds have room to build a bit of tension.
 
 - [137SOUNDS](https://freesound.org/people/137SOUNDS/sounds/246487/)
 - [acekasbo](https://freesound.org/people/acekasbo/sounds/167087/)
@@ -76,4 +72,4 @@ Credit to the Freesound users below for the foreground effects:
 
 ## Random screams
 
-To stop you getting too comfortable, the top layer reuses the 22 clips from the [original `Screaming` mode](/posts/modern-noise/#screams) on a much longer 50 to 70 second timer. Rather than pre-fetching and decoding all 22 scream files up front when you hit play, `startPeriodicClipStream()` just sets the timer and fetches a single random scream on demand when it fires - just infrequent enough that you've forgotten about it by the time the Wilhelm scream goes off.
+To stop you getting too comfortable, the final layer reuses the clips from the [original screaming mode](/posts/modern-noise/#screams), but only drops one in roughly once a minute - just infrequent enough that you've relaxed by the time a sudden shriek goes off.
