@@ -13,7 +13,7 @@ tags:
 
 I built the original [Modern noise](/posts/modern-noise/) machine for April Fool's Day to provide the classic and actually useful white, pink, and brown noise options along with more contemporary accompaniments from day-to-day life such as construction noise, heavy traffic, an ongoing beeping noise, and just endless screaming. With both Halloween and Día de Muertos just around the corner, it felt like a good time to add a new "Spooky" option. I'm also now reflecting the current mode in the URL, which appears to be my favourite form of state management, and means I can directly link to spooky mode too.
 
-## Spooky background ambience
+## Anxiety-inducing ambience
 
 The base layer is a set of eight longer atmospheric tracks - howling graveyard wind, eerie forest drones, creaking strings, and a dramatic organ. The engine runs this stream with `background: true`, scheduling the next random track to start one second before the current clip finishes (`Math.max(1, duration - 1)`) so the backing tracks crossfade continuously with no dead air.
 
