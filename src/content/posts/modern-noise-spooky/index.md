@@ -11,32 +11,7 @@ tags:
   - halloween
 ---
 
-I built the original [Modern noise](/posts/modern-noise/) machine for April Fool's Day to pair classic white, pink, and brown noise with more contemporary workplace accompaniments like traffic, construction, and endless screaming. With Halloween rolling around, it felt only right to add a `Spooky` mode - complete with a 💀 button on the keypad, a glowing 🎃 on the LCD display, and `?sound=spooky` URL support so the embed above drops you straight into it.
-
-**💻 Code on GitHub: [rowan-m/modern-noise](https://github.com/rowan-m/modern-noise/)**
-
-In the original sampled modes, the audio engine just grabs random clips from [freesound.org](https://freesound.org) and fires a new one every 1 to 1.5 seconds so they pile up into a wall of overlapping noise. That works when the joke is unrelenting chaos, but doing the same thing with horror samples just turns into a muddy mess. A good spooky atmosphere needs a bit of space to build tension, so the `spooky` mode layers three separate audio streams on top of each other:
-
-```js
-[
-  "spooky",
-  {
-    id: "spooky",
-    title: "Spooky",
-    kind: "sampled",
-    backgroundUrls: spookyAmbienceUrls,
-    urls: spookyUrls,
-    interval: [3, 6],
-    extraStreams: [
-      {
-        urls: screamingUrls,
-        interval: [50, 70],
-      },
-    ],
-    artwork: "/img/spooky.jpg",
-  },
-];
-```
+I built the original [Modern noise](/posts/modern-noise/) machine for April Fool's Day to provide the classic and actually useful white, pink, and brown noise options along with more contemporary accompaniments from day-to-day life such as construction noise, heavy traffic, an ongoing beeping noise, and just endless screaming. With both Halloween and Día de Muertos just around the corner, it felt like a good time to add a new "Spooky" option. I'm also now reflecting the current mode in the URL, which appears to be my favourite form of state management, and means I can directly link to spooky mode too.
 
 ## Spooky background ambience
 
