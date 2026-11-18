@@ -1,9 +1,12 @@
 import { describe, expect, test } from "vitest";
 import type { JsonWebKeyInput } from "node:crypto";
 import crypto from "node:crypto";
+import type { IncomingMessage } from "node:http";
 import type { APIContext } from "astro";
+import { createRequest } from "astro/app/node";
 import * as jose from "jose";
 import { createSignature, verifySignature } from "http-message-sig";
+import astroConfig from "../../../../astro.config.mjs";
 import { PRIVATE_KEY_JWK, PUBLIC_KEY_JWK } from "./_keys";
 
 type JWK = JsonWebKeyInput["key"];
@@ -34,6 +37,7 @@ import { GET as getJwks } from "./jwks";
 import { POST as postIssuance } from "./issuance";
 import {
   isBareOrigin,
+  isCompatibleKbAlgorithm,
   isSafeIssuerUrl,
   isValidDnsIssuerDomain,
   readBoundedJson,
@@ -1154,10 +1158,21 @@ describe("EVP Endpoint Unit Tests", () => {
       "Key Binding JWT is too old",
     );
 
-    // Test 7: Mismatched cnf.jwk.alg vs KB-JWT header alg fails
+    // Test 7: Mismatched cnf.jwk.alg vs KB-JWT header alg fails, while Ed25519 <-> EdDSA stays compatible
     await expect(buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "ES256" } } })).rejects.toThrow(
       "does not match EVT cnf.jwk.alg",
     );
+    await expect(
+      buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, crv: "Ed448", alg: "EdDSA" } } }),
+    ).rejects.toThrow("does not match EVT cnf.jwk.alg");
+    await expect(
+      buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "EdDSA" } } }, {}, { kbAlg: "Ed25519" }),
+    ).resolves.toMatchObject({ email: DEMO_EMAIL });
+    await expect(
+      buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "Ed25519" } } }, {}, { kbAlg: "EdDSA" }),
+    ).resolves.toMatchObject({ email: DEMO_EMAIL });
+    expect(isCompatibleKbAlgorithm("Ed25519", { kty: "OKP", crv: "Ed25519", alg: "EdDSA" })).toBe(true);
+    expect(isCompatibleKbAlgorithm("ES256", { kty: "EC", crv: "P-256", alg: "EdDSA" })).toBe(false);
 
     // Test 8: Mismatched KB-JWT nonce fails
     await expect(buildAndVerify({}, {}, { expectedNonce: "wrong-nonce" })).rejects.toThrow(/Invalid Nonce/i);
@@ -1222,5 +1237,76 @@ describe("EVP Endpoint Unit Tests", () => {
 
     const oversizedRes = new Response("x".repeat(2048), { status: 200 });
     await expect(readBoundedJson(oversizedRes, DISCOVERY_URL, 1024)).rejects.toThrow("exceeds maximum allowed size");
+  });
+
+  test("Cloud Run allowedDomains resolves multi-label origins for Chrome 158 Step 6 audience verification", async () => {
+    const resolveForwardedOrigin = (forwardedHost: string, forwardedProto = "https") => {
+      const mockReq = {
+        method: "POST",
+        url: "/made/email-verification/",
+        headers: {
+          host: "localhost:8080",
+          "x-forwarded-host": forwardedHost,
+          "x-forwarded-proto": forwardedProto,
+        },
+        socket: {},
+      } as unknown as IncomingMessage;
+      const req = createRequest(mockReq, {
+        allowedDomains: astroConfig.security?.allowedDomains,
+        port: 8080,
+      });
+      return new URL(req.url).origin;
+    };
+
+    const previewOrigin = "https://pr-84---rowan-fyi-djl63hrafq-ew.a.run.app";
+    expect(resolveForwardedOrigin("pr-84---rowan-fyi-djl63hrafq-ew.a.run.app")).toBe(previewOrigin);
+    expect(resolveForwardedOrigin("rowan-fyi-315620914732.europe-west1.run.app")).toBe(
+      "https://rowan-fyi-315620914732.europe-west1.run.app",
+    );
+    expect(resolveForwardedOrigin("rowan.fyi")).toBe(ISSUER_ORIGIN);
+    expect(resolveForwardedOrigin("evil.example.com")).toBe("http://localhost:8080");
+    expect(resolveForwardedOrigin("run.app")).toBe("http://localhost:8080");
+    expect(resolveForwardedOrigin("evilrun.app")).toBe("http://localhost:8080");
+    expect(resolveForwardedOrigin("pr-84---rowan-fyi-djl63hrafq-ew.a.run.app", "http")).toBe("http://localhost:8080");
+
+    // Simulate exact Chrome 158 ExportPublicKeyEdDsa + EmailVerificationRequest::OnTokenAndKeysFetchComplete token
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const browserPubJwk = { ...(publicKey.export({ format: "jwk" }) as jose.JWK), alg: "Ed25519" };
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as JWK, format: "jwk" });
+    const now = Math.floor(Date.now() / 1000);
+    const evtJwt = await signJwt(
+      {
+        iss: ISSUER_ORIGIN,
+        iat: now,
+        exp: now + 300,
+        cnf: { jwk: browserPubJwk },
+        email: DEMO_EMAIL,
+        email_verified: true,
+      },
+      { alg: "Ed25519", kid: PRIVATE_KEY_JWK.kid, typ: "evt+jwt" },
+      providerPrivateKey,
+    );
+    const issuanceToken = `${evtJwt}~`;
+    const sdHash = crypto.createHash("sha256").update(issuanceToken, "utf8").digest("base64url");
+    const nonce = "chrome-158-preview-nonce";
+    const kbJwt = await signJwt(
+      {
+        aud: previewOrigin,
+        nonce,
+        iat: now,
+        sd_hash: sdHash,
+      },
+      { alg: "Ed25519", typ: "kb+jwt" },
+      privateKey,
+    );
+
+    const verified = await verifyEvtAndKbJwt({
+      rawToken: `${issuanceToken}${kbJwt}`,
+      jwksKeys: [PUBLIC_KEY_JWK as jose.JWK],
+      expectedNonce: nonce,
+      expectedAudience: resolveForwardedOrigin("pr-84---rowan-fyi-djl63hrafq-ew.a.run.app"),
+    });
+    expect(verified.payload.email).toBe(DEMO_EMAIL);
+    expect(verified.kbPayload.aud).toBe(previewOrigin);
   });
 });

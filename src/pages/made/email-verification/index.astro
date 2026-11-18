@@ -13,6 +13,7 @@ import dns from "node:dns/promises";
 import {
   ALLOWED_ASYMMETRIC_ALGS,
   isBareOrigin,
+  isCompatibleKbAlgorithm,
   isSafeIssuerUrl,
   isValidDnsIssuerDomain,
   parseEvtSdJwt,
@@ -308,16 +309,21 @@ if (Astro.request.method === "POST") {
         throw new Error(`Security Exception: Unsupported or insecure KB-JWT signing algorithm '${kbAlg || "none"}'.`);
       }
 
-      const cnfJwkAlg = (evtJwtDecodedPayload.cnf?.jwk as { alg?: string } | undefined)?.alg;
-      if (cnfJwkAlg && kbAlg !== cnfJwkAlg) {
+      const cnfJwk = evtJwtDecodedPayload.cnf?.jwk;
+      if (!isCompatibleKbAlgorithm(kbAlg, cnfJwk)) {
         traceSteps[5].status = "failed";
         throw new Error(
-          `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwkAlg}').`,
+          `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwk?.alg}').`,
         );
       }
 
       traceSteps[4].inputSent = { signingAlg: evtAlg };
-      traceSteps[5].inputSent = { cnf: evtJwtDecodedPayload.cnf, kbSigningAlg: kbAlg };
+      traceSteps[5].inputSent = {
+        cnf: evtJwtDecodedPayload.cnf,
+        kbSigningAlg: kbAlg,
+        expectedAudience,
+        expectedNonce,
+      };
 
       let verifiedEvtPayload: Record<string, unknown>;
       let verifiedKbPayload: Record<string, unknown>;

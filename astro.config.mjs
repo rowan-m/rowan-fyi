@@ -199,7 +199,7 @@ export default defineConfig({
         protocol: "https",
       },
       {
-        hostname: "*.run.app",
+        hostname: "**.run.app",
         protocol: "https",
       },
     ],

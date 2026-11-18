@@ -191,6 +191,21 @@ async function verifyIssuerSignatureWithJwks(
 }
 
 /**
+ * Checks whether the KB-JWT header `alg` is compatible with the EVT `cnf.jwk` key.
+ * Per RFC 9864 and Chromium's EVP implementation (crbug.com/561405995), `"Ed25519"` and
+ * legacy polymorphic `"EdDSA"` both identify Ed25519 when `cnf.jwk` is an Ed25519 OKP key.
+ */
+export function isCompatibleKbAlgorithm(kbAlg: string, cnfJwk?: JWK): boolean {
+  const cnfAlg = cnfJwk?.alg;
+  if (!cnfAlg || kbAlg === cnfAlg) {
+    return true;
+  }
+  const isEd25519Curve = !cnfJwk?.crv || cnfJwk.crv === "Ed25519";
+  const ed25519Algs = new Set(["Ed25519", "EdDSA"]);
+  return isEd25519Curve && ed25519Algs.has(kbAlg) && ed25519Algs.has(cnfAlg);
+}
+
+/**
  * Cryptographically verifies an EVP SD-JWT + Key Binding JWT (KB-JWT) including issuer
  * signature, holder key binding, nonce, audience, `sd_hash`, and freshness/expiration claims.
  */
@@ -209,10 +224,9 @@ export async function verifyEvtAndKbJwt(
   const kbAlg = assertAllowedAlgorithm(decodedSdJwt.kbJwt.header.alg, "KB-JWT");
 
   const cnf = decodedSdJwt.jwt.payload.cnf as { jwk?: JWK } | undefined;
-  const cnfJwkAlg = cnf?.jwk?.alg;
-  if (cnfJwkAlg && kbAlg !== cnfJwkAlg) {
+  if (!isCompatibleKbAlgorithm(kbAlg, cnf?.jwk)) {
     throw new Error(
-      `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwkAlg}').`,
+      `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnf?.jwk?.alg}').`,
     );
   }
 
