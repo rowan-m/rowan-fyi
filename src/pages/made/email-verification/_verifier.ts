@@ -1,14 +1,14 @@
 import { createHash } from "node:crypto";
 import net from "node:net";
-import { SdJwtInstance, decodeSdJwtSync, type DecodedSdJwt } from "@sd-jwt/core";
-import { compactVerify, importJWK, type JWK } from "jose";
+import { SdJwtInstance } from "@sd-jwt/core";
+import { compactVerify, decodeProtectedHeader, importJWK, type JWK } from "jose";
 
 export const ALLOWED_ASYMMETRIC_ALGS = ["Ed25519", "EdDSA", "ES256"] as const;
 
 export interface VerifyEvtOptions {
   rawToken: string;
-  decodedSdJwt?: DecodedSdJwt;
   jwksKeys: Array<JWK & { kid?: string; alg?: string }>;
+  expectedIssuer?: string;
   expectedNonce: string;
   expectedAudience: string;
   maxAgeSeconds?: number;
@@ -46,7 +46,7 @@ export function isBareOrigin(urlStr: string): boolean {
 
 /**
  * Validates the `iss=` domain value from a `_email-verification.<domain>` DNS TXT record.
- * Per IETF draft-dickhardt-mailmaint-ehm-02 Section 3.2 and Chrome 156+, the value must be
+ * Per IETF draft-hardt-email-verification (Issuer Discovery / DNS Delegation) and Chrome 156+, the value must be
  * a bare canonical lowercase DNS domain name (no scheme, port, path, uppercase, or IP literal).
  */
 export function isValidDnsIssuerDomain(domain: string): boolean {
@@ -111,76 +111,29 @@ export async function readBoundedJson<T = Record<string, unknown>>(
 }
 
 /**
- * SHA-256 / IANA hash callback compatible with `@sd-jwt/core`.
+ * SHA-256 / IANA hash callback required by `@sd-jwt/core`.
  */
 export function sdJwtHasher(data: string | ArrayBuffer | Uint8Array, alg: string): Uint8Array {
   const input = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-  const nodeAlg = alg === "sha-256" ? "sha256" : alg;
-  return new Uint8Array(createHash(nodeAlg).update(input).digest());
-}
-
-/**
- * Validates standard JWT claims including expiration, issued-at presence, and freshness window.
- */
-export function validateClaims(
-  payload: Record<string, unknown>,
-  maxAgeSeconds = 300,
-  clockSkewSeconds = 60,
-  label = "Token",
-): void {
-  const currentTime = Math.floor(Date.now() / 1000);
-  const exp = typeof payload.exp === "number" ? payload.exp : undefined;
-  const iat = typeof payload.iat === "number" ? payload.iat : undefined;
-
-  if (exp !== undefined && currentTime > exp + clockSkewSeconds) {
-    throw new Error(`Security Exception: ${label} has expired (exp: ${exp}, current: ${currentTime}).`);
-  }
-  if (!iat) {
-    throw new Error(`Security Exception: ${label} is missing the required issued-at ('iat') claim.`);
-  }
-  if (exp !== undefined && iat >= exp) {
-    throw new Error(`Security Exception: ${label} timestamps are inconsistent (iat: ${iat} >= exp: ${exp}).`);
-  }
-  const age = currentTime - iat;
-  if (age > maxAgeSeconds + clockSkewSeconds) {
-    throw new Error(
-      `Security Exception: ${label} is too old (issued ${age} seconds ago, max limit: ${maxAgeSeconds}s).`,
-    );
-  }
-  if (age < -clockSkewSeconds) {
-    throw new Error(
-      `Security Exception: ${label} has an invalid future issuance timestamp (iat: ${iat}, current: ${currentTime}).`,
-    );
-  }
-}
-
-/**
- * Decodes an SD-JWT EVP token into its EVT, disclosures, and Key Binding JWT components.
- */
-export function parseEvtSdJwt(rawToken: string): DecodedSdJwt {
-  return decodeSdJwtSync(rawToken, sdJwtHasher);
-}
-
-function assertAllowedAlgorithm(alg: unknown, tokenLabel: "EVT" | "KB-JWT"): string {
-  const algStr = typeof alg === "string" ? alg : undefined;
-  if (!algStr || !(ALLOWED_ASYMMETRIC_ALGS as readonly string[]).includes(algStr)) {
-    throw new Error(
-      `Security Exception: Unsupported or insecure ${tokenLabel} signing algorithm '${algStr || "none"}'.`,
-    );
-  }
-  return algStr;
+  return new Uint8Array(
+    createHash(alg === "sha-256" ? "sha256" : alg)
+      .update(input)
+      .digest(),
+  );
 }
 
 async function verifyIssuerSignatureWithJwks(
   token: string,
-  kid: string | undefined,
-  fallbackAlg: string,
   jwksKeys: Array<JWK & { kid?: string; alg?: string }>,
 ): Promise<boolean> {
+  const { alg, kid, typ } = decodeProtectedHeader(token);
+  if (!alg || typ !== "evt+jwt") {
+    return false;
+  }
   const keysToTry = kid ? jwksKeys.filter((k) => k.kid === kid) : jwksKeys;
   for (const jwk of keysToTry) {
     try {
-      const pubKey = await importJWK(jwk, jwk.alg || fallbackAlg);
+      const pubKey = await importJWK(jwk, jwk.alg || alg);
       await compactVerify(token, pubKey);
       return true;
     } catch {
@@ -191,66 +144,35 @@ async function verifyIssuerSignatureWithJwks(
 }
 
 /**
- * Checks whether the KB-JWT header `alg` is compatible with the EVT `cnf.jwk` key.
- * Per RFC 9864 and Chromium's EVP implementation (crbug.com/561405995), `"Ed25519"` and
- * legacy polymorphic `"EdDSA"` both identify Ed25519 when `cnf.jwk` is an Ed25519 OKP key.
- */
-export function isCompatibleKbAlgorithm(kbAlg: string, cnfJwk?: JWK): boolean {
-  const cnfAlg = cnfJwk?.alg;
-  if (!cnfAlg || kbAlg === cnfAlg) {
-    return true;
-  }
-  const isEd25519Curve = !cnfJwk?.crv || cnfJwk.crv === "Ed25519";
-  const ed25519Algs = new Set(["Ed25519", "EdDSA"]);
-  return isEd25519Curve && ed25519Algs.has(kbAlg) && ed25519Algs.has(cnfAlg);
-}
-
-/**
- * Cryptographically verifies an EVP SD-JWT + Key Binding JWT (KB-JWT) including issuer
- * signature, holder key binding, nonce, audience, `sd_hash`, and freshness/expiration claims.
+ * Verifies an EVP token (`<EVT>~<KB-JWT>`) by delegating SD-JWT/KB-JWT claim, freshness,
+ * algorithm, `sd_hash`, nonce, and audience validation to `@sd-jwt/core`, and JWS signature
+ * verification to `jose`.
  */
 export async function verifyEvtAndKbJwt(
   options: VerifyEvtOptions,
 ): Promise<{ payload: Record<string, unknown>; kbPayload: Record<string, unknown> }> {
   const maxAgeSeconds = options.maxAgeSeconds ?? 300;
-  const clockSkewSeconds = options.clockSkewSeconds ?? 60;
-  const decodedSdJwt = options.decodedSdJwt ?? parseEvtSdJwt(options.rawToken);
+  const skewSeconds = options.clockSkewSeconds ?? 60;
 
-  if (!decodedSdJwt.kbJwt) {
-    throw new Error("Security Exception: Missing Key Binding JWT (KB-JWT).");
-  }
-
-  const evtAlg = assertAllowedAlgorithm(decodedSdJwt.jwt.header.alg, "EVT");
-  const kbAlg = assertAllowedAlgorithm(decodedSdJwt.kbJwt.header.alg, "KB-JWT");
-
-  const cnf = decodedSdJwt.jwt.payload.cnf as { jwk?: JWK } | undefined;
-  if (!isCompatibleKbAlgorithm(kbAlg, cnf?.jwk)) {
-    throw new Error(
-      `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnf?.jwk?.alg}').`,
-    );
-  }
-
-  const sdJwt = new SdJwtInstance({ hasher: sdJwtHasher });
-  sdJwt.config({
+  const sdJwt = new SdJwtInstance({
     hasher: sdJwtHasher,
     verifier: async (data, sig) => {
-      const kid = typeof decodedSdJwt.jwt.header.kid === "string" ? decodedSdJwt.jwt.header.kid : undefined;
-      const matched = await verifyIssuerSignatureWithJwks(`${data}.${sig}`, kid, evtAlg, options.jwksKeys);
-      if (!matched) {
-        return false;
+      const matched = await verifyIssuerSignatureWithJwks(`${data}.${sig}`, options.jwksKeys);
+      if (matched) {
+        options.onIssuerVerified?.();
       }
-      validateClaims(decodedSdJwt.jwt.payload, maxAgeSeconds, clockSkewSeconds);
-      options.onIssuerVerified?.();
-      return true;
+      return matched;
     },
-    kbVerifier: async (data, sig) => {
+    kbVerifier: async (data, sig, payload) => {
       try {
-        const browserJwkKey = cnf?.jwk;
-        if (!browserJwkKey) {
+        const browserJwk = payload.cnf?.jwk;
+        if (!browserJwk) {
           return false;
         }
-        const pubKey = await importJWK(browserJwkKey, kbAlg);
-        await compactVerify(`${data}.${sig}`, pubKey);
+        const token = `${data}.${sig}`;
+        const { alg } = decodeProtectedHeader(token);
+        const pubKey = await importJWK(browserJwk as JWK, browserJwk.alg || alg);
+        await compactVerify(token, pubKey);
         return true;
       } catch {
         return false;
@@ -259,19 +181,18 @@ export async function verifyEvtAndKbJwt(
   });
 
   const result = await sdJwt.verify(options.rawToken, {
+    expectedIssuer: options.expectedIssuer,
     keyBindingNonce: options.expectedNonce,
     expectedKeyBindingAudience: options.expectedAudience,
     allowedIssuerAlgorithms: [...ALLOWED_ASYMMETRIC_ALGS],
     allowedKeyBindingAlgorithms: [...ALLOWED_ASYMMETRIC_ALGS],
     maxAgeSeconds,
     keyBindingMaxAgeSeconds: maxAgeSeconds,
-    skewSeconds: clockSkewSeconds,
+    skewSeconds,
   });
-
-  validateClaims(decodedSdJwt.kbJwt.payload, maxAgeSeconds, clockSkewSeconds, "Key Binding JWT");
 
   return {
     payload: result.payload as Record<string, unknown>,
-    kbPayload: decodedSdJwt.kbJwt.payload,
+    kbPayload: (result.kb?.payload ?? {}) as Record<string, unknown>,
   };
 }

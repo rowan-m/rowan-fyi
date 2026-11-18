@@ -37,7 +37,6 @@ import { GET as getJwks } from "./jwks";
 import { POST as postIssuance } from "./issuance";
 import {
   isBareOrigin,
-  isCompatibleKbAlgorithm,
   isSafeIssuerUrl,
   isValidDnsIssuerDomain,
   readBoundedJson,
@@ -1054,12 +1053,14 @@ describe("EVP Endpoint Unit Tests", () => {
       evtOverrides: Record<string, unknown> = {},
       kbOverrides: Record<string, unknown> = {},
       options: {
+        expectedIssuer?: string;
         expectedNonce?: string;
         expectedAudience?: string;
         clockSkewSeconds?: number;
         kbSigningKey?: crypto.KeyObject;
         evtSigningKey?: crypto.KeyObject;
         evtAlg?: string;
+        evtTyp?: string;
         kbAlg?: string;
         omitKbJwt?: boolean;
       } = {},
@@ -1081,7 +1082,7 @@ describe("EVP Endpoint Unit Tests", () => {
         {
           alg: options.evtAlg ?? "EdDSA",
           kid: PRIVATE_KEY_JWK.kid,
-          typ: "evt+jwt",
+          typ: options.evtTyp ?? "evt+jwt",
         },
         options.evtSigningKey ?? providerPrivateKey,
       );
@@ -1113,6 +1114,7 @@ describe("EVP Endpoint Unit Tests", () => {
       const verified = await verifyEvtAndKbJwt({
         rawToken,
         jwksKeys: [PUBLIC_KEY_JWK as jose.JWK],
+        expectedIssuer: options.expectedIssuer ?? ISSUER_ORIGIN,
         expectedNonce: options.expectedNonce ?? "demo-nonce",
         expectedAudience: options.expectedAudience ?? ISSUER_ORIGIN,
         clockSkewSeconds: options.clockSkewSeconds,
@@ -1143,36 +1145,34 @@ describe("EVP Endpoint Unit Tests", () => {
     // Test 3: Stale EVT token (too old) fails
     await expect(
       buildAndVerify({ iat: Math.floor(Date.now() / 1000) - 600, exp: Math.floor(Date.now() / 1000) + 100 }),
-    ).rejects.toThrow("Token is too old");
+    ).rejects.toThrow("JWT is too old");
 
-    // Test 4: Inconsistent timestamps (iat >= exp) fails
+    // Test 4: Future EVT iat beyond clock skew fails (and check iat >= exp when future)
     await expect(
       buildAndVerify({ iat: Math.floor(Date.now() / 1000) + 100, exp: Math.floor(Date.now() / 1000) + 50 }),
-    ).rejects.toThrow(/inconsistent|not yet valid/i);
+    ).rejects.toThrow(/not yet valid/i);
 
     // Test 5: Future EVT token fails
-    await expect(buildAndVerify({ iat: Math.floor(Date.now() / 1000) + 120 })).rejects.toThrow(/future|not yet valid/i);
+    await expect(buildAndVerify({ iat: Math.floor(Date.now() / 1000) + 120 })).rejects.toThrow(/not yet valid/i);
 
     // Test 6: Stale Key Binding JWT fails
     await expect(buildAndVerify({}, { iat: Math.floor(Date.now() / 1000) - 600 })).rejects.toThrow(
       "Key Binding JWT is too old",
     );
 
-    // Test 7: Mismatched cnf.jwk.alg vs KB-JWT header alg fails, while Ed25519 <-> EdDSA stays compatible
+    // Test 7: Mismatched cnf.jwk.alg / curve vs KB-JWT fails, while Ed25519 <-> EdDSA stays compatible
     await expect(buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "ES256" } } })).rejects.toThrow(
-      "does not match EVT cnf.jwk.alg",
+      /Invalid JWT Signature/i,
     );
     await expect(
       buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, crv: "Ed448", alg: "EdDSA" } } }),
-    ).rejects.toThrow("does not match EVT cnf.jwk.alg");
+    ).rejects.toThrow(/Invalid JWT Signature/i);
     await expect(
       buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "EdDSA" } } }, {}, { kbAlg: "Ed25519" }),
     ).resolves.toMatchObject({ email: DEMO_EMAIL });
     await expect(
       buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "Ed25519" } } }, {}, { kbAlg: "EdDSA" }),
     ).resolves.toMatchObject({ email: DEMO_EMAIL });
-    expect(isCompatibleKbAlgorithm("Ed25519", { kty: "OKP", crv: "Ed25519", alg: "EdDSA" })).toBe(true);
-    expect(isCompatibleKbAlgorithm("ES256", { kty: "EC", crv: "P-256", alg: "EdDSA" })).toBe(false);
 
     // Test 8: Mismatched KB-JWT nonce fails
     await expect(buildAndVerify({}, {}, { expectedNonce: "wrong-nonce" })).rejects.toThrow(/Invalid Nonce/i);
@@ -1191,12 +1191,21 @@ describe("EVP Endpoint Unit Tests", () => {
     await expect(buildAndVerify({}, { sd_hash: "AAAAAAAAAAAAAAAA" })).rejects.toThrow(/Invalid sd_hash/i);
 
     // Test 12: Missing KB-JWT fails
-    await expect(buildAndVerify({}, {}, { omitKbJwt: true })).rejects.toThrow(/Missing Key Binding JWT/i);
+    await expect(buildAndVerify({}, {}, { omitKbJwt: true })).rejects.toThrow(/Key Binding JWT/i);
 
     // Test 13: Disallowed algorithm fails
     await expect(
       buildAndVerify({}, {}, { evtAlg: "HS256", evtSigningKey: crypto.createSecretKey(Buffer.alloc(32)) }),
-    ).rejects.toThrow(/Unsupported or insecure/i);
+    ).rejects.toThrow(/Disallowed alg HS256/i);
+    await expect(
+      buildAndVerify({}, {}, { kbAlg: "HS256", kbSigningKey: crypto.createSecretKey(Buffer.alloc(32)) }),
+    ).rejects.toThrow(/Disallowed Key Binding alg HS256/i);
+
+    // Test 14: Wrong EVT issuer or typ fails
+    await expect(buildAndVerify({}, {}, { expectedIssuer: "https://other.example" })).rejects.toThrow(
+      /Invalid issuer/i,
+    );
+    await expect(buildAndVerify({}, {}, { evtTyp: "jwt" })).rejects.toThrow(/Invalid JWT Signature/i);
   });
 
   test("verifier DNS delegation and SSRF helpers enforce strict origin, hostname, IP, and size checks", async () => {
@@ -1210,7 +1219,7 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(isBareOrigin("https://rowan.fyi/path")).toBe(false);
     expect(isBareOrigin("https://user:pass@rowan.fyi")).toBe(false);
 
-    // 2. Strict DNS _email-verification iss= domain checks (IETF -02 Section 3.2 & Chrome 156)
+    // 2. Strict DNS _email-verification iss= domain checks (IETF draft-hardt-email-verification and Chrome 156+)
     expect(isValidDnsIssuerDomain("rowan.fyi")).toBe(true);
     expect(isValidDnsIssuerDomain("accounts.google.com")).toBe(true);
     expect(isValidDnsIssuerDomain(ISSUER_ORIGIN)).toBe(false);

@@ -7,17 +7,16 @@ Astro.response.headers.set(
 );
 
 import MetaOnlyLayout from "@/layouts/MetaOnlyLayout.astro";
+import { decodeSdJwtSync } from "@sd-jwt/core";
 import type { JWK } from "jose";
 import { randomUUID } from "node:crypto";
 import dns from "node:dns/promises";
 import {
-  ALLOWED_ASYMMETRIC_ALGS,
   isBareOrigin,
-  isCompatibleKbAlgorithm,
   isSafeIssuerUrl,
   isValidDnsIssuerDomain,
-  parseEvtSdJwt,
   readBoundedJson,
+  sdJwtHasher,
   verifyEvtAndKbJwt,
 } from "./_verifier";
 
@@ -122,7 +121,7 @@ if (Astro.request.method === "POST") {
 
       let decodedSdJwt;
       try {
-        decodedSdJwt = parseEvtSdJwt(rawToken);
+        decodedSdJwt = decodeSdJwtSync(rawToken, sdJwtHasher);
       } catch (e) {
         traceSteps[0].status = "failed";
         throw new Error(`Invalid token format: ${(e as Error).message}`, { cause: e });
@@ -203,22 +202,20 @@ if (Astro.request.method === "POST") {
         const records = await dns.resolveTxt(`_email-verification.${domain}`);
         traceSteps[2].outputReceived = { dnsTxtRecords: records };
 
-        for (const record of records) {
-          const txt = record.join("");
+        if (records.length === 1) {
+          const txt = records[0].join("");
           if (txt.startsWith("iss=")) {
             const delegatedValue = txt.substring(4).trim();
-            if (!isValidDnsIssuerDomain(delegatedValue)) {
-              continue;
-            }
-            const expectedIssuer = `https://${delegatedValue}`;
-            if (iss === expectedIssuer) {
-              isAuthoritative = true;
-              traceSteps[2].outputReceived = {
-                dnsTxtRecords: records,
-                derivedIssuerOrigin: expectedIssuer,
-                exactOriginMatch: true,
-              };
-              break;
+            if (isValidDnsIssuerDomain(delegatedValue)) {
+              const expectedIssuer = `https://${delegatedValue}`;
+              if (iss === expectedIssuer) {
+                isAuthoritative = true;
+                traceSteps[2].outputReceived = {
+                  dnsTxtRecords: records,
+                  derivedIssuerOrigin: expectedIssuer,
+                  exactOriginMatch: true,
+                };
+              }
             }
           }
         }
@@ -296,64 +293,55 @@ if (Astro.request.method === "POST") {
       // ==============================================================================
       // STEP 5 & 6: CRYPTOGRAPHIC VERIFICATION
       // ==============================================================================
-      const evtAlg = typeof decodedSdJwt.jwt.header.alg === "string" ? decodedSdJwt.jwt.header.alg : undefined;
-      const kbAlg = typeof decodedSdJwt.kbJwt?.header.alg === "string" ? decodedSdJwt.kbJwt.header.alg : undefined;
-
-      if (!evtAlg || !(ALLOWED_ASYMMETRIC_ALGS as readonly string[]).includes(evtAlg)) {
-        traceSteps[4].status = "failed";
-        throw new Error(`Security Exception: Unsupported or insecure EVT signing algorithm '${evtAlg || "none"}'.`);
-      }
-
-      if (!kbAlg || !(ALLOWED_ASYMMETRIC_ALGS as readonly string[]).includes(kbAlg)) {
-        traceSteps[5].status = "failed";
-        throw new Error(`Security Exception: Unsupported or insecure KB-JWT signing algorithm '${kbAlg || "none"}'.`);
-      }
-
-      const cnfJwk = evtJwtDecodedPayload.cnf?.jwk;
-      if (!isCompatibleKbAlgorithm(kbAlg, cnfJwk)) {
-        traceSteps[5].status = "failed";
-        throw new Error(
-          `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwk?.alg}').`,
-        );
-      }
-
-      traceSteps[4].inputSent = { signingAlg: evtAlg };
+      traceSteps[4].inputSent = { signingAlg: decodedSdJwt.jwt.header.alg };
       traceSteps[5].inputSent = {
         cnf: evtJwtDecodedPayload.cnf,
-        kbSigningAlg: kbAlg,
+        kbSigningAlg: decodedSdJwt.kbJwt.header.alg,
         expectedAudience,
         expectedNonce,
       };
 
       let verifiedEvtPayload: Record<string, unknown>;
       let verifiedKbPayload: Record<string, unknown>;
+      const evtClaimErrorCodes = new Set([
+        "JWT_EXPIRED",
+        "JWT_TOO_OLD",
+        "JWT_NOT_YET_VALID",
+        "MISSING_REQUIRED_CLAIMS",
+        "INVALID_ISSUER",
+      ]);
+      let issuerSigVerified = false;
 
       try {
         const verified = await verifyEvtAndKbJwt({
           rawToken,
-          decodedSdJwt,
           jwksKeys: jwksData.keys,
+          expectedIssuer: iss,
           expectedNonce,
           expectedAudience,
           onIssuerVerified: () => {
-            traceSteps[4].outputReceived = { cryptographicallyVerified: true };
-            traceSteps[4].status = "success";
+            issuerSigVerified = true;
           },
         });
         verifiedEvtPayload = verified.payload;
         verifiedKbPayload = verified.kbPayload;
 
+        traceSteps[4].outputReceived = { cryptographicallyVerified: true };
+        traceSteps[4].status = "success";
         traceSteps[5].outputReceived = {
           keyBindingPassed: true,
           holderVerification: "Holder Private Key possession verified.",
-          claimsVerified:
-            "EVT freshness (and optional expiration) and KB-JWT expiration and freshness claims successfully verified.",
+          claimsVerified: "EVT and KB-JWT signatures, nonce, audience, sd_hash, and freshness claims verified.",
         };
         traceSteps[5].status = "success";
       } catch (err) {
-        if (traceSteps[4].status !== "success") {
+        const errCode = (err as { code?: string })?.code;
+        const isEvtError = !issuerSigVerified || (typeof errCode === "string" && evtClaimErrorCodes.has(errCode));
+        if (isEvtError) {
           traceSteps[4].status = "failed";
         } else {
+          traceSteps[4].outputReceived = { cryptographicallyVerified: true };
+          traceSteps[4].status = "success";
           traceSteps[5].status = "failed";
         }
         throw new Error(`Cryptographic Verification Failed: ${(err as Error).message}`, { cause: err });
