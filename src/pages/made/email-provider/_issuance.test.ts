@@ -1,10 +1,12 @@
 import { describe, expect, test } from "vitest";
-import type { JsonWebKey as JWK } from "node:crypto";
+import type { JsonWebKeyInput } from "node:crypto";
 import crypto from "node:crypto";
 import type { APIContext } from "astro";
 import * as jose from "jose";
 import { createSignature, verifySignature } from "http-message-sig";
 import { PRIVATE_KEY_JWK, PUBLIC_KEY_JWK } from "./_keys";
+
+type JWK = JsonWebKeyInput["key"];
 
 async function signJwt(payload: Record<string, unknown>, header: jose.JWTHeaderParameters, keyInput: unknown) {
   let key: jose.CryptoKey | jose.KeyObject | Uint8Array;
@@ -35,6 +37,7 @@ import {
   isSafeIssuerUrl,
   isValidDnsIssuerDomain,
   readBoundedJson,
+  verifyEvtAndKbJwt,
 } from "../email-verification/_verifier";
 
 const DEMO_EMAIL = "demo@rowan.fyi";
@@ -98,7 +101,7 @@ async function generateSignatureHeaders({
   }
 
   const privateKeyObj = crypto.createPrivateKey({
-    key: privateKeyJwk as crypto.JsonWebKey,
+    key: privateKeyJwk as JWK,
     format: "jwk",
   });
 
@@ -172,7 +175,7 @@ describe("EVP Cryptographic Flow", () => {
         algorithm: "ed25519",
         verify: (data, signature) => {
           const pubKey = crypto.createPublicKey({
-            key: browserPublicKeyJwk as crypto.JsonWebKey,
+            key: browserPublicKeyJwk as JWK,
             format: "jwk",
           });
           isVerified = crypto.verify(undefined, data, pubKey, signature);
@@ -184,7 +187,7 @@ describe("EVP Cryptographic Flow", () => {
     expect(isVerified).toBe(true);
 
     // 4. Provider signs an Email Verification Token (EVT)
-    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as JWK, format: "jwk" });
     const evtPayload = {
       iss: ISSUER_ORIGIN,
       iat: Math.floor(Date.now() / 1000),
@@ -209,7 +212,7 @@ describe("EVP Cryptographic Flow", () => {
     const fullEvt = `${evtJwt}~`;
 
     // 5. Relying party verifies the EVT signature
-    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as JWK, format: "jwk" });
     const parsedEvt = fullEvt.split("~")[0];
     const { payload: verifiedEvt } = await verifyJwt(parsedEvt, providerPublicKey);
     expect(verifiedEvt.email.toLowerCase()).toBe(DEMO_EMAIL);
@@ -235,12 +238,12 @@ describe("EVP Cryptographic Flow", () => {
     );
 
     // 3. Provider validates the request token
-    const decodedHeader = crypto.createPublicKey({ key: browserJwkData as crypto.JsonWebKey, format: "jwk" });
+    const decodedHeader = crypto.createPublicKey({ key: browserJwkData as JWK, format: "jwk" });
     const { payload: requestPayload } = await verifyJwt(requestToken, decodedHeader);
     expect(requestPayload.email).toBe(DEMO_EMAIL);
 
     // 4. Provider signs an Email Verification Token (EVT)
-    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as JWK, format: "jwk" });
     const evtPayload = {
       iss: ISSUER_ORIGIN,
       iat: Math.floor(Date.now() / 1000),
@@ -265,7 +268,7 @@ describe("EVP Cryptographic Flow", () => {
     const fullEvt = `${evtJwt}~`;
 
     // 5. Relying party verifies the EVT signature
-    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as JWK, format: "jwk" });
     const parsedEvt = fullEvt.split("~")[0];
     const { payload: verifiedEvt } = await verifyJwt(parsedEvt, providerPublicKey);
     expect(verifiedEvt.email.toLowerCase()).toBe(DEMO_EMAIL);
@@ -581,7 +584,7 @@ describe("EVP Endpoint Unit Tests", () => {
     // C. Verify the issued token signature
     const evtJwt = data.issuance_token.split("~")[0];
     expect(jose.decodeProtectedHeader(evtJwt).alg).toBe("Ed25519");
-    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as JWK, format: "jwk" });
     const { payload } = await verifyJwt(evtJwt, providerPublicKey);
 
     expect(payload.email.toLowerCase()).toBe(DEMO_EMAIL);
@@ -774,7 +777,7 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(response.status).toBe(200);
     const data = (await response.json()) as { issuance_token: string };
     const evtJwt = data.issuance_token.split("~")[0];
-    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as JWK, format: "jwk" });
     const { payload } = await verifyJwt(evtJwt, providerPublicKey);
 
     expect(payload.email).toBe("DEMO@rowan.fyi");
@@ -822,7 +825,7 @@ describe("EVP Endpoint Unit Tests", () => {
 
     // C. Verify the issued token
     const evtJwt = data.issuance_token.split("~")[0];
-    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPublicKey = crypto.createPublicKey({ key: PUBLIC_KEY_JWK as JWK, format: "jwk" });
     const { payload } = await verifyJwt(evtJwt, providerPublicKey);
 
     expect(payload.email.toLowerCase()).toBe(DEMO_EMAIL);
@@ -967,7 +970,7 @@ describe("EVP Endpoint Unit Tests", () => {
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
 
     // 2. Sign EVT
-    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as JWK, format: "jwk" });
     const evtPayload = {
       iss: ISSUER_ORIGIN,
       iat: Math.floor(Date.now() / 1000),
@@ -1035,29 +1038,27 @@ describe("EVP Endpoint Unit Tests", () => {
   });
 
   test("cryptographically verifies rawToken and validates strict standard claims", async () => {
-    const { SDJwtInstance, decodeSdJwtSync } = await import("@sd-jwt/core");
-
     // 1. Generate keys
     const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+    const { privateKey: attackerPrivateKey } = crypto.generateKeyPairSync("ed25519");
     const browserPublicKeyJwk = publicKey.export({ format: "jwk" }) as JWK;
 
-    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as crypto.JsonWebKey, format: "jwk" });
+    const providerPrivateKey = crypto.createPrivateKey({ key: PRIVATE_KEY_JWK as JWK, format: "jwk" });
 
-    const hasher = (data: string | ArrayBuffer | Uint8Array, alg: string) => {
-      const input = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-      return new Uint8Array(
-        crypto
-          .createHash(alg === "sha-256" ? "sha256" : alg)
-          .update(input)
-          .digest(),
-      );
-    };
-
-    // Helper to build and verify a token with custom payloads
+    // Helper to build and verify a token via shared verifier
     const buildAndVerify = async (
-      evtOverrides = {},
-      kbOverrides = {},
-      options = { expectedNonce: "demo-nonce", expectedAudience: ISSUER_ORIGIN },
+      evtOverrides: Record<string, unknown> = {},
+      kbOverrides: Record<string, unknown> = {},
+      options: {
+        expectedNonce?: string;
+        expectedAudience?: string;
+        clockSkewSeconds?: number;
+        kbSigningKey?: crypto.KeyObject;
+        evtSigningKey?: crypto.KeyObject;
+        evtAlg?: string;
+        kbAlg?: string;
+        omitKbJwt?: boolean;
+      } = {},
     ) => {
       const evtPayload = {
         iss: ISSUER_ORIGIN,
@@ -1074,11 +1075,11 @@ describe("EVP Endpoint Unit Tests", () => {
       const evtJwt = await signJwt(
         evtPayload,
         {
-          alg: "EdDSA",
+          alg: options.evtAlg ?? "EdDSA",
           kid: PRIVATE_KEY_JWK.kid,
           typ: "evt+jwt",
         },
-        providerPrivateKey,
+        options.evtSigningKey ?? providerPrivateKey,
       );
 
       const sdJwtPortion = `${evtJwt}~`;
@@ -1092,143 +1093,28 @@ describe("EVP Endpoint Unit Tests", () => {
         ...kbOverrides,
       };
 
-      const kbJwt = await signJwt(
-        kbPayload,
-        {
-          alg: "Ed25519",
-          typ: "kb+jwt",
-        },
-        privateKey,
-      );
+      const kbJwt = options.omitKbJwt
+        ? ""
+        : await signJwt(
+            kbPayload,
+            {
+              alg: options.kbAlg ?? "Ed25519",
+              typ: "kb+jwt",
+            },
+            options.kbSigningKey ?? privateKey,
+          );
 
       const rawToken = `${sdJwtPortion}${kbJwt}`;
 
-      // Verification logic from index.astro
-      const decodedSdJwt = decodeSdJwtSync(rawToken, hasher);
-      const evtAlg = decodedSdJwt.jwt.header.alg as string | undefined;
-      const kbAlg = decodedSdJwt.kbJwt?.header.alg as string | undefined;
-      const allowedAsymmetricAlgs = ["Ed25519", "EdDSA", "ES256"];
-
-      if (!evtAlg || !allowedAsymmetricAlgs.includes(evtAlg)) {
-        throw new Error(`Security Exception: Unsupported or insecure EVT signing algorithm '${evtAlg || "none"}'.`);
-      }
-
-      if (!kbAlg || !allowedAsymmetricAlgs.includes(kbAlg)) {
-        throw new Error(`Security Exception: Unsupported or insecure KB-JWT signing algorithm '${kbAlg || "none"}'.`);
-      }
-
-      const cnfJwkAlg = (
-        (decodedSdJwt.jwt.payload as { cnf?: { jwk?: { alg?: string } } }).cnf?.jwk as { alg?: string } | undefined
-      )?.alg;
-      if (cnfJwkAlg && kbAlg !== cnfJwkAlg) {
-        throw new Error(
-          `Security Exception: KB-JWT signing algorithm ('${kbAlg}') does not match EVT cnf.jwk.alg ('${cnfJwkAlg}').`,
-        );
-      }
-
-      const sdJwt = new SDJwtInstance({ hasher });
-      sdJwt.config({
-        hasher,
-        verifier: async (data, sig) => {
-          const token = `${data}.${sig}`;
-          const headerAlg = evtAlg;
-          const kid = decodedSdJwt.jwt.header.kid as string | undefined;
-          const jwksKeys = [PUBLIC_KEY_JWK];
-          // Filter keys by kid if present. If kid is missing (e.g., GMail), trial-verify using all keys.
-          const keysToTry = kid ? jwksKeys.filter((k: { kid?: string }) => k.kid === kid) : jwksKeys;
-
-          for (const jwk of keysToTry) {
-            try {
-              const pubKey = await jose.importJWK(jwk as jose.JWK, (jwk as { alg?: string }).alg || headerAlg);
-              await jose.compactVerify(token, pubKey);
-              return true;
-            } catch {
-              continue;
-            }
-          }
-          return false;
-        },
-        kbVerifier: async (data, sig) => {
-          try {
-            const browserJwkKey = (decodedSdJwt.jwt.payload as { cnf?: { jwk?: crypto.JsonWebKey } }).cnf?.jwk;
-            if (!browserJwkKey) throw new Error("Missing browser ephemeral public key.");
-            const pubKey = await jose.importJWK(
-              browserJwkKey as jose.JWK,
-              (decodedSdJwt.kbJwt?.header.alg as string | undefined) || "ES256",
-            );
-            await jose.compactVerify(`${data}.${sig}`, pubKey);
-            return true;
-          } catch {
-            return false;
-          }
-        },
+      const verified = await verifyEvtAndKbJwt({
+        rawToken,
+        jwksKeys: [PUBLIC_KEY_JWK as jose.JWK],
+        expectedNonce: options.expectedNonce ?? "demo-nonce",
+        expectedAudience: options.expectedAudience ?? ISSUER_ORIGIN,
+        clockSkewSeconds: options.clockSkewSeconds,
       });
 
-      const result = await sdJwt.verify(rawToken, {
-        kb: {
-          expectedNonce: options.expectedNonce,
-          expectedAudience: options.expectedAudience,
-          required: true,
-        },
-      });
-
-      const verifiedEvtPayload = result.payload as { exp?: number; iat?: number; email?: string };
-      const currentTime = Math.floor(Date.now() / 1000);
-      const tokenExp = verifiedEvtPayload.exp as number | undefined;
-      const tokenIat = verifiedEvtPayload.iat as number | undefined;
-
-      // If expiration is present, verify the token is not expired and is consistent with iat
-      if (tokenExp) {
-        if (currentTime > tokenExp) {
-          throw new Error(
-            `Security Exception: The token has expired. Current time is ${currentTime}, but token expired at ${tokenExp}.`,
-          );
-        }
-        if (tokenIat && tokenIat >= tokenExp) {
-          throw new Error(
-            `Security Exception: Token timestamps are inconsistent. Issued at (iat) is ${tokenIat}, but expires at (exp) is ${tokenExp}.`,
-          );
-        }
-      }
-
-      if (!tokenIat) {
-        throw new Error("Security Exception: EVT is missing the required issued-at ('iat') claim.");
-      }
-
-      const tokenAge = currentTime - tokenIat;
-      const fiveMinutes = 300;
-      if (tokenAge > fiveMinutes) {
-        throw new Error(
-          `Security Exception: Token is too old. Token was issued at ${tokenIat} (${tokenAge} seconds ago), which exceeds the 5-minute freshness limit.`,
-        );
-      }
-      if (tokenAge < -60) {
-        throw new Error(
-          `Security Exception: Token has an invalid future issuance timestamp. Issued at (iat) is ${tokenIat}, but current time is ${currentTime}.`,
-        );
-      }
-
-      if (!decodedSdJwt.kbJwt) {
-        throw new Error("Security Exception: Missing Key Binding JWT.");
-      }
-      const kbJwtPayload = decodedSdJwt.kbJwt.payload;
-      const kbIat = kbJwtPayload.iat as number | undefined;
-      if (!kbIat) {
-        throw new Error("Security Exception: KB-JWT is missing the required issued-at ('iat') claim.");
-      }
-      const kbAge = currentTime - kbIat;
-      if (kbAge > fiveMinutes) {
-        throw new Error(
-          `Security Exception: Key Binding JWT is too old. It was issued at ${kbIat} (${kbAge} seconds ago), which exceeds the 5-minute freshness limit.`,
-        );
-      }
-      if (kbAge < -60) {
-        throw new Error(
-          `Security Exception: Key Binding JWT has an invalid future issuance timestamp. Issued at is ${kbIat}, but current time is ${currentTime}.`,
-        );
-      }
-
-      return verifiedEvtPayload;
+      return verified.payload as { exp?: number; iat?: number; email?: string };
     };
 
     // Test 1: Valid token verification succeeds
@@ -1240,8 +1126,15 @@ describe("EVP Endpoint Unit Tests", () => {
     expect(payloadNoExp.email).toBe(DEMO_EMAIL);
     expect(payloadNoExp.exp).toBeUndefined();
 
-    // Test 2: Expired token verification fails
-    await expect(buildAndVerify({ exp: Math.floor(Date.now() / 1000) - 10 })).rejects.toThrow("expired");
+    // Test 2: Expired token verification fails (exact boundary with 0 skew, and beyond default 60s skew)
+    const now = Math.floor(Date.now() / 1000);
+    await expect(buildAndVerify({ iat: now - 100, exp: now - 10 }, {}, { clockSkewSeconds: 0 })).rejects.toThrow(
+      "expired",
+    );
+    await expect(buildAndVerify({ iat: now - 100, exp: now - 10 })).resolves.toMatchObject({
+      email: DEMO_EMAIL,
+    });
+    await expect(buildAndVerify({ iat: now - 200, exp: now - 120 })).rejects.toThrow("expired");
 
     // Test 3: Stale EVT token (too old) fails
     await expect(
@@ -1265,6 +1158,30 @@ describe("EVP Endpoint Unit Tests", () => {
     await expect(buildAndVerify({ cnf: { jwk: { ...browserPublicKeyJwk, alg: "ES256" } } })).rejects.toThrow(
       "does not match EVT cnf.jwk.alg",
     );
+
+    // Test 8: Mismatched KB-JWT nonce fails
+    await expect(buildAndVerify({}, {}, { expectedNonce: "wrong-nonce" })).rejects.toThrow(/Invalid Nonce/i);
+
+    // Test 9: Mismatched KB-JWT audience fails
+    await expect(buildAndVerify({}, {}, { expectedAudience: "https://evil.example" })).rejects.toThrow(
+      /Invalid Key Binding audience/i,
+    );
+
+    // Test 10: Wrong holder private key signature on KB-JWT fails
+    await expect(buildAndVerify({}, {}, { kbSigningKey: attackerPrivateKey })).rejects.toThrow(
+      /Invalid JWT Signature/i,
+    );
+
+    // Test 11: Tampered sd_hash in KB-JWT fails
+    await expect(buildAndVerify({}, { sd_hash: "AAAAAAAAAAAAAAAA" })).rejects.toThrow(/Invalid sd_hash/i);
+
+    // Test 12: Missing KB-JWT fails
+    await expect(buildAndVerify({}, {}, { omitKbJwt: true })).rejects.toThrow(/Missing Key Binding JWT/i);
+
+    // Test 13: Disallowed algorithm fails
+    await expect(
+      buildAndVerify({}, {}, { evtAlg: "HS256", evtSigningKey: crypto.createSecretKey(Buffer.alloc(32)) }),
+    ).rejects.toThrow(/Unsupported or insecure/i);
   });
 
   test("verifier DNS delegation and SSRF helpers enforce strict origin, hostname, IP, and size checks", async () => {

@@ -1,5 +1,9 @@
+.astro
+.firebase
 .git
 .github
+coverage
 dev.log
 dist
 node_modules
+tmp

@@ -49,6 +49,6 @@ npm run check
 If you add new dependencies, make sure you run a full install and commit the lock file.
 
 ```bash
-npm run i
+npm i
 git add package.json package-lock.json
 ```

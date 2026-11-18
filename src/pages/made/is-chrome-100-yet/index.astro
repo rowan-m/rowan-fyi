@@ -77,7 +77,7 @@ import hundredImg from "./assets/hundred.png";
     document.querySelector(".user-agent-string").textContent = navigator.userAgent;
 
     const chromeUAs =
-      /^Mozilla\/5\.0 \([^)]+\) AppleWebKit\/(?:\d+\.)*\d+ \(KHTML, like Gecko\) C(?:hrome|riOS)\/(?<major>\d+)(?:\.\d+)*(?: Mobile)?(?:\/15E148)? Safari\/(?:\d+\.)*\d+$/;
+      /^Mozilla\/5\.0 \([^)]+\) AppleWebKit\/[\d.]+ \(KHTML, like Gecko\) C(?:hrome|riOS)\/(?<major>\d+)\.[\d.]+(?: Mobile)?(?:\/15E148)? Safari\/[\d.]+$/;
     const matched = chromeUAs.exec(navigator.userAgent);
 
     if (matched) {

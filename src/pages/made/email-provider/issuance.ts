@@ -183,7 +183,7 @@ async function verifyRequestSignature(
           verify: (data: Uint8Array, signature: Uint8Array) => {
             try {
               const publicKey = crypto.createPublicKey({
-                key: browserJwk as crypto.JsonWebKey,
+                key: browserJwk as crypto.JsonWebKeyInput["key"],
                 format: "jwk",
               });
               return crypto.verify(undefined, data, publicKey, signature);

@@ -97,14 +97,26 @@ function exemptEndpointsFromTrailingSlash() {
                 },
                 transform(code, id) {
                   if (id.includes("@astrojs/node") && id.endsWith("serve-static.js")) {
+                    const target = "if (!hasSlash && !hasFileExtension(urlPath) && !isInternalPath(urlPath))";
+                    if (!code.includes(target)) {
+                      throw new Error(
+                        "exemptEndpointsFromTrailingSlash: expected pattern not found in @astrojs/node serve-static.js",
+                      );
+                    }
                     return code.replace(
-                      "if (!hasSlash && !hasFileExtension(urlPath) && !isInternalPath(urlPath))",
+                      target,
                       `if (!hasSlash && !hasFileExtension(urlPath) && !isInternalPath(urlPath) && !${JSON.stringify([...endpointPaths])}.includes(urlPath))`,
                     );
                   }
                   if (id.includes("astro") && id.endsWith("trailing-slash-handler.js")) {
+                    const target = "function handleTrailingSlash(state) {";
+                    if (!code.includes(target)) {
+                      throw new Error(
+                        "exemptEndpointsFromTrailingSlash: expected pattern not found in astro trailing-slash-handler.js",
+                      );
+                    }
                     return code.replace(
-                      "function handleTrailingSlash(state) {",
+                      target,
                       'function handleTrailingSlash(state) { if (state.routeData?.type === "endpoint") return void 0;',
                     );
                   }

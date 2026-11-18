@@ -6,7 +6,7 @@ Welcome, Agent. You are operating as a Senior Software Engineer contributing to 
 
 ## 🏗 Architecture & Tech Stack
 
-- **Framework:** [Astro 6+](https://astro.build/) configured with the `@astrojs/node` adapter (`standalone` mode).
+- **Framework:** [Astro 7+](https://astro.build/) configured with the `@astrojs/node` adapter (`standalone` mode).
 - **Runtime:** Node.js 22 (Strictly enforced in CI/CD).
 - **Content:** Markdown/MDX managed via Astro Content Collections (`src/content/`).
 - **Styling:** Vanilla CSS is strictly preferred. Do not introduce large CSS frameworks (Tailwind, Bootstrap, etc.) unless explicitly commanded.

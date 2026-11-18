@@ -101,15 +101,22 @@ export function findPostForSlug(slug: string, posts: PostSummary[]): PostSummary
   });
 }
 
+export function normalizeMadeImageGlob(
+  rawImages: Record<string, { default: ImageMetadata }>,
+): Record<string, { default: ImageMetadata }> {
+  const normalizedImages: Record<string, { default: ImageMetadata }> = {};
+  for (const [key, mod] of Object.entries(rawImages)) {
+    normalizedImages[key.replace(/^(?:\.\.\/pages\/made\/|\.\/made\/)/, "./")] = mod;
+  }
+  return normalizedImages;
+}
+
 export function buildProjectList(
   rawSources: Record<string, string>,
   localImages: Record<string, { default: ImageMetadata }>,
   posts: PostSummary[],
 ): ProjectEntry[] {
-  const normalizedImages: Record<string, { default: ImageMetadata }> = {};
-  for (const [key, mod] of Object.entries(localImages)) {
-    normalizedImages[key.replace(/^\.\/made\//, "./")] = mod;
-  }
+  const normalizedImages = normalizeMadeImageGlob(localImages);
 
   const projects: ProjectEntry[] = [];
   for (const [filePath, source] of Object.entries(rawSources)) {

@@ -6,6 +6,7 @@ import {
   extractMadeSlugFromPath,
   extractProjectMeta,
   findPostForSlug,
+  normalizeMadeImageGlob,
   selectProjectImage,
 } from "./_projects";
 
@@ -200,5 +201,24 @@ describe("buildFeedList", () => {
 
     expect(feed.map((item) => item.href)).toEqual(["/posts/newer-post/", "/made/older-demo/"]);
     expect(feed[1].image).toBe(previewImg);
+  });
+});
+
+describe("normalizeMadeImageGlob", () => {
+  it("normalizes ../pages/made/ and ./made/ prefixes to ./", () => {
+    const imgA = makeImage("/a.png");
+    const imgB = makeImage("/b.png");
+    const imgC = makeImage("/c.png");
+    expect(
+      normalizeMadeImageGlob({
+        "../pages/made/alpha/preview.png": { default: imgA },
+        "./made/beta/preview.png": { default: imgB },
+        "./gamma/preview.png": { default: imgC },
+      }),
+    ).toEqual({
+      "./alpha/preview.png": { default: imgA },
+      "./beta/preview.png": { default: imgB },
+      "./gamma/preview.png": { default: imgC },
+    });
   });
 });
