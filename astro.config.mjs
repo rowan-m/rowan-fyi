@@ -1,11 +1,15 @@
 // @ts-check
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import node from "@astrojs/node";
 import remarkMath from "remark-math";
 import rehypeMathjax from "rehype-mathjax";
 import { unified } from "@astrojs/markdown-remark";
+
+const SRC_DIR = path.resolve(fileURLToPath(new URL("./src", import.meta.url))) + path.sep;
 
 /**
  * Checks whether a bare module specifier imported in an `.astro` file during
@@ -17,9 +21,15 @@ import { unified } from "@astrojs/markdown-remark";
  * @returns {boolean}
  */
 function isClientSideInlineImport(id, astroFilePath) {
+  const resolvedPath = path.resolve(astroFilePath);
+  if (!resolvedPath.startsWith(SRC_DIR) || !resolvedPath.endsWith(".astro")) {
+    return false;
+  }
+
   let source;
   try {
-    source = fs.readFileSync(astroFilePath, "utf-8");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- constrained to local .astro files under src/
+    source = fs.readFileSync(resolvedPath, "utf-8");
   } catch {
     return false;
   }
