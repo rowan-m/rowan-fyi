@@ -2,7 +2,12 @@
 import { getCollection } from "astro:content";
 import type { ImageMetadata } from "astro";
 import CommonMeta from "@/components/CommonMeta.astro";
-import { extractMadeSlugFromPath, findPostForSlug, selectProjectImage } from "@/pages/made/_projects";
+import {
+  extractMadeSlugFromPath,
+  findPostForSlug,
+  normalizeMadeImageGlob,
+  selectProjectImage,
+} from "@/pages/made/_projects";
 
 interface Props {
   title: string;
@@ -16,10 +21,7 @@ const { title, description, pubDate, image, imageAlt } = Astro.props;
 const rawLocalImages = import.meta.glob<{ default: ImageMetadata }>("../pages/made/**/*.{png,jpg,jpeg,webp,gif}", {
   eager: true,
 });
-const localImages: Record<string, { default: ImageMetadata }> = {};
-for (const [key, mod] of Object.entries(rawLocalImages)) {
-  localImages[key.replace(/^\.\.\/pages\/made\//, "./")] = mod;
-}
+const localImages = normalizeMadeImageGlob(rawLocalImages);
 
 const slug = extractMadeSlugFromPath(Astro.url.pathname);
 const matchingPost = slug ? findPostForSlug(slug, await getCollection("posts")) : undefined;

@@ -6,7 +6,8 @@ export default getViteConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: ["src/content.config.ts"],
+      include: ["src/**/*.ts"],
+      exclude: ["src/**/*.test.ts", "src/**/*.d.ts"],
     },
   },
 });
